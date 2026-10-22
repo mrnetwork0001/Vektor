@@ -48,6 +48,23 @@ async function rpc(method: string, params: unknown[]): Promise<string> {
   const j = await r.json(); if (j.error) throw new Error(j.error.message); return j.result;
 }
 type Bal = { qty: number; gas?: number; note?: string };
+
+/** Make the EVM wallet sit on Ethereum mainnet (switch, or add+switch), else throw. */
+export async function ensureEthereumMainnet(api: any): Promise<void> {
+  const want = "0x1";
+  const cur: string = await api.request({ method: "eth_chainId" });
+  if (cur === want) return;
+  try {
+    await api.request({ method: "wallet_switchEthereumChain", params: [{ chainId: want }] });
+  } catch (e: any) {
+    if (e?.code === 4902 || /unrecognized|not added|4902/i.test(String(e?.message))) {
+      await api.request({ method: "wallet_addEthereumChain", params: [{ chainId: want, chainName: "Ethereum Mainnet", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, rpcUrls: ["https://ethereum-rpc.publicnode.com"], blockExplorerUrls: ["https://etherscan.io"] }] });
+      await api.request({ method: "wallet_switchEthereumChain", params: [{ chainId: want }] });
+    } else throw new Error(`Switch your wallet to Ethereum mainnet first (${e?.message ?? "switch rejected"})`);
+  }
+  const after: string = await api.request({ method: "eth_chainId" });
+  if (after !== want) throw new Error("Wallet is still not on Ethereum mainnet - deposit cancelled to protect your funds");
+}
 async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promise<Bal | { error: string }> {
   try {
     if (wallet.chain === "ethereum") {
@@ -60,7 +77,7 @@ async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promis
         try {
           const chainId: string = await wallet.api.request({ method: "eth_chainId" });
           if (chainId === "0x1") call = (m, p) => wallet.api.request({ method: m, params: p });
-          else note = `wallet is on chain ${parseInt(chainId, 16)} - switch it to Ethereum mainnet before depositing`;
+          else note = `wallet is on chain ${parseInt(chainId, 16)} - it will be asked to switch to Ethereum mainnet when you deposit`;
         } catch { /* use public RPC */ }
       }
       const gas = Number(BigInt(await call("eth_getBalance", [addr, "latest"]))) / 1e18;
@@ -147,6 +164,8 @@ export function DepositPanel({ wallet }: Props) {
     setError(""); setLoading(true);
     try {
       if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
+      setSignStatus("Checking the wallet is on Ethereum mainnet…");
+      await ensureEthereumMainnet(wallet.api);
       const send = (tx: any) => wallet.api.request({ method: "eth_sendTransaction", params: [{ from: tx.from ?? wallet.address, to: tx.to, data: tx.data, value: tx.value ?? "0x0", ...(tx.gas ? { gas: tx.gas } : {}) }] }) as Promise<string>;
       if (evmApproval) {
         setSignStatus("1/2 Approve USDC spend in your wallet…");
