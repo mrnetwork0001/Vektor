@@ -125,7 +125,7 @@ export function formatSizeForApi(value: number, basePrec: number): string {
 }
 
 /**
- * Round half-to-even ("banker's rounding") to `decimals` places — the rounding
+ * Round half-to-even ("banker's rounding") to `decimals` places - the rounding
  * the backend applies to derived values at the market's quote_prec.
  * Float-based approximation for display; use a decimal library for exact work.
  * @example roundHalfEven(2.345, 2) -> 2.34   roundHalfEven(2.355, 2) -> 2.36

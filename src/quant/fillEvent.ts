@@ -1,4 +1,4 @@
-// Maps a user-stream ORDER_TRADE_UPDATE to the engine's FillEvent. No browser deps — shared by the terminal and the worker.
+// Maps a user-stream ORDER_TRADE_UPDATE to the engine's FillEvent. No browser deps - shared by the terminal and the worker.
 
 import type { OrderTradeUpdateData } from "../types/ws";
 import type { FillEvent } from "./types";

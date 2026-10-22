@@ -1,12 +1,12 @@
-# ⚡ Vektor — CLOB Grid Studio, Funding Harvester & Liquidation Shield for Strike Finance V2
+# ⚡ Vektor - CLOB Grid Studio, Funding Harvester & Liquidation Shield for Strike Finance V2
 
 Built for the Strike Finance 48-hour hackathon. Three quant engines on top of Strike V2's CLOB, Ed25519 API wallets and Builder Codes, with a demo mode that runs the exact same engines against an in-browser matching engine so judges can watch it work in 30 seconds.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 — landing page; "Launch App" opens /app.html in DEMO mode, no wallet needed
+npm run dev        # http://localhost:5173 - landing page; "Launch App" opens /app.html in DEMO mode, no wallet needed
 npm test           # 29 tests: engines, backtester, simulator, full app smoke test
-npm run build      # dist/index.html (landing) + dist/app.html (terminal) — deploy the dist/ folder as-is
+npm run build      # dist/index.html (landing) + dist/app.html (terminal) - deploy the dist/ folder as-is
 ```
 
 Switch to **Live** in the sidebar to trade on Strike testnet (`api-v2-testnet.strikefinance.org`, the default in `src/api/config.ts`). Copy `.env.example` to `.env` to point at mainnet or set your builder code.
@@ -16,24 +16,24 @@ Switch to **Live** in the sidebar to trade on Strike testnet (`api-v2-testnet.st
 | Module | What it does | Strike surface |
 |---|---|---|
 | **Grid Studio** | Visual neutral grid (geometric or arithmetic, 4–60 levels). Buys rest below the mark, sells above, the level nearest the mark stays empty. Every rung is a post-only GTC limit placed in one `POST /v2/orders/batch`. When a rung fills, the counter take-profit is placed one rung away **for the filled quantity**; when the take-profit fills the entry is re-armed. Net profit per round trip is shown after maker fees *and* the builder fee. Whale-wall radar + VWAP slippage probe on the live top-20 book. | `/v2/orders/batch`, `/price/v2/depth` + `@depth` diffs, user stream `ORDER_TRADE_UPDATE` |
-| **Funding Harvester** | Ranks every market by annualised funding (`hourly rate × 24 × 365` — Strike funds **hourly**). Sizes a 1:1 perp hedge against spot held in the user's own wallet, estimates the hedge's liquidation price from the market's **margin tiers**, and enters in IOC limit slices that carry the builder fee (Strike's TWAP endpoint drops it). Rule C unwinds the hedge after 3 consecutive adverse funding hours. | `/price/v2/premiumIndex`, `!markPrice@arr`, `/v2/orders/batch` |
+| **Funding Harvester** | Ranks every market by annualised funding (`hourly rate × 24 × 365` - Strike funds **hourly**). Sizes a 1:1 perp hedge against spot held in the user's own wallet, estimates the hedge's liquidation price from the market's **margin tiers**, and enters in IOC limit slices that carry the builder fee (Strike's TWAP endpoint drops it). Rule C unwinds the hedge after 3 consecutive adverse funding hours. | `/price/v2/premiumIndex`, `!markPrice@arr`, `/v2/orders/batch` |
 | **Aegis Shield** | Computes distance-to-liquidation for every open position from the reference `src/math` formulas. Rule A (< 8%): cancel resting buy rungs to free margin. Rule B (< 5%): reduce-only market trim of 25%, with a per-symbol cooldown and a pending-trim flag so it never fires twice for one episode. Panic button cancels everything and flattens with `close_position` orders. | `/v2/order/cancel`, `/v2/order/cancel-all`, reduce-only `POST /v2/order` |
 
 The header shows builder-code telemetry: volume routed, fills, and cumulative `X-Builder-Fee-Bps` revenue.
 
 ## What makes it stand out
 
-- **Backtest before you deploy** — the exact range you drew is replayed over 24h / 7d / 30d of *mainnet* candles through the same matching engine and grid code as the live grid. Net PnL after builder fee, annualised return, max drawdown, time-in-range, equity curve.
-- **Smart range** — ATR(14)-based range and a level count that clears Strike's fee floor (`spacing > mid × (maker + taker)`), one click to apply.
-- **Reconcile after reload** — live grids persist locally (no secrets) and are rebuilt from `GET /v2/openOrders` by client-ID prefix on reconnect; rungs that filled or were cancelled while away are dropped.
-- **Head-to-head vs Strike's native grid bot** — same range, same candles: Vektor (geometric, builder fee) vs `/v2/grid/bot` (arithmetic, no builder code). In live mode you can launch the native bot with the same parameters and watch both.
-- **Liquidity heatmap** — Bookmap-style time × price × resting notional from the top-20 book, with the mark overlaid.
-- **Browser alerts** — shield warnings/trims and grid round trips notify even when the tab is in the background.
-- **Multi-symbol grids** — one grid per market, all shielded, listed in the sidebar with per-grid PnL and builder fees.
+- **Backtest before you deploy** - the exact range you drew is replayed over 24h / 7d / 30d of *mainnet* candles through the same matching engine and grid code as the live grid. Net PnL after builder fee, annualised return, max drawdown, time-in-range, equity curve.
+- **Smart range** - ATR(14)-based range and a level count that clears Strike's fee floor (`spacing > mid × (maker + taker)`), one click to apply.
+- **Reconcile after reload** - live grids persist locally (no secrets) and are rebuilt from `GET /v2/openOrders` by client-ID prefix on reconnect; rungs that filled or were cancelled while away are dropped.
+- **Head-to-head vs Strike's native grid bot** - same range, same candles: Vektor (geometric, builder fee) vs `/v2/grid/bot` (arithmetic, no builder code). In live mode you can launch the native bot with the same parameters and watch both.
+- **Liquidity heatmap** - Bookmap-style time × price × resting notional from the top-20 book, with the mark overlaid.
+- **Browser alerts** - shield warnings/trims and grid round trips notify even when the tab is in the background.
+- **Multi-symbol grids** - one grid per market, all shielded, listed in the sidebar with per-grid PnL and builder fees.
 
 ## Why not just use Strike's native grid bot?
 
-`POST /v2/grid/bot` exists and is used for comparison, but it **ignores `X-Builder-Fee-Bps`** (grid orders carry no builder code), is arithmetic-only, and can't be shielded from the client. Vektor's grid runs through the batch endpoint so every fill is attributed and paid to the builder — that's the business model.
+`POST /v2/grid/bot` exists and is used for comparison, but it **ignores `X-Builder-Fee-Bps`** (grid orders carry no builder code), is arithmetic-only, and can't be shielded from the client. Vektor's grid runs through the batch endpoint so every fill is attributed and paid to the builder - that's the business model.
 
 ## Architecture
 
@@ -46,7 +46,7 @@ src/
     whaleRadar.ts         analyzeDepth · slippageForSize
     backtest.ts           runGridBacktest (candles → SimExchange + gridEngine) · parseKlines
     rangeSuggest.ts       atr · suggestRange
-    types.ts              ExecutionAdapter — the seam between engines and the exchange
+    types.ts              ExecutionAdapter - the seam between engines and the exchange
   sim/                    demo mode
     simExchange.ts        in-memory matching engine implementing ExecutionAdapter (post-only rejects, reduce-only clamps, fees, isolated liquidations)
     priceSim.ts           deterministic price process + scenarios (flash crash, squeeze, trends) + synthetic book with whale walls
@@ -66,7 +66,7 @@ vendor/                   upstream strike-builder-reference and strike-finance-s
 - Funding is **hourly** at HH:00 UTC; `r` on `markPriceUpdate` is the hourly rate. Positive = longs pay shorts.
 - Signature message `{METHOD}:{PATH}:{TIMESTAMP}:{NONCE}:{BODY_HASH}`; an empty body still hashes (`e3b0c4…`).
 - `/v2/orders/batch`, `/v2/order/strategy`, `/v2/orders/replace` honour `X-Builder-Fee-Bps`; `/v2/order/replace`, TWAP, grid bot and copy-trading do not.
-- Writes are async: `201 pending` means sequenced, not filled. Rejections (e.g. `order_would_match_immediately`) arrive on the user stream — the grid engine handles `CANCELED`/`REJECTED`/`EXPIRED` by freeing the rung.
+- Writes are async: `201 pending` means sequenced, not filled. Rejections (e.g. `order_would_match_immediately`) arrive on the user stream - the grid engine handles `CANCELED`/`REJECTED`/`EXPIRED` by freeing the rung.
 - Testnet tier-0 fees: maker 0, taker 0.05%.
 
 ## Verify it yourself
@@ -77,16 +77,16 @@ vendor/                   upstream strike-builder-reference and strike-finance-s
 
 | Feature | Where | Status |
 |---|---|---|
-| **Funding-aware skew** — rung sizes tilt so accumulated inventory sits on the side that *receives* hourly funding; Σ notional preserved | Grid card toggle · `gridEngine.ts` | engine + sim + live |
-| **Per-rung brackets** — each entry is a `POST /v2/order/strategy` with a stop leg; builder fee on both legs; stop fill retires the rung | Grid card slider | engine + sim + live |
-| **Auto-shift (trailing)** — breakout or edge-dwell → re-centre in one `POST /v2/orders/replace`; inventory carried as exit rungs | "Running grid" toggle | engine + sim + live |
-| **L3 spoof & iceberg radar** — order-level feed (`/ws/l3`, verified ADA + BTC on mainnet), spoof/iceberg signals, wall reliability | Grid tab (Live) | live only |
-| **Regime guard** — Fear & Greed + OI shock + 24h range + funding → RUN / WIDEN / PAUSE; counters held while PAUSE | Sidebar panel | both modes |
-| **Run as vault** — `vault_id` on every grid order; vault list/create/perf panel; builder fee is checked on the leader | Live sidebar · `docs/VAULTS.md` | prototype: deploy path wired, vault user-stream fills **not** yet (see INTEGRATION-vault.md) |
-| **Agent skill + CLI** — `skills/vektor-grid/SKILL.md`, `npm run cli -- plan|backtest|smart-range|deploy|status|stop|panic|fills` | `cli/` | verified vs mainnet |
+| **Funding-aware skew** - rung sizes tilt so accumulated inventory sits on the side that *receives* hourly funding; Σ notional preserved | Grid card toggle · `gridEngine.ts` | engine + sim + live |
+| **Per-rung brackets** - each entry is a `POST /v2/order/strategy` with a stop leg; builder fee on both legs; stop fill retires the rung | Grid card slider | engine + sim + live |
+| **Auto-shift (trailing)** - breakout or edge-dwell → re-centre in one `POST /v2/orders/replace`; inventory carried as exit rungs | "Running grid" toggle | engine + sim + live |
+| **L3 spoof & iceberg radar** - order-level feed (`/ws/l3`, verified ADA + BTC on mainnet), spoof/iceberg signals, wall reliability | Grid tab (Live) | live only |
+| **Regime guard** - Fear & Greed + OI shock + 24h range + funding → RUN / WIDEN / PAUSE; counters held while PAUSE | Sidebar panel | both modes |
+| **Run as vault** - `vault_id` on every grid order; vault list/create/perf panel; builder fee is checked on the leader | Live sidebar · `docs/VAULTS.md` | prototype: deploy path wired, vault user-stream fills **not** yet (see INTEGRATION-vault.md) |
+| **Agent skill + CLI** - `skills/vektor-grid/SKILL.md`, `npm run cli -- plan|backtest|smart-range|deploy|status|stop|panic|fills` | `cli/` | verified vs mainnet |
 | **Public proof page** | `/proof.html` | verified vs mainnet |
 
-Not yet in the headless worker: brackets (`placeStrategy`), auto-shift, regime guard — the hook has them, the worker runs plain grids + shield.
+Not yet in the headless worker: brackets (`placeStrategy`), auto-shift, regime guard - the hook has them, the worker runs plain grids + shield.
 
 ## Roadmap
 
@@ -101,7 +101,7 @@ Full version with the honest prototype list: [SUBMISSION.md](SUBMISSION.md).
 
 ## For judges: the 45-second tour
 
-Click **▶ Judge tour** in the header. It switches to Demo, deploys a 12-level grid, lets it fill, triggers a −12% flash crash, shows Aegis cancel the buys and trim the long, tours the Funding Harvester, and ends on the builder-fee telemetry — with captions. Then switch to **Live**, connect a wallet, and the same engines run on Strike mainnet with builder code `vektor`.
+Click **▶ Judge tour** in the header. It switches to Demo, deploys a 12-level grid, lets it fill, triggers a −12% flash crash, shows Aegis cancel the buys and trim the long, tours the Funding Harvester, and ends on the builder-fee telemetry - with captions. Then switch to **Live**, connect a wallet, and the same engines run on Strike mainnet with builder code `vektor`.
 
 ## Headless 24/7: the worker
 

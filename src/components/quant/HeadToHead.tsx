@@ -18,7 +18,7 @@ interface NativeBot { id: string; status: string; grid_profit_net?: string; orde
 /**
  * Strike's native /v2/grid/bot vs Vektor's batch grid: same range, same
  * candles. The native bot is arithmetic-only and carries no builder code, so
- * builder revenue is 0 by construction — that's the point of the comparison.
+ * builder revenue is 0 by construction - that's the point of the comparison.
  */
 export function HeadToHead({ v, cfg }: Props) {
   const [busy, setBusy] = useState(false);
@@ -85,15 +85,15 @@ export function HeadToHead({ v, cfg }: Props) {
             <Cmp k="Volume routed" a={formatCurrency(res.vektor.volumeUsd)} b={formatCurrency(res.native.volumeUsd)} />
             <Cmp k="Builder revenue" a={formatCurrency(res.vektor.builderFeesUsd)} b="$0.00 (no builder code)" hi />
             <Cmp k="Max drawdown" a={formatCurrency(res.vektor.maxDrawdownUsd)} b={formatCurrency(res.native.maxDrawdownUsd)} />
-            <Cmp k="Shield-able from client" a="yes — Rules A/B cancel & trim" b="no — server owns the orders" />
+            <Cmp k="Shield-able from client" a="yes - Rules A/B cancel & trim" b="no - server owns the orders" />
           </tbody>
         </table>
       )}
       {bot && (
         <div className="kv">
           <Row k="Native bot" val={`${bot.id.slice(0, 28)}… · ${bot.status}`} />
-          <Row k="Native net profit" val={bot.grid_profit_net ?? "—"} />
-          <Row k="Native levels" val={bot.orders ? String(bot.orders.length) : "—"} />
+          <Row k="Native net profit" val={bot.grid_profit_net ?? "-"} />
+          <Row k="Native levels" val={bot.orders ? String(bot.orders.length) : "-"} />
           {(bot.last_error || bot.stop_reason) && <div className="error">{bot.last_error ?? bot.stop_reason}</div>}
           <Row k="Vektor grid (live)" val={g ? `${g.cycles} round trips · ${formatCurrency(g.realizedUsd)} · ${formatCurrency(g.builderFeesUsd)} builder fees` : "not running"} />
         </div>

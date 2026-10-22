@@ -3,15 +3,15 @@
 // A static grid stops earning the moment price leaves its range. Auto-shift
 // re-centres the ladder on the current mark in ONE engine command
 // (POST /v2/orders/replace: cancel every order on the symbol, then place the
-// new ladder — builder fee honoured, never half-old/half-new).
+// new ladder - builder fee honoured, never half-old/half-new).
 //
 // Decision rules (shouldShift):
-//   1. Breakout  — mark > upper × (1 + h) or mark < lower × (1 − h), h = hysteresisPct (default 0.5%).
+//   1. Breakout  - mark > upper × (1 + h) or mark < lower × (1 − h), h = hysteresisPct (default 0.5%).
 //                  The hysteresis stops a mark hovering at the boundary from thrashing.
-//   2. Edge dwell — mark has sat in the outermost rung band (below rung[1] or above
+//   2. Edge dwell - mark has sat in the outermost rung band (below rung[1] or above
 //                  rung[levels−2]) for `edgeTicks` consecutive evaluations (default 20).
 //                  Only one side of the grid is working there; re-centre early.
-//   3. Cooldown  — never shift twice within `minIntervalMs` (default 60 s).
+//   3. Cooldown  - never shift twice within `minIntervalMs` (default 60 s).
 //   4. Never shift while a fill is mid-flight is the CALLER's job (debounce on fills).
 //
 // Shift geometry (buildShiftedPlan): the range keeps its original shape as a
@@ -21,8 +21,8 @@
 //
 // Inventory rule: inventory the old grid still holds (its exits were just
 // cancelled with everything else) is NOT orphaned. It is spread over the new
-// ladder's rungs on the exit side — a long is distributed across the SELL
-// rungs above the mark nearest-first, a short across the BUY rungs below — as
+// ladder's rungs on the exit side - a long is distributed across the SELL
+// rungs above the mark nearest-first, a short across the BUY rungs below - as
 // role "x" orders, so each fill books a round trip and re-arms the entry one
 // rung away exactly like a normal exit. If the inventory is larger than those
 // rungs' planned sizes, the outermost exit rung absorbs the remainder. Round-

@@ -1,7 +1,7 @@
 /**
  * Minimal Node client for Strike V2: Ed25519 request signing, authenticated
  * fetch, user stream (session.logon) and public price stream. No browser
- * globals — Node 22+ has fetch, crypto.subtle and WebSocket built in.
+ * globals - Node 22+ has fetch, crypto.subtle and WebSocket built in.
  */
 
 import * as ed from "@noble/ed25519";

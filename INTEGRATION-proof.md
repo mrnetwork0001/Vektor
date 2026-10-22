@@ -4,7 +4,7 @@ Page: `/proof.html?account=<account_id>&bps=10` (or `?address=<wallet>&chain=eth
 
 ## App header link (src/components/quant/VektorHeader.tsx)
 
-Inside `.vk-telemetry`, before the PANIC button — the account id comes from `connectedInfo.accountId` in App, so pass it as a prop (`accountId?: string`):
+Inside `.vk-telemetry`, before the PANIC button - the account id comes from `connectedInfo.accountId` in App, so pass it as a prop (`accountId?: string`):
 
 ```tsx
 <a className="btn" href={`/proof.html?account=${encodeURIComponent(accountId ?? "")}&bps=${v.fees.builderFeeBps}`} target="_blank" rel="noopener" title="Public, verifiable proof of this account's Vektor activity">Proof ↗</a>

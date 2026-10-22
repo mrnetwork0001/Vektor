@@ -160,7 +160,7 @@ export async function connectCardano(walletId: string): Promise<ConnectedWallet>
   console.log("[Wallet] Calling enable()...");
   const api = await ns.enable();
   if (!api?.getChangeAddress) {
-    throw new Error("Wallet API incomplete — missing getChangeAddress");
+    throw new Error("Wallet API incomplete - missing getChangeAddress");
   }
 
   const addressHex = await api.getChangeAddress();
@@ -215,7 +215,7 @@ export async function signCardano(
   return `${signature}:${key}`;
 }
 
-/** CIP-30 getUtxos() — hex CBOR UTxOs, required by POST /v2/deposit/build-tx on Cardano. */
+/** CIP-30 getUtxos() - hex CBOR UTxOs, required by POST /v2/deposit/build-tx on Cardano. */
 export async function getCardanoUtxos(api: any): Promise<string[]> {
   const utxos = await api.getUtxos();
   if (!Array.isArray(utxos) || utxos.length === 0) {
@@ -225,7 +225,7 @@ export async function getCardanoUtxos(api: any): Promise<string[]> {
 }
 
 /**
- * CIP-30 signTx(txCbor, partialSign=true) — used for the Cardano withdraw
+ * CIP-30 signTx(txCbor, partialSign=true) - used for the Cardano withdraw
  * funding tx (quote.tx_cbor). Send the result as signed_tx_cbor to
  * POST /v2/withdraw; the backend submits it (do not submit it yourself).
  */
@@ -286,7 +286,7 @@ export async function signSolana(api: any, message: string): Promise<string> {
   const encoded = new TextEncoder().encode(message);
   const result = await api.signMessage(encoded, "utf8");
 
-  // Extract signature bytes — different wallets return different formats
+  // Extract signature bytes - different wallets return different formats
   let sigBytes: Uint8Array;
   if (result instanceof Uint8Array) {
     sigBytes = result;

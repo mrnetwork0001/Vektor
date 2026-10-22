@@ -63,7 +63,7 @@ export function ProofPage() {
       <main className="main-content proof-main">
         <div className="panel">
           <h3>Verify a Vektor account</h3>
-          <p className="text-secondary text-sm">Everything on this page is fetched by <em>your</em> browser from Strike's public history endpoints — no login, no Vektor server in between. Fills are attributed by their <code>client_order_id</code> prefix (<code>vektor-grid-</code>, <code>vektor-hedge-</code>, <code>vektor-shield-</code>). Builder fees are reconstructed with Strike's formula <code>floor(notional × {q.bps} bps / 10000, 2)</code>.</p>
+          <p className="text-secondary text-sm">Everything on this page is fetched by <em>your</em> browser from Strike's public history endpoints - no login, no Vektor server in between. Fills are attributed by their <code>client_order_id</code> prefix (<code>vektor-grid-</code>, <code>vektor-hedge-</code>, <code>vektor-shield-</code>). Builder fees are reconstructed with Strike's formula <code>floor(notional × {q.bps} bps / 10000, 2)</code>.</p>
           <div className="form-row" style={{ marginTop: 10 }}>
             <input className="proof-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Strike account_id (UUID) or wallet address" onKeyDown={(e) => e.key === "Enter" && go()} />
             <button className="btn btn-primary" onClick={go}>Load</button>

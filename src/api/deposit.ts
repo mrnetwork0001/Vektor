@@ -6,7 +6,7 @@
  *    (user signs + submits on-chain)
  * 3. POST /v2/deposit            - Confirm with the on-chain tx hash
  *
- * All steps require API wallet authentication (master account only — an API
+ * All steps require API wallet authentication (master account only - an API
  * wallet bound to a sub-account gets 403 "not available to sub-account API keys").
  * Errors: { "error": "..." }.
  */
@@ -99,7 +99,7 @@ export interface BuildTxResponseSolana {
 
 export interface BuildTxResponseCardano {
   blockchain: "cardano";
-  unsigned_tx: string; // CBOR hex — sign with CIP-30 signTx, then submit
+  unsigned_tx: string; // CBOR hex - sign with CIP-30 signTx, then submit
   format: "cardano_cbor";
   expires_at: number; // unix ms (tx validity upper bound)
 }

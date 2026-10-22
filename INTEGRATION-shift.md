@@ -19,7 +19,7 @@ Expose `setAutoShift(symbol, on)` and `autoShift: autoShiftRef.current` in the r
 const maybeShift = useCallback(async (sym: string, mark: number) => {
   const g = gridsRef.current[sym];
   if (!g || !autoShiftRef.current[sym] || !mark || shiftBusyRef.current.has(sym) || !adapter.replaceAll) return;
-  if (Date.now() - (lastFillAtRef.current[sym] ?? 0) < 2000) return;        // a fill just landed — let its counter settle
+  if (Date.now() - (lastFillAtRef.current[sym] ?? 0) < 2000) return;        // a fill just landed - let its counter settle
   const d = shouldShift(g, mark, { hysteresisPct: 0.5, edgeTicks: 20, minIntervalMs: 60_000 }, edgeStreakRef.current[sym] ?? 0);
   edgeStreakRef.current[sym] = d.edgeStreak;
   if (!d.shift) return;
@@ -47,15 +47,15 @@ In the fill handler (`adapter.onFill`), record `lastFillAtRef.current[f.symbol] 
 
 - **Sim tick loop**: after `s.ex.setMark(sym, p)` for every symbol, `void maybeShift(sym, p)`. The loop already runs at 500 ms / speed, so `edgeTicks: 20` ≈ 10 s of dwell at 1×.
 - **Live**: in the effect that watches `live.prices` (mark updates every 3 s from `!markPrice@arr`), for each symbol with a grid: `void maybeShift(sym, parseFloat(live.prices[sym].p))`. 20 ticks ≈ 60 s of dwell.
-- Do not call it from inside `applyGridFill` handling — the 2 s fill debounce above covers the race where a counter order is being placed while the mark crosses the boundary.
+- Do not call it from inside `applyGridFill` handling - the 2 s fill debounce above covers the race where a counter order is being placed while the mark crosses the boundary.
 
 ## Fill routing after a shift
 
-`buildShiftedPlan` issues a **new `gridId`**, so `parseRungClientId` → `findGridById` resolves new-ladder fills to the shifted state, and `CANCELED` events for the old ladder's client IDs fall through (no grid with that id) — nothing to change in the fill handler. Late fills on *old* IDs (a rung that filled in the same engine instant as the replace) are likewise ignored by the grid; they still hit telemetry and `/v2/positions`, and the periodic REST re-sync corrects inventory display. If you want them booked, keep the previous `gridId` in `newState.previousGridIds` and let `findGridById` fall back to it.
+`buildShiftedPlan` issues a **new `gridId`**, so `parseRungClientId` → `findGridById` resolves new-ladder fills to the shifted state, and `CANCELED` events for the old ladder's client IDs fall through (no grid with that id) - nothing to change in the fill handler. Late fills on *old* IDs (a rung that filled in the same engine instant as the replace) are likewise ignored by the grid; they still hit telemetry and `/v2/positions`, and the periodic REST re-sync corrects inventory display. If you want them booked, keep the previous `gridId` in `newState.previousGridIds` and let `findGridById` fall back to it.
 
 ## Live-mode cautions (from strike-trading docs)
 
-- `/v2/orders/replace` cancels **every** active order on the symbol — including TP/SL legs and native grid-bot orders. Only enable auto-shift on symbols the grid owns outright (the HeadToHead card's native bot would be wiped).
+- `/v2/orders/replace` cancels **every** active order on the symbol - including TP/SL legs and native grid-bot orders. Only enable auto-shift on symbols the grid owns outright (the HeadToHead card's native bot would be wiped).
 - Static-rule failures (tick, step, min notional, price bound) reject the whole command and apply no cancels; `buildShiftedPlan` snaps through `planGrid` so this should not happen, but the catch block above rolls the state back anyway.
 - A margin rejection stops the creates **after** the cancels have applied: the user stream then shows `REJECTED` for the remaining rungs and `applyGridFill` frees them. Watch the log line; the shield's Rule A will have nothing to cancel on those rungs.
 - Rate limit is per API wallet; one replace per symbol per minute (`minIntervalMs`) is far below it.
@@ -67,7 +67,7 @@ In the "Running grid" block add:
 ```tsx
 <div className="checkbox-row">
   <input id="autoshift" type="checkbox" checked={!!v.autoShift[symbol]} onChange={(e) => v.setAutoShift(symbol, e.target.checked)} />
-  <label htmlFor="autoshift">Auto-shift (trailing) — re-centre via one /v2/orders/replace when price leaves the range</label>
+  <label htmlFor="autoshift">Auto-shift (trailing) - re-centre via one /v2/orders/replace when price leaves the range</label>
 </div>
 ```
 

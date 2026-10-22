@@ -13,7 +13,7 @@ export interface BatchOrdersResponse {
   failed: { index: number; error: string }[] | null;
 }
 
-/** POST /v2/orders/batch — independent creates, X-Builder-Fee-Bps applies to every item. */
+/** POST /v2/orders/batch - independent creates, X-Builder-Fee-Bps applies to every item. */
 export async function placeBatchOrders(orders: CreateOrderRequest[], builderFeeBps?: number): Promise<BatchOrdersResponse> {
   const headers = builderFeeBps && builderFeeBps > 0 ? { "X-Builder-Fee-Bps": String(Math.floor(builderFeeBps)) } : undefined;
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/orders/batch`, "POST", { orders }, headers);
@@ -31,11 +31,11 @@ export interface ReplaceAllResponse {
 }
 
 /**
- * POST /v2/orders/replace — ONE engine command: cancels every active order on
+ * POST /v2/orders/replace - ONE engine command: cancels every active order on
  * the symbol (TP/SL and native grid-bot orders too), then places `orders` in
  * order. Items must NOT carry `symbol`. If any create fails a static market
- * rule (tick, step, min notional, price bound) nothing is applied — no
- * cancels either — and that create is published as rejected on the user
+ * rule (tick, step, min notional, price bound) nothing is applied - no
+ * cancels either - and that create is published as rejected on the user
  * stream. X-Builder-Fee-Bps is honoured.
  */
 export async function replaceAllOrders(symbol: string, orders: Omit<CreateOrderRequest, "symbol">[], builderFeeBps?: number): Promise<ReplaceAllResponse> {
@@ -54,7 +54,7 @@ export interface PremiumIndex {
   averagePremiumIndex: string;
 }
 
-/** GET /price/v2/premiumIndex (public) — all markets when no symbol is given. */
+/** GET /price/v2/premiumIndex (public) - all markets when no symbol is given. */
 export async function getPremiumIndexAll(): Promise<PremiumIndex[]> {
   const res = await fetch(`${PRICE_API_URL}/v2/premiumIndex`);
   if (!res.ok) throw new Error(`premiumIndex failed: ${res.status}`);
@@ -62,7 +62,7 @@ export async function getPremiumIndexAll(): Promise<PremiumIndex[]> {
   return Array.isArray(data) ? data : [data];
 }
 
-/** GET /price/v2/openInterest — one-sided OI in base units. */
+/** GET /price/v2/openInterest - one-sided OI in base units. */
 export async function getOpenInterest(symbol: string): Promise<number> {
   const res = await fetch(`${PRICE_API_URL}/v2/openInterest?symbol=${encodeURIComponent(symbol)}`);
   if (!res.ok) return 0;
@@ -95,7 +95,7 @@ export interface NativeGridRequest {
   collateral: string;
 }
 
-/** POST /v2/grid/bot — Strike's server-side grid (arithmetic only, ignores builder fee). */
+/** POST /v2/grid/bot - Strike's server-side grid (arithmetic only, ignores builder fee). */
 export async function createNativeGridBot(req: NativeGridRequest): Promise<{ bot_id: string; status: string }> {
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/grid/bot`, "POST", req);
   if (!res.ok) return throwApiError(res, "Grid bot create failed");

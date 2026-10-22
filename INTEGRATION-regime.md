@@ -15,7 +15,7 @@ const [guardOn, setGuardOn] = useState(true);
 
 ## What `useVektor` should do with `assessments[symbol].recommendation`
 
-1. **PAUSE** (`level === "EXTREME"`): keep existing rungs resting, but in the fill handler do **not** place the counter order (`r.orders`) — push them to a `heldOrders[symbol]` queue instead and log `SKIP "regime PAUSE — counter held"`. When the level drops below EXTREME, flush `heldOrders[symbol]` through `place()`. Also disable the Deploy button (`GridStudio` can read `assessments[symbol]?.recommendation.action === "PAUSE"`) with the reasons as the tooltip.
+1. **PAUSE** (`level === "EXTREME"`): keep existing rungs resting, but in the fill handler do **not** place the counter order (`r.orders`) - push them to a `heldOrders[symbol]` queue instead and log `SKIP "regime PAUSE - counter held"`. When the level drops below EXTREME, flush `heldOrders[symbol]` through `place()`. Also disable the Deploy button (`GridStudio` can read `assessments[symbol]?.recommendation.action === "PAUSE"`) with the reasons as the tooltip.
 2. **WIDEN** (`level === "ELEVATED"`): on `deployGrid`, multiply the range half-widths by `widenFactor`: `lower = mark − (mark − cfg.lowerPrice) × f`, `upper = mark + (cfg.upperPrice − mark) × f`, keep `levels` so spacing widens proportionally (net-per-trip rises, fill rate falls). Show the adjusted range in the preview card ("widened ×1.4 by regime guard").
 3. **RUN**: nothing.
 4. **Level change** (compare previous `level` per symbol in a ref): append a shield-style log entry and call `notify("Regime " + level, reasons.join("; "), level === "EXTREME" ? "crit" : level === "ELEVATED" ? "warn" : "info")`. Suggested: store the log in `shieldRef.current.log` so it appears in the Aegis tab, or add a `regimeLog` to the hook return.
@@ -23,7 +23,7 @@ const [guardOn, setGuardOn] = useState(true);
 
 ## Where to mount
 
-Sidebar (`App.tsx`), directly under the **Execution mode** panel in both modes — it's cross-cutting like the shield, not grid-specific. Optionally a one-line badge in `VektorHeader` next to the Shield tab (`EXTREME` pulses red like the shield's CRITICAL).
+Sidebar (`App.tsx`), directly under the **Execution mode** panel in both modes - it's cross-cutting like the shield, not grid-specific. Optionally a one-line badge in `VektorHeader` next to the Shield tab (`EXTREME` pulses red like the shield's CRITICAL).
 
 ## Thresholds (`src/quant/regime.ts` → `THRESHOLDS`)
 
@@ -38,6 +38,6 @@ Score < 40 CALM → RUN · 40–70 ELEVATED → WIDEN ×1.25–1.75 · ≥ 70 EX
 
 ## Observed mainnet shapes (2026-10-22)
 
-- `GET /price/v2/fearGreed` → `{"status":"OK","data":{"value":12,"classification":"Extreme Fear","timestamp":1792662277152,"components":{"momentum":16.11,"breadth":6.25,"volatility":14.43},"marketsCounted":32}}` — mainnet is currently in Extreme Fear, so the guard will show ELEVATED/WIDEN out of the box.
+- `GET /price/v2/fearGreed` → `{"status":"OK","data":{"value":12,"classification":"Extreme Fear","timestamp":1792662277152,"components":{"momentum":16.11,"breadth":6.25,"volatility":14.43},"marketsCounted":32}}` - mainnet is currently in Extreme Fear, so the guard will show ELEVATED/WIDEN out of the box.
 - `GET /price/v2/openInterest` (no symbol) → array of `{"symbol","openInterest","time"}` for all 32 markets (BTC-USD one-sided OI was `0.70415`).
 - `GET /price/v2/ticker/24hr` (no symbol) → array of `{symbol, priceChange, priceChangePercent, openPrice, highPrice, lowPrice, lastPrice, volume, quoteVolume, openTime, closeTime}`.

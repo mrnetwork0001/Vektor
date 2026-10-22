@@ -2,7 +2,7 @@
  * Account and data fetching endpoints.
  *
  * With API wallet auth, the server identifies the account from the
- * X-API-Wallet-Public-Key header — no account_id param needed.
+ * X-API-Wallet-Public-Key header - no account_id param needed.
  * Market rules (tick/lot/notional filters, margin tiers) come from
  * GET /v2/markets on the API host.
  */
@@ -20,14 +20,14 @@ import type { PositionResponse } from "../types/position";
 import type { OpenOrder } from "../types/order";
 import type { MarkPriceUpdate } from "../types/ws";
 
-/** GET /v2/account — balances, settings and sub-accounts (flat JSON object). */
+/** GET /v2/account - balances, settings and sub-accounts (flat JSON object). */
 export async function getAccount(): Promise<Account> {
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/account`, "GET");
   if (!res.ok) return throwApiError(res, "Get account failed");
   return res.json();
 }
 
-/** GET /v2/symbols — effective margin mode + leverage for every listed market. */
+/** GET /v2/symbols - effective margin mode + leverage for every listed market. */
 export async function getSymbols(): Promise<SymbolsResponse> {
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/symbols`, "GET");
   if (!res.ok) return throwApiError(res, "Get symbols failed");
@@ -122,7 +122,7 @@ export async function getFeeTiers(): Promise<FeeTiersResponse> {
 }
 
 /**
- * GET /v2/portfolio — account summary. Typed here only for the fee fields
+ * GET /v2/portfolio - account summary. Typed here only for the fee fields
  * (fee_tier, fee_tiers, maker_fee_rate_override, discounts) used to estimate fees.
  */
 export async function getPortfolio(): Promise<PortfolioFeeInfo> {

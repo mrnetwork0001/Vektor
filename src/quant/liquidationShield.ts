@@ -91,7 +91,7 @@ export function evaluateShield(
     const sym = h.symbol;
     if (h.health === "SAFE" || h.health === "NO_LIQ") {
       if (cancelledBuysFor[sym] && h.health === "SAFE") {
-        delete cancelledBuysFor[sym]; // episode over — Rule A may fire again next time
+        delete cancelledBuysFor[sym]; // episode over - Rule A may fire again next time
         log.push({ t: now, symbol: sym, msg: `Back to safe (${h.distanceToLiqPct}% buffer)`, level: "info" });
       }
       continue;
@@ -101,8 +101,8 @@ export function evaluateShield(
 
     if (state.rules.ruleA && !cancelledBuysFor[sym] && hasRestingBuys(sym)) {
       actions.push({ kind: "CANCEL_BUYS", symbol: sym });
-      cancelledBuysFor[sym] = true; // cooldown only throttles trims — cancelling must not delay a trim
-      log.push({ t: now, symbol: sym, msg: `Rule A: buffer ${h.distanceToLiqPct}% < ${state.rules.warnPct}% — cancelling resting buy rungs`, level: "warn" });
+      cancelledBuysFor[sym] = true; // cooldown only throttles trims - cancelling must not delay a trim
+      log.push({ t: now, symbol: sym, msg: `Rule A: buffer ${h.distanceToLiqPct}% < ${state.rules.warnPct}% - cancelling resting buy rungs`, level: "warn" });
     }
 
     if (h.health === "CRITICAL" && state.rules.ruleB && !pendingTrim[sym] && !inCooldown) {
@@ -116,7 +116,7 @@ export function evaluateShield(
         });
         pendingTrim[sym] = cid;
         lastActionAt[sym] = now;
-        log.push({ t: now, symbol: sym, msg: `Rule B: buffer ${h.distanceToLiqPct}% < ${state.rules.criticalPct}% — reduce-only trim ${qty} (${Math.round(state.rules.trimFraction * 100)}%)`, level: "crit" });
+        log.push({ t: now, symbol: sym, msg: `Rule B: buffer ${h.distanceToLiqPct}% < ${state.rules.criticalPct}% - reduce-only trim ${qty} (${Math.round(state.rules.trimFraction * 100)}%)`, level: "crit" });
       }
     }
   }

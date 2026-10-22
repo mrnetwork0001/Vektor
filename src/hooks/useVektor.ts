@@ -171,7 +171,7 @@ export function useVektor(live: LiveInputs) {
         if (r.orders.length) {
           if (regimeAction(sym) === "PAUSE") {
             heldOrdersRef.current[sym] = [...(heldOrdersRef.current[sym] ?? []), ...r.orders];
-            gridLog(sym, "SKIP", `Regime PAUSE — ${r.orders.length} counter order(s) held`);
+            gridLog(sym, "SKIP", `Regime PAUSE - ${r.orders.length} counter order(s) held`);
           } else void place(r.orders);
         }
         for (const s of r.strategies) void adapter.placeStrategy?.(s).catch((e: any) => { setError(e.message); gridLog(sym, "ERROR", `bracket re-arm failed: ${e.message}`); });
@@ -251,7 +251,7 @@ export function useVektor(live: LiveInputs) {
       regimeLevelRef.current[sym] = a.level;
       if (a.recommendation.action !== "PAUSE" && heldOrdersRef.current[sym]?.length) {
         const held = heldOrdersRef.current[sym]; heldOrdersRef.current[sym] = [];
-        gridLog(sym, "DEPLOY", `Regime recovered — placing ${held.length} held counter order(s)`);
+        gridLog(sym, "DEPLOY", `Regime recovered - placing ${held.length} held counter order(s)`);
         void place(held);
       }
     }
@@ -350,7 +350,7 @@ export function useVektor(live: LiveInputs) {
         const rows = await getFundingHistory({ symbol: h.plan.symbol, startTime: h.launchedAt });
         const f = fundingCollected(rows, h.plan.symbol, h.launchedAt);
         h.collectedUsd = f.usd; h.payments = f.payments; h.fundingHistory = f.rates.slice(-24); h.source = "history";
-        if (h.status === "DONE" && fundingFlipped(h.fundingHistory, h.plan.side, 3)) { notify("Funding flipped", `${h.plan.symbol}: 3 adverse hours — unwinding`, "warn"); await unwindHedgeRef.current(); }
+        if (h.status === "DONE" && fundingFlipped(h.fundingHistory, h.plan.side, 3)) { notify("Funding flipped", `${h.plan.symbol}: 3 adverse hours - unwinding`, "warn"); await unwindHedgeRef.current(); }
         bump();
       } catch (e: any) { console.warn("[Vektor] funding history", e.message); }
     };
@@ -445,7 +445,7 @@ export function useVektor(live: LiveInputs) {
   const deployGrid = useCallback(async (cfg: Omit<GridConfig, "markPrice" | "symbol">): Promise<GridPlan> => {
     // Regime guard: WIDEN scales the half-widths; PAUSE refuses new grids.
     const rec = regimeRef.current[symbol]?.recommendation;
-    if (rec?.action === "PAUSE") throw new Error(`Regime guard: ${symbol} is EXTREME — deploy paused`);
+    if (rec?.action === "PAUSE") throw new Error(`Regime guard: ${symbol} is EXTREME - deploy paused`);
     const f = rec?.action === "WIDEN" && rec.widenFactor ? rec.widenFactor : 1;
     const lowerPrice = f !== 1 ? mark - (mark - cfg.lowerPrice) * f : cfg.lowerPrice;
     const upperPrice = f !== 1 ? mark + (cfg.upperPrice - mark) * f : cfg.upperPrice;

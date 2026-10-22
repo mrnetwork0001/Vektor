@@ -18,7 +18,7 @@ The skill is a single `SKILL.md`; copy or symlink the folder into your agent's s
 mkdir -p .claude/skills && ln -s "$(pwd)/skills/vektor-grid" .claude/skills/vektor-grid
 ```
 
-Then ask the agent things like *"size a 3% grid on ADA-USD, backtest it over 7 days, and deploy it if net is positive"* — it will call the CLI with `--json` and reason over the results.
+Then ask the agent things like *"size a 3% grid on ADA-USD, backtest it over 7 days, and deploy it if net is positive"* - it will call the CLI with `--json` and reason over the results.
 
 ## Requirements
 

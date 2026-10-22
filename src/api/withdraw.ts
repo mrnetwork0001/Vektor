@@ -13,7 +13,7 @@
  *
  * All calls require API wallet auth and are master-account only
  * (sub-account API wallets get 403). Errors: { "error": "...", "code"?: "...",
- * "minimum_usd"?: n } — e.g. code "below_minimum", "insufficient_balance".
+ * "minimum_usd"?: n } - e.g. code "below_minimum", "insufficient_balance".
  */
 
 import { API_BASE_URL } from "./config";

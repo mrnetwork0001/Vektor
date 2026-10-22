@@ -27,7 +27,7 @@ export function fillRowToEvent(r: FillRow, builderFeeBps: number): FillEvent {
 
 /**
  * Replay fills newer than `state.lastTradeId` that belong to this grid.
- * Returns the new state and the counter orders the grid would have placed —
+ * Returns the new state and the counter orders the grid would have placed -
  * the caller decides whether to place them (worker: yes; UI after reload:
  * only if the counter is not already resting per reconcile).
  */

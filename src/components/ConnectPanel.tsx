@@ -31,7 +31,7 @@ interface Props {
 }
 
 /**
- * Builder Connect flow — all state in memory, no localStorage.
+ * Builder Connect flow - all state in memory, no localStorage.
  */
 export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Props) {
   const [wallets, setWallets] = useState<WalletInfo[]>([]);

@@ -2,7 +2,7 @@
 // Defaults to testnet (api-v2-testnet.strikefinance.org).
 // Mainnet uses the same paths on api.strikefinance.org.
 
-// Main API (/v2/..., /auth/...) — trading, account, orders, deposits, withdrawals.
+// Main API (/v2/..., /auth/...) - trading, account, orders, deposits, withdrawals.
 // Must be an ORIGIN only (no path prefix): API wallet signatures cover the
 // request path exactly as the server sees it.
 export const API_BASE_URL =
@@ -16,8 +16,8 @@ export const PRICE_API_URL =
 export const PRICE_WS_URL =
   import.meta.env.VITE_PRICE_WS_URL ?? "wss://api-v2-testnet.strikefinance.org/ws/price";
 
-// User WebSocket for API wallets (session.logon auth) — builders/bots use this.
-// wss://<host>/ws/user is the JWT endpoint for the Strike app — do NOT use it.
+// User WebSocket for API wallets (session.logon auth) - builders/bots use this.
+// wss://<host>/ws/user is the JWT endpoint for the Strike app - do NOT use it.
 export const USER_WS_URL =
   import.meta.env.VITE_USER_WS_URL ?? "wss://api-v2-testnet.strikefinance.org/ws/user-api";
 

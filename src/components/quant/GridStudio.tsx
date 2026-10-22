@@ -67,7 +67,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
   const proofSummary = () => {
     if (!g) return "";
     const lines = [
-      `## Live proof — ${symbol} (${new Date().toISOString()})`,
+      `## Live proof - ${symbol} (${new Date().toISOString()})`,
       `- Builder code: vektor @ ${v.fees.builderFeeBps} bps · network: ${API_NET}`,
       `- Grid: ${formatPrice(g.plan.config.lowerPrice)}–${formatPrice(g.plan.config.upperPrice)} · ${g.plan.config.levels} levels · ${g.plan.config.leverage}x · ${g.plan.config.mode.toLowerCase()}`,
       `- Fills: ${g.fills} · round trips: ${g.cycles} · volume: ${formatCurrency(g.volumeUsd)} · realized: ${formatCurrency(g.realizedUsd)}`,
@@ -89,7 +89,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
     <div className="quant-grid">
       <div className="panel ladder-panel">
         <div className="panel-header">
-          <h3>CLOB Grid Studio — {symbol}</h3>
+          <h3>CLOB Grid Studio - {symbol}</h3>
           <div className="panel-tools">
             <span className="text-secondary text-xs">
               {depthInfo ? `Book ${depthInfo.pressure.replace("_", " ")} · bids ${depthInfo.bidImbalancePct}% · spread ${depthInfo.spreadPct}%` : "waiting for depth…"}
@@ -104,22 +104,22 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
           ? <GridLadder history={v.history} mark={mark} plan={g ? null : plan} grid={g} liquidationPrice={pos?.liquidationPrice} walls={depthInfo?.walls} />
           : <DepthHeatmap frames={v.depthFrames} height={320} />}
         <div className="stat-row">
-          <Stat label="Resting" value={g ? String(g.rungs.reduce((a, r) => a + r.resting.length, 0)) : "—"} />
-          <Stat label="Fills" value={g ? String(g.fills) : "—"} />
-          <Stat label="Round trips" value={g ? String(g.cycles) : "—"} />
-          <Stat label="Grid PnL" value={g ? formatCurrency(g.realizedUsd) : "—"} cls={g && g.realizedUsd > 0 ? "text-green" : ""} />
-          <Stat label="Inventory" value={g ? `${g.inventory}` : "—"} />
-          <Stat label="Volume" value={g ? formatCurrency(g.volumeUsd) : "—"} />
-          <Stat label="Builder fees" value={g ? formatCurrency(g.builderFeesUsd) : "—"} cls="text-green" />
-          <Stat label="Shifts" value={g ? String(g.shifts ?? 0) : "—"} />
-          <Stat label="Stops hit" value={g ? String(g.stops ?? 0) : "—"} cls={g && (g.stops ?? 0) > 0 ? "text-red" : ""} />
+          <Stat label="Resting" value={g ? String(g.rungs.reduce((a, r) => a + r.resting.length, 0)) : "-"} />
+          <Stat label="Fills" value={g ? String(g.fills) : "-"} />
+          <Stat label="Round trips" value={g ? String(g.cycles) : "-"} />
+          <Stat label="Grid PnL" value={g ? formatCurrency(g.realizedUsd) : "-"} cls={g && g.realizedUsd > 0 ? "text-green" : ""} />
+          <Stat label="Inventory" value={g ? `${g.inventory}` : "-"} />
+          <Stat label="Volume" value={g ? formatCurrency(g.volumeUsd) : "-"} />
+          <Stat label="Builder fees" value={g ? formatCurrency(g.builderFeesUsd) : "-"} cls="text-green" />
+          <Stat label="Shifts" value={g ? String(g.shifts ?? 0) : "-"} />
+          <Stat label="Stops hit" value={g ? String(g.stops ?? 0) : "-"} cls={g && (g.stops ?? 0) > 0 ? "text-red" : ""} />
         </div>
       </div>
 
       <div className="panel">
         <div className="panel-header">
           <h3>{g ? "Running grid" : "Design grid"}</h3>
-          {!g && v.mode === "live" && <button className="btn btn-secondary" onClick={proveIt} title="±0.4%, $15, 2x, 6 levels — fills within minutes on a liquid book">Prove-it preset</button>}
+          {!g && v.mode === "live" && <button className="btn btn-secondary" onClick={proveIt} title="±0.4%, $15, 2x, 6 levels - fills within minutes on a liquid book">Prove-it preset</button>}
           {g && v.mode === "live" && <button className="btn btn-secondary" onClick={() => navigator.clipboard?.writeText(proofSummary())} title="Copy a markdown summary of this live grid for the README / submission">Copy proof summary</button>}
         </div>
         {!g && (
@@ -140,7 +140,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
             </div>
             <div className="checkbox-row">
               <input id="skew" type="checkbox" checked={fundingSkew} onChange={(e) => setFundingSkew(e.target.checked)} />
-              <label htmlFor="skew">Funding skew — tilt sizes so inventory sits on the side that <b>receives</b> funding ({(fundingRate * 100).toFixed(4)}%/h now)</label>
+              <label htmlFor="skew">Funding skew - tilt sizes so inventory sits on the side that <b>receives</b> funding ({(fundingRate * 100).toFixed(4)}%/h now)</label>
             </div>
             {fundingSkew && <Field label={`Max skew ×${(1 + maxSkew).toFixed(2)} / ×${(1 - maxSkew).toFixed(2)}`}><input type="range" min={0.1} max={1} step={0.05} value={maxSkew} onChange={(e) => setMaxSkew(+e.target.value)} /></Field>}
             <Field label={stopLossPct > 0 ? `Per-rung stop-loss ${stopLossPct}% (bracket via /v2/order/strategy, builder fee on both legs)` : "Per-rung stop-loss: off"}>
@@ -161,7 +161,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
             {err && <div className="error">{err}</div>}
             {regimeRec && regimeRec.action !== "RUN" && (
               <div className={paused ? "error" : "text-xs"} style={{ color: paused ? undefined : "var(--amber)", marginBottom: 6 }}>
-                Regime guard: {paused ? "EXTREME — deploy paused" : `ELEVATED — range will be widened ×${regimeRec.widenFactor}`}. {v.regime[symbol]?.reasons.join("; ")}
+                Regime guard: {paused ? "EXTREME - deploy paused" : `ELEVATED - range will be widened ×${regimeRec.widenFactor}`}. {v.regime[symbol]?.reasons.join("; ")}
               </div>
             )}
             <button className="btn btn-primary btn-submit" disabled={!plan || busy || !mark || paused} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
@@ -180,7 +180,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
             </div>
             <div className="checkbox-row">
               <input id="autoshift" type="checkbox" checked={!!v.autoShift[symbol]} onChange={(e) => v.setAutoShift(symbol, e.target.checked)} />
-              <label htmlFor="autoshift">Auto-shift (trailing) — re-centre via one /v2/orders/replace when price leaves the range{v.mode === "live" ? " (wipes every order on this symbol, incl. a native bot)" : ""}</label>
+              <label htmlFor="autoshift">Auto-shift (trailing) - re-centre via one /v2/orders/replace when price leaves the range{v.mode === "live" ? " (wipes every order on this symbol, incl. a native bot)" : ""}</label>
             </div>
             {(v.heldOrders[symbol]?.length ?? 0) > 0 && <div className="error">Regime PAUSE: {v.heldOrders[symbol].length} counter order(s) held until conditions calm</div>}
             <button className="btn btn-danger btn-submit" onClick={() => void v.stopGrid()}>Stop grid & cancel rungs</button>

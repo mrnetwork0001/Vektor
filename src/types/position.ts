@@ -41,7 +41,7 @@ export interface Position {
   requiredMargin?: number; // notional / leverage (isolated only)
   maintenanceMargin?: number; // notional × MMR − MA
   // UI ROE (not served by the backend for open positions):
-  // uPnL / (entry × |size| / leverage) × 100 — same margin base as the
+  // uPnL / (entry × |size| / leverage) × 100 - same margin base as the
   // backend's roi_pct on closing fills
   pnlPercentage?: number;
   markPrice?: number; // mark used for the derived fields (rounded to quote_prec)

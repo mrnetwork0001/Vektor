@@ -19,14 +19,14 @@ export function RegimePanel({ regime, symbol, enabled, setEnabled }: Props) {
   return (
     <div className="panel" style={{ borderColor: a && a.level !== "CALM" ? color : undefined }}>
       <div className="panel-header">
-        <h3>Market regime — {symbol}</h3>
+        <h3>Market regime - {symbol}</h3>
         {a && <span style={{ color, fontSize: 12, fontWeight: 700, letterSpacing: 0.5 }}>{a.level} · {a.score}</span>}
       </div>
 
       {/* Fear & Greed gauge */}
       <div className="text-xs text-secondary" style={{ display: "flex", justifyContent: "space-between" }}>
         <span>Fear &amp; Greed</span>
-        <span>{fg ? `${fg.value} · ${fg.classification}` : "—"}</span>
+        <span>{fg ? `${fg.value} · ${fg.classification}` : "-"}</span>
       </div>
       <div style={{ position: "relative", height: 8, borderRadius: 4, margin: "4px 0 10px", background: "linear-gradient(90deg, #f43f5e 0%, #f59e0b 35%, #888 50%, #f59e0b 65%, #25fab0 100%)", opacity: fg ? 1 : 0.3 }}>
         {fg && <span style={{ position: "absolute", top: -3, left: `calc(${fg.value}% - 2px)`, width: 4, height: 14, background: "#fff", borderRadius: 2 }} />}
@@ -34,15 +34,15 @@ export function RegimePanel({ regime, symbol, enabled, setEnabled }: Props) {
 
       <div className="kv">
         <KV k="Open interest vs baseline" v={a?.raw.oiDeltaPct != null ? `${a.raw.oiDeltaPct > 0 ? "+" : ""}${a.raw.oiDeltaPct}% (${regime.baselineSamples(symbol)} samples)` : "collecting…"} cls={a && Math.abs(a.raw.oiDeltaPct ?? 0) >= 25 ? "text-red" : ""} />
-        <KV k="24h range" v={a?.raw.range24hPct != null ? `${a.raw.range24hPct}%` : "—"} cls={a && a.components.range24h >= 50 ? "text-red" : ""} />
-        <KV k="Funding (APR)" v={a?.raw.fundingAprPct != null ? `${a.raw.fundingAprPct}%` : "—"} />
-        <KV k="Components" v={a ? `sent ${a.components.sentiment} · oi ${a.components.oiShock} · range ${a.components.range24h} · fund ${a.components.funding}` : "—"} />
+        <KV k="24h range" v={a?.raw.range24hPct != null ? `${a.raw.range24hPct}%` : "-"} cls={a && a.components.range24h >= 50 ? "text-red" : ""} />
+        <KV k="Funding (APR)" v={a?.raw.fundingAprPct != null ? `${a.raw.fundingAprPct}%` : "-"} />
+        <KV k="Components" v={a ? `sent ${a.components.sentiment} · oi ${a.components.oiShock} · range ${a.components.range24h} · fund ${a.components.funding}` : "-"} />
       </div>
 
       {a && (
         <div style={{ padding: "8px 10px", borderRadius: 6, background: `${color}14`, border: `1px solid ${color}55`, fontSize: 13, margin: "6px 0 10px" }}>
           <b style={{ color }}>{rec?.action}{rec?.widenFactor ? ` ×${rec.widenFactor}` : ""}</b>
-          <span className="text-secondary"> — {a.reasons.join("; ")}</span>
+          <span className="text-secondary"> - {a.reasons.join("; ")}</span>
         </div>
       )}
 

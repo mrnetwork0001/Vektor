@@ -100,7 +100,7 @@ export function formatStatus(s: any): string {
   ].join("\n");
 }
 
-export const HELP = `vektor — Strike Finance grid / shield CLI (same engines as the terminal and the worker)
+export const HELP = `vektor - Strike Finance grid / shield CLI (same engines as the terminal and the worker)
 
 usage: npx tsx cli/vektor.ts <command> [args] [--json]
 

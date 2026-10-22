@@ -1,5 +1,5 @@
 /**
- * History reads (API wallet auth). Lists come back as null when empty — always coalesce.
+ * History reads (API wallet auth). Lists come back as null when empty - always coalesce.
  *   GET /v2/history/fill     fills, newest first; since_trade_id = forward cursor
  *   GET /v2/history/funding  hourly funding payments (amount > 0 received)
  *   GET /v2/order            one order by client_order_id (404 = never existed / silently dropped)

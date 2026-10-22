@@ -38,7 +38,7 @@ export interface Account {
   symbol_settings?: Record<string, SymbolSettings>;
 }
 
-// ── GET /v2/symbols — effective margin mode + leverage for every listed market ──
+// ── GET /v2/symbols - effective margin mode + leverage for every listed market ──
 
 export interface SymbolsResponse {
   default_margin_mode: "cross" | "isolated";
@@ -92,7 +92,7 @@ export interface FeeTiersResponse {
   }[];
 }
 
-// ── GET /v2/portfolio — fee-related subset (full response has many more fields) ──
+// ── GET /v2/portfolio - fee-related subset (full response has many more fields) ──
 
 export interface PortfolioFeeInfo {
   fee_tier: number;

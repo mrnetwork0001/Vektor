@@ -17,7 +17,7 @@ export interface MarkPriceUpdate {
 }
 
 /**
- * <symbol>@depth — top-20 DIFFS (changed levels only), flushed ~every 100ms.
+ * <symbol>@depth - top-20 DIFFS (changed levels only), flushed ~every 100ms.
  * qty "0" = level removed (possibly just dropped out of the top 20).
  * Each message diffs against the server's previous publish on the channel; a
  * symbol's first subscriber receives the full top 20 (no "0" removals).
@@ -34,7 +34,7 @@ export interface DepthUpdate {
   a: string[][] | null; // changed asks; null when unchanged
 }
 
-/** <symbol>@bookticker — full best bid/ask snapshot (latest-wins). */
+/** <symbol>@bookticker - full best bid/ask snapshot (latest-wins). */
 export interface BookTickerUpdate {
   e: "bookTicker";
   E: number;
@@ -58,7 +58,7 @@ export interface TradeEvent {
   m: boolean; // isBuyerMaker
 }
 
-/** <symbol>@kline_<interval>[_mark|_index] — same payload for last/mark/index candles. */
+/** <symbol>@kline_<interval>[_mark|_index] - same payload for last/mark/index candles. */
 export interface KlineEvent {
   e: "kline";
   E: number;
@@ -140,7 +140,7 @@ export interface AccountUpdatePosition {
 
 /**
  * ACCOUNT_UPDATE `data` (balance / position / transfer-status variants).
- * Async outcomes arrive instead as a wrapped variant — see AccountUpdateWrapped.
+ * Async outcomes arrive instead as a wrapped variant - see AccountUpdateWrapped.
  * data.e (reason type):
  *   balance updates  → ORDER | FUNDING | DEPOSIT | WITHDRAW | ACCOUNT_UPDATE
  *   position updates → POSITION_OPENED | POSITION_CLOSED | POSITION_UPDATE |
@@ -183,7 +183,7 @@ export interface AccountUpdateWrapped {
 
 /**
  * ORDER_TRADE_UPDATE `data` (Binance-style uppercase enums).
- * X (status): NEW (pending/untriggered) | OPEN (resting, possibly partially filled — check z) |
+ * X (status): NEW (pending/untriggered) | OPEN (resting, possibly partially filled - check z) |
  *             FILLED | CANCELED | REJECTED | EXPIRED |
  *             PARTIALLY_FILLED (only on a fill whose order snapshot was unavailable)
  * o / ot (type): MARKET | LIMIT | STOP_MARKET (stop) | STOP (stop_limit) |
@@ -238,7 +238,7 @@ export interface OrderTradeUpdateData {
   trade_id?: string; // exact trade ID (string)
 }
 
-// Final statuses — remove from open orders list
+// Final statuses - remove from open orders list
 export const FINAL_ORDER_STATUSES = new Set([
   "FILLED",
   "CANCELED",

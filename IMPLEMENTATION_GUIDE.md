@@ -1,4 +1,4 @@
-# 🛠️ Vektor — Quantitative Engines & Implementation Guide
+# 🛠️ Vektor - Quantitative Engines & Implementation Guide
 
 This guide provides the complete, copy-paste-ready TypeScript engines for **Vektor** (`gridEngine.ts`, `fundingHarvester.ts`, `liquidationShield.ts`, and `whaleRadar.ts`) designed to plug directly into [`strike-finance/strike-builder-reference`](https://github.com/strike-finance/strike-builder-reference) and [`strike-finance/strike-finance-skills`](https://github.com/strike-finance/strike-finance-skills).
 
@@ -384,13 +384,13 @@ export function analyzeOrderbookDepth(bids: PriceLevel[], asks: PriceLevel[]) {
 1. **Hours 1–4 (Base & Skills):**
    * Clone `https://github.com/strike-finance/strike-builder-reference` into `/Users/mrnetwork/Vektor` and install `strike-finance-skills` (`npx strike-finance-skills install`).
    * Verify `ConnectPanel.tsx` Ed25519 API Wallet onboarding and `X-Builder-Fee-Bps` header injection.
-2. **Hours 5–16 (Module 1 — CLOB Whale Heatmap & Batch Grid Studio):**
+2. **Hours 5–16 (Module 1 - CLOB Whale Heatmap & Batch Grid Studio):**
    * Add `gridEngine.ts` and `whaleRadar.ts`.
    * Build the interactive Grid range visualizer on top of the live Strike orderbook stream (`priceStream.ts`) and wire **"Deploy 12-Rung Batch Grid"** + `userStream.ts` auto-replenish loop.
-3. **Hours 17–28 (Module 2 — Delta-Neutral Funding Rate Harvester):**
+3. **Hours 17–28 (Module 2 - Delta-Neutral Funding Rate Harvester):**
    * Add `fundingHarvester.ts`.
    * Build the live `ADA-USDT`, `BTC-USDT`, `ETH-USDT`, `SOL-USDT` Funding APR Leaderboard with 1-click **TWAP Delta-Neutral Hedge** execution.
-4. **Hours 29–40 (Module 3 — Aegis Liquidation Shield & Simulation Replay):**
+4. **Hours 29–40 (Module 3 - Aegis Liquidation Shield & Simulation Replay):**
    * Add `liquidationShield.ts` connected to `usePositions.ts`.
    * Add a **"Simulate Flash Crash (-12%)"** test button so judges can watch the Liquidation Shield automatically cancel exposed buy grids and execute a `25%` reduce-only trim in real time!
 5. **Hours 41–48 (Deploy, Polish & Demo Video):**

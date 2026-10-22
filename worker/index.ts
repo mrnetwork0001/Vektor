@@ -1,5 +1,5 @@
 /**
- * Vektor headless worker — runs the grid + shield engines 24/7 without a
+ * Vektor headless worker - runs the grid + shield engines 24/7 without a
  * browser. Holds the API wallet key from the environment, persists state to
  * a JSON file, backfills fills from history on start, and serves a status
  * endpoint the UI (or curl) can read.
@@ -156,7 +156,7 @@ async function watchdog() {
     pending.delete(cid);
     const { status, json } = await client.call("GET", `/v2/order?symbol=${encodeURIComponent(p.symbol)}&client_order_id=${encodeURIComponent(cid)}`);
     if (status === 404) {
-      log(`WATCHDOG ${cid}: no order on the engine — treating as rejected`);
+      log(`WATCHDOG ${cid}: no order on the engine - treating as rejected`);
       onFill({ symbol: p.symbol, clientOrderId: cid, orderId: 0, side: "BUY", fillQty: 0, fillPrice: 0, cumFilled: 0, orderQty: 0, isMaker: true, commission: 0, builderFee: 0, timestamp: now, status: "REJECTED", closeReason: "silently_dropped" });
     } else if (["REJECTED", "CANCELED", "EXPIRED"].includes(String(json.Status ?? "").toUpperCase())) {
       onFill({ symbol: p.symbol, clientOrderId: cid, orderId: json.ID, side: "BUY", fillQty: 0, fillPrice: 0, cumFilled: 0, orderQty: 0, isMaker: true, commission: 0, builderFee: 0, timestamp: now, status: String(json.Status).toUpperCase() as FillEvent["status"], closeReason: json.CloseReason });
@@ -250,7 +250,7 @@ createServer(async (req, res) => {
       }
     },
     onSubscribed: async () => {
-      log("userstream subscribed — loading REST state");
+      log("userstream subscribed - loading REST state");
       try {
         const openIds = new Set(await loadRest());
         if (!booted) { booted = true; await ensureGrids(openIds); }

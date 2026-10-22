@@ -32,7 +32,7 @@ export function SimControls({ v }: { v: Vektor }) {
       </div>
       <button className="btn btn-secondary" style={{ marginTop: 8, width: "100%" }} onClick={s.reset}>Reset demo</button>
       <p className="text-xs text-secondary" style={{ marginTop: 8 }}>
-        Same engines, same order payloads — only the adapter differs. Switch to LIVE to run on Strike testnet with your API wallet.
+        Same engines, same order payloads - only the adapter differs. Switch to LIVE to run on Strike testnet with your API wallet.
       </p>
     </div>
   );

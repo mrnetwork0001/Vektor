@@ -48,7 +48,7 @@ export class PriceStream {
       console.log("[PriceStream] Connected");
       this.reconnectAttempts = 0;
       this.pendingAcks.clear();
-      // Re-subscribe on (re)connect — the server keeps no state across sockets.
+      // Re-subscribe on (re)connect - the server keeps no state across sockets.
       // Each ack emits "subscribed:<channel>|<symbol>" so consumers (e.g. the
       // order book) can re-sync from REST.
       for (const sub of this.subscriptions.values()) this._send("subscribe", sub);

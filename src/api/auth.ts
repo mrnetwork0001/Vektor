@@ -165,7 +165,7 @@ export async function authenticatedFetch(
 
   if (!res.ok) {
     const errBody = await res.clone().text().catch(() => "");
-    console.error(`[Auth] ${res.status} ${res.statusText} — ${method} ${path}`, errBody);
+    console.error(`[Auth] ${res.status} ${res.statusText} - ${method} ${path}`, errBody);
 
     if (res.status === 401) {
       let msg = "";
@@ -178,7 +178,7 @@ export async function authenticatedFetch(
         return authenticatedFetch(url, method, body, extraHeaders, 1);
       }
       if (msg === "authentication failed" || msg === "wallet expired or revoked") {
-        console.error("[Auth] API wallet rejected — clearing session.");
+        console.error("[Auth] API wallet rejected - clearing session.");
         clearApiWalletKeys();
         window.dispatchEvent(new Event("strike:session-expired"));
       }

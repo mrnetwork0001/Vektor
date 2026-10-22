@@ -36,11 +36,11 @@ if (plan.config.stopLossPct) {
   await adapter.placeBatch(buildDeployOrders(plan).orders);      // unchanged
 }
 ```
-`initGridState` with rules registers two resting entries per rung: role `e` (entry) and role `s` (its stop leg, `stopFor = entry cid`). `restingBuyIds` excludes `s`; `restingIds` includes them (so `stopGrid` cancels armed stops too — cancelling an unarmed one is a harmless no-op / 404).
+`initGridState` with rules registers two resting entries per rung: role `e` (entry) and role `s` (its stop leg, `stopFor = entry cid`). `restingBuyIds` excludes `s`; `restingIds` includes them (so `stopGrid` cancels armed stops too - cancelling an unarmed one is a harmless no-op / 404).
 
-`ExecutionAdapter.placeStrategy?` is optional. `LiveAdapter` and `SimExchange` implement it. The worker (`worker/index.ts`) does not yet — add the same branch there if brackets should run headless.
+`ExecutionAdapter.placeStrategy?` is optional. `LiveAdapter` and `SimExchange` implement it. The worker (`worker/index.ts`) does not yet - add the same branch there if brackets should run headless.
 
-## 3. Fill routing — `applyGridFill` now returns `GridFillResult`
+## 3. Fill routing - `applyGridFill` now returns `GridFillResult`
 
 ```ts
 const r = applyGridFill(state, fill, now, rules);   // ← pass rules when stopLossPct is set
@@ -48,7 +48,7 @@ r.orders      // plain limits (exits; re-armed entries when no brackets)  → ad
 r.strategies  // re-armed entries WITH brackets                           → adapter.placeStrategy each
 r.cancel      // client ids to cancel                                      → adapter.cancel(symbol, id) each
 ```
-`cancel` is non-empty when (a) an exit fully fills → the entry's now-orphaned stop leg, or (b) a stop leg fills → the orphaned exit that would otherwise open a fresh position. **Existing callers that ignore `strategies`/`cancel` keep working for non-bracket grids but will leak orders for bracket grids — wire all three in `useVektor` (fill handler + reconcile backfill) and in `worker/index.ts`.**
+`cancel` is non-empty when (a) an exit fully fills → the entry's now-orphaned stop leg, or (b) a stop leg fills → the orphaned exit that would otherwise open a fresh position. **Existing callers that ignore `strategies`/`cancel` keep working for non-bracket grids but will leak orders for bracket grids - wire all three in `useVektor` (fill handler + reconcile backfill) and in `worker/index.ts`.**
 
 Role `s` in `parseRungClientId` (`...-<rung>-s-<seq>`): a fill books `pnl = (fill − entry) × qty` (sign by side), increments `state.stops`, sets `rung.retired = true` (never re-armed; a later exit fill logs `SKIP … stopped out`), and emits a `STOP` log entry (new `GridLogEntry.kind`; add `.log-stop` CSS if the log colours by kind).
 
@@ -59,6 +59,6 @@ Role `s` in `parseRungClientId` (`...-<rung>-s-<seq>`): a fill books `pnl = (fil
 
 ## 5. Trade-offs
 - Strike applies builder fee to all strategy legs, so the stop fill pays builder fee too (already counted via `builder_fee` on the fill).
-- A stop leg is `reduce_only`; with several grids/positions on one symbol the engine may cancel it (`no_open_position`) — the CANCELED event frees the `s` entry correctly.
+- A stop leg is `reduce_only`; with several grids/positions on one symbol the engine may cancel it (`no_open_position`) - the CANCELED event frees the `s` entry correctly.
 - Skew changes rung sizes, not counts; a 1.5× sell rung must still clear min notional (existing warning covers it).
 - `k` renormalisation keeps the *planned* notional constant; after step-size rounding the realised total can differ by a few dollars on cheap assets.

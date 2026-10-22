@@ -1,11 +1,11 @@
-# L3 spoof & iceberg radar — integration
+# L3 spoof & iceberg radar - integration
 
 New files (no shared files touched):
-- `src/quant/l3Radar.ts` — pure analyzer (`createRadar`, `ingest`, `seedFromSnapshot`, `wallReliability`, `restingWalls`, `activeSignals`, `toL3Event`)
-- `src/quant/__tests__/l3Radar.test.ts` — 5 tests
-- `src/ws/l3Stream.ts` — WebSocket + snapshot bootstrap client (`l3Stream` singleton)
-- `src/hooks/useL3.ts` — `useL3(symbol, tick, mark, enabled)` → `{ signals, events, walls, connected, synced, reason, eventsPerSec, reliability }`
-- `src/components/quant/L3Radar.tsx` — panel (pure props)
+- `src/quant/l3Radar.ts` - pure analyzer (`createRadar`, `ingest`, `seedFromSnapshot`, `wallReliability`, `restingWalls`, `activeSignals`, `toL3Event`)
+- `src/quant/__tests__/l3Radar.test.ts` - 5 tests
+- `src/ws/l3Stream.ts` - WebSocket + snapshot bootstrap client (`l3Stream` singleton)
+- `src/hooks/useL3.ts` - `useL3(symbol, tick, mark, enabled)` → `{ signals, events, walls, connected, synced, reason, eventsPerSec, reliability }`
+- `src/components/quant/L3Radar.tsx` - panel (pure props)
 
 ## Mount in GridStudio.tsx
 
@@ -38,12 +38,12 @@ Optional: use `l3.reliability(price)` in the whale-wall table (`analyzeDepth` wa
 
 ## Feed facts verified on mainnet (2026-10-22)
 
-- Public, no auth. `GET https://api.strikefinance.org/v2/l3/snapshot?symbol=ADA-USD` → `{type:"l3_snapshot", symbol, last_sequence, timestamp, bids:[{price, orders:[{order_id,size}]}], asks:[…]}`. Works for **ADA-USD and BTC-USD** (the skill doc says "currently BTC-USD" only — stale). ETH/SOL untested.
+- Public, no auth. `GET https://api.strikefinance.org/v2/l3/snapshot?symbol=ADA-USD` → `{type:"l3_snapshot", symbol, last_sequence, timestamp, bids:[{price, orders:[{order_id,size}]}], asks:[…]}`. Works for **ADA-USD and BTC-USD** (the skill doc says "currently BTC-USD" only - stale). ETH/SOL untested.
 - `wss://api.strikefinance.org/ws/l3`, `{"method":"SUBSCRIBE","params":["ada-usd@l3"],"id":1}` → ack `{"id":1,"result":null}`, then one `l3_update` per frame exactly as documented: `{type, symbol, action: open|cancel|partial_fill|full_fill|modify|clear, order_id, side: buy|sell, price, delta_size, remaining_size, sequence, timestamp, trade_id?, taker_order_id?}`.
-- Rate: ~160 updates/s on ADA (a market maker re-quoting a 10-level ladder every ~100 ms — long runs of cancel+open). The hook throttles React to 2 renders/s; the radar itself is O(walls) per event.
+- Rate: ~160 updates/s on ADA (a market maker re-quoting a 10-level ladder every ~100 ms - long runs of cancel+open). The hook throttles React to 2 renders/s; the radar itself is O(walls) per event.
 - Limits: 10 req/s per IP shared by snapshots + handshakes; 10 sockets per IP. The client uses one socket per symbol and backs off 60–120 s on 400/403/404.
 
 ## Uncertainty
 
-- The spoof heuristic (4× avg wall, pulled within 15 s, untouched, mark within 6 ticks) is tuned by hand; the market maker's constant re-quoting on ADA produces *cancel+open at the same price* pairs that are NOT spoofs — they fail the "wall" size test with the current EMA, but if the MM quotes bigger sizes they could show up. Raising `spoofMultiple` or requiring no re-open at the same price within 1 s would tighten it (not implemented).
+- The spoof heuristic (4× avg wall, pulled within 15 s, untouched, mark within 6 ticks) is tuned by hand; the market maker's constant re-quoting on ADA produces *cancel+open at the same price* pairs that are NOT spoofs - they fail the "wall" size test with the current EMA, but if the MM quotes bigger sizes they could show up. Raising `spoofMultiple` or requiring no re-open at the same price within 1 s would tighten it (not implemented).
 - Reliability needs history: it's `null` until a wall at that price has been hit or pulled near touch at least once this session.

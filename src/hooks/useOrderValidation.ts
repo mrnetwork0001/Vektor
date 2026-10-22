@@ -71,7 +71,7 @@ export function useOrderValidation(
       allowPreTrade = false,
     } = params;
 
-    // No size entered yet — not an error, just incomplete
+    // No size entered yet - not an error, just incomplete
     if (size <= 0) return { isValid: false, error: null };
 
     // 1. Market available
@@ -86,7 +86,7 @@ export function useOrderValidation(
     const isLimit = orderType === "limit";
     if (markPrice <= 0 || (isLimit && limitPrice <= 0)) return { isValid: false, error: null };
 
-    // 2. Min size — always the MARKET min size
+    // 2. Min size - always the MARKET min size
     const minSize = parseFloat(market.order_market_min_size);
     if (size < minSize) {
       return { isValid: false, error: `Min size: ${minSize} ${market.base_asset}` };

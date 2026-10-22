@@ -1,6 +1,6 @@
 #!/usr/bin/env -S npx tsx
 /**
- * Vektor CLI — plan, backtest, deploy and monitor grids from a shell or an AI agent.
+ * Vektor CLI - plan, backtest, deploy and monitor grids from a shell or an AI agent.
  * Reuses worker/strikeClient.ts and the pure engines in src/quant; never touches browser code.
  */
 
@@ -58,7 +58,7 @@ async function candles(symbol: string, days: number, interval: string) {
   const end = Date.now(), start = end - days * 86_400_000;
   const rows = await publicGet<(string | number)[][]>(`${MAINNET_PRICE}/v2/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&startTime=${start}&endTime=${end}&limit=1500&priceType=last`);
   const cs = parseKlines(rows);
-  if (cs.length < 15) fail(`only ${cs.length} candles for ${symbol} — not enough history`);
+  if (cs.length < 15) fail(`only ${cs.length} candles for ${symbol} - not enough history`);
   return cs;
 }
 
@@ -125,7 +125,7 @@ async function workerCall(method: string, path: string) {
         st.grids = { ...(st.grids ?? {}), [sym]: state };
         writeFileSync(STATE_FILE, JSON.stringify(st, null, 1));
       }
-      out([formatPlan(plan), "", `placed ${orders.length - failed.length}/${orders.length} rungs (gridId ${plan.gridId})`, ...failed.map((f) => `  rejected #${f.index}: ${f.error}`), args.flags.save ? `saved to ${STATE_FILE} — (re)start the worker to manage it` : "not saved: pass --save so the worker manages fills"].join("\n"),
+      out([formatPlan(plan), "", `placed ${orders.length - failed.length}/${orders.length} rungs (gridId ${plan.gridId})`, ...failed.map((f) => `  rejected #${f.index}: ${f.error}`), args.flags.save ? `saved to ${STATE_FILE} - (re)start the worker to manage it` : "not saved: pass --save so the worker manages fills"].join("\n"),
         { gridId: plan.gridId, placed: orders.length - failed.length, failed, saved: !!args.flags.save, plan });
       break;
     }

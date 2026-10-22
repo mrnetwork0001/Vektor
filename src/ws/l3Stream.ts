@@ -43,7 +43,7 @@ interface Sub {
 export class L3Stream {
   private subs = new Map<string, Sub>();
 
-  /** Subscribe; returns an unsubscribe. The feed may be unavailable for a symbol — status reports it, nothing throws. */
+  /** Subscribe; returns an unsubscribe. The feed may be unavailable for a symbol - status reports it, nothing throws. */
   subscribe(symbol: string, onEvent: L3Listener, onStatus?: L3StatusListener, onSnapshot?: (s: L3Snapshot) => void): () => void {
     let sub = this.subs.get(symbol);
     if (!sub) {

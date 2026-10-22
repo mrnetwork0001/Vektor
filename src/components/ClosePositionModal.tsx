@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * Close position modal — supports market and limit close, partial or full.
+ * Close position modal - supports market and limit close, partial or full.
  *
  * Close position = regular /v2/order with reduce_only: true.
  * Side is opposite of position (LONG → sell, SHORT → buy).

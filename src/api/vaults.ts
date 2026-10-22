@@ -1,5 +1,5 @@
 /**
- * Strike vaults — leader-managed pooled trading accounts.
+ * Strike vaults - leader-managed pooled trading accounts.
  * A vault is its own trading account; the leader trades it by adding
  * `vault_id` to ordinary order requests. Public reads need no auth.
  * Full notes and verified endpoints: docs/VAULTS.md
@@ -13,7 +13,7 @@ export interface Vault {
   type: "user" | "protocol";
   name: string;
   description?: string;
-  account_id: string; // "vault_" + first 8 chars of vault_id — NOT usable as a REST account_id selector
+  account_id: string; // "vault_" + first 8 chars of vault_id - NOT usable as a REST account_id selector
   leader_account_id: string;
   nickname?: string;
   leader_commission_bps: number;
@@ -59,7 +59,7 @@ export interface VaultPortfolio {
   sharpe_ratio?: string;
   max_drawdown?: string;
   created_at: number;
-  /** [ts_ms, tvl, pnl, fees_accrued, depositors, share_price] — strings after the timestamp */
+  /** [ts_ms, tvl, pnl, fees_accrued, depositors, share_price] - strings after the timestamp */
   vault_history: [number, string, string, string, string, string][];
 }
 
@@ -125,9 +125,9 @@ export async function getVaultDepositors(vaultId: string, limit = 100): Promise<
   return { depositors: data.depositors ?? [], count: data.count ?? 0 };
 }
 
-// ── Leader writes (API wallet, master account only; all async — outcome arrives as VAULT_* user-stream events) ──
+// ── Leader writes (API wallet, master account only; all async - outcome arrives as VAULT_* user-stream events) ──
 
-/** POST /v2/vault/create — 200 means queued. The new vault_id is NOT returned: poll listMyVaults(). */
+/** POST /v2/vault/create - 200 means queued. The new vault_id is NOT returned: poll listMyVaults(). */
 export async function createVault(req: CreateVaultRequest): Promise<{ success: boolean; request_id: string; message: string }> {
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/vault/create`, "POST", req);
   if (!res.ok) return throwApiError(res, "Create vault failed");
@@ -146,14 +146,14 @@ export async function resumeVault(vaultId: string): Promise<{ success: boolean; 
   return res.json();
 }
 
-/** POST /v2/vault/deposit — from the caller's withdrawable balance; mints shares at the current share price. */
+/** POST /v2/vault/deposit - from the caller's withdrawable balance; mints shares at the current share price. */
 export async function depositToVault(vaultId: string, usdAmount: string): Promise<{ success: boolean; request_id: string }> {
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/vault/deposit`, "POST", { vault_id: vaultId, usd_amount: usdAmount });
   if (!res.ok) return throwApiError(res, "Vault deposit failed");
   return res.json();
 }
 
-/** POST /v2/vault/withdraw — deferred by lockup_days; request_id is the withdrawal_id. Shares ≤ 8 decimals. */
+/** POST /v2/vault/withdraw - deferred by lockup_days; request_id is the withdrawal_id. Shares ≤ 8 decimals. */
 export async function withdrawFromVault(vaultId: string, shares: string | "all"): Promise<{ success: boolean; request_id: string }> {
   const body = shares === "all" ? { vault_id: vaultId, withdraw_all: true } : { vault_id: vaultId, shares: toShares8(shares) };
   const res = await authenticatedFetch(`${API_BASE_URL}/v2/vault/withdraw`, "POST", body);
@@ -163,7 +163,7 @@ export async function withdrawFromVault(vaultId: string, shares: string | "all")
 
 // ── Pure helpers ──
 
-/** Shares must have at most 8 decimals — truncate, never round up. */
+/** Shares must have at most 8 decimals - truncate, never round up. */
 export function toShares8(s: string): string {
   const [i, f = ""] = String(s).split(".");
   const frac = f.slice(0, 8).replace(/0+$/, "");

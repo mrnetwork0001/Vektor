@@ -152,7 +152,7 @@ export function useUserStream(accountId: string | null) {
   // Toast deduplication cache
   const toastCacheRef = useRef<Map<string, number>>(new Map());
 
-  // Order update buffer — 300ms batching (replace = cancel + new)
+  // Order update buffer - 300ms batching (replace = cancel + new)
   const orderBufferRef = useRef<OrderTradeUpdateData[]>([]);
   const orderFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

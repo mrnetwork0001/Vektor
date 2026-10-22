@@ -1,4 +1,4 @@
-// Pure analytics over public fill rows — what the proof page renders.
+// Pure analytics over public fill rows - what the proof page renders.
 
 import type { FillRow, FundingRow } from "../api/history";
 import { builderFeeFor, telemetryFromFills } from "../quant/backfill";

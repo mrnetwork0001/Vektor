@@ -1,8 +1,8 @@
 // ── Smart range from realised volatility ──
 //
 // Range = last close ± k × ATR(14). Level count is chosen so the spacing is
-// at least `minSpacingMultiple` × the fee floor (maker+taker+2×builder) —
-// the same rule Strike's own grid service enforces — capped at 40 levels.
+// at least `minSpacingMultiple` × the fee floor (maker+taker+2×builder) -
+// the same rule Strike's own grid service enforces - capped at 40 levels.
 
 import type { Candle } from "./backtest";
 import type { FeeContext } from "./types";

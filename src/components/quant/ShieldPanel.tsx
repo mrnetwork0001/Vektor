@@ -12,7 +12,7 @@ export function ShieldPanel({ v }: { v: Vektor }) {
   return (
     <div className="quant-grid">
       <div className="panel ladder-panel">
-        <h3>Aegis liquidation shield — live buffers</h3>
+        <h3>Aegis liquidation shield - live buffers</h3>
         {!healths.length && <p className="text-secondary">No open positions. Deploy a grid, launch a hedge, or (demo) trigger a crash to see the shield act.</p>}
         {healths.map((h) => {
           const pos = v.positions.find((p) => p.symbol === h.symbol);
@@ -29,7 +29,7 @@ export function ShieldPanel({ v }: { v: Vektor }) {
                 <span className="tick" style={{ left: `${r.criticalPct * 2.5}%` }} title="Rule B" />
               </div>
               <div className="gauge-foot text-xs text-secondary">
-                mark {formatPrice(h.markPrice)} · liq {h.liquidationPrice ? formatPrice(h.liquidationPrice) : "none"} · margin ratio {h.marginRatioPct}% · uPnL {pos?.uPnL != null ? formatCurrency(pos.uPnL) : "—"}
+                mark {formatPrice(h.markPrice)} · liq {h.liquidationPrice ? formatPrice(h.liquidationPrice) : "none"} · margin ratio {h.marginRatioPct}% · uPnL {pos?.uPnL != null ? formatCurrency(pos.uPnL) : "-"}
               </div>
             </div>
           );
@@ -39,9 +39,9 @@ export function ShieldPanel({ v }: { v: Vektor }) {
       <div className="panel">
         <h3>Rules</h3>
         <div className="checkbox-row"><input id="sh-on" type="checkbox" checked={r.enabled} onChange={(e) => setShieldRules({ enabled: e.target.checked })} /><label htmlFor="sh-on"><b>Shield enabled</b></label></div>
-        <div className="checkbox-row"><input id="sh-a" type="checkbox" checked={r.ruleA} onChange={(e) => setShieldRules({ ruleA: e.target.checked })} /><label htmlFor="sh-a">Rule A — cancel resting buy rungs</label></div>
+        <div className="checkbox-row"><input id="sh-a" type="checkbox" checked={r.ruleA} onChange={(e) => setShieldRules({ ruleA: e.target.checked })} /><label htmlFor="sh-a">Rule A - cancel resting buy rungs</label></div>
         <Field label={`…when buffer < ${r.warnPct}%`}><input type="range" min={2} max={25} step={0.5} value={r.warnPct} onChange={(e) => setShieldRules({ warnPct: +e.target.value })} /></Field>
-        <div className="checkbox-row"><input id="sh-b" type="checkbox" checked={r.ruleB} onChange={(e) => setShieldRules({ ruleB: e.target.checked })} /><label htmlFor="sh-b">Rule B — reduce-only market trim</label></div>
+        <div className="checkbox-row"><input id="sh-b" type="checkbox" checked={r.ruleB} onChange={(e) => setShieldRules({ ruleB: e.target.checked })} /><label htmlFor="sh-b">Rule B - reduce-only market trim</label></div>
         <Field label={`…when buffer < ${r.criticalPct}%, trim ${Math.round(r.trimFraction * 100)}%`}>
           <input type="range" min={1} max={20} step={0.5} value={r.criticalPct} onChange={(e) => setShieldRules({ criticalPct: +e.target.value })} />
           <input type="range" min={0.1} max={1} step={0.05} value={r.trimFraction} onChange={(e) => setShieldRules({ trimFraction: +e.target.value })} />
@@ -49,9 +49,9 @@ export function ShieldPanel({ v }: { v: Vektor }) {
         <Field label={`Trim cooldown ${r.cooldownMs / 1000}s`}><input type="range" min={2} max={60} step={1} value={r.cooldownMs / 1000} onChange={(e) => setShieldRules({ cooldownMs: +e.target.value * 1000 })} /></Field>
         <div className="kv"><Row k="Rule C" val="funding flip guard lives in the Harvester (unwinds the hedge after 3 adverse hours)" /></div>
         <button className="btn btn-secondary btn-submit" disabled={alerts} onClick={() => requestAlerts().then(setAlerts)}>
-          {alerts ? "Browser alerts on — shield & round trips notify even in the background" : "Enable browser alerts"}
+          {alerts ? "Browser alerts on - shield & round trips notify even in the background" : "Enable browser alerts"}
         </button>
-        <button className="btn btn-danger btn-submit" onClick={() => void confirmDialog("Cancel every open order on every symbol and close every position with reduce-only market orders. This cannot be undone.", { title: "PANIC — flatten everything?", okLabel: "Flatten everything", danger: true }).then((ok) => { if (ok) void v.panic(); })}>PANIC — flatten everything</button>
+        <button className="btn btn-danger btn-submit" onClick={() => void confirmDialog("Cancel every open order on every symbol and close every position with reduce-only market orders. This cannot be undone.", { title: "PANIC - flatten everything?", okLabel: "Flatten everything", danger: true }).then((ok) => { if (ok) void v.panic(); })}>PANIC - flatten everything</button>
       </div>
 
       <div className="panel">

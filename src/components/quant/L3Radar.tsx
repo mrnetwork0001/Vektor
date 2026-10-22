@@ -14,7 +14,7 @@ interface Props {
 /**
  * Spoof & iceberg radar over Strike's L3 market-by-order feed. Timeline:
  * x = time (last `windowMs`), y = price; wall placements are bars that end at
- * the cancel (×) or fill (●). Pure props — mount anywhere.
+ * the cancel (×) or fill (●). Pure props - mount anywhere.
  */
 export function L3Radar({ signals, events, mark, walls = [], status, windowMs = 5 * 60_000 }: Props) {
   const W = 800, H = 220, PAD_R = 64, now = events.length ? Math.max(events[events.length - 1].t, Date.now() - 1000) : Date.now();

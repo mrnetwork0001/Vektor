@@ -114,7 +114,7 @@ export function calculateBankruptcyPrice(
  *
  * UI-only fields (the backend does not serve them for open positions):
  *   currentMargin  isolated: iso_balance; cross: IM
- *   pnlPercentage  uPnL / (entry × |size| / leverage) × 100 — same margin base
+ *   pnlPercentage  uPnL / (entry × |size| / leverage) × 100 - same margin base
  *                  as the backend's roi_pct on closing fills
  *   marginRatio    isolated: MM / (iso_balance + uPnL) × 100 (cross is set by
  *                  applyCrossLiquidationPrices from the shared cross profile)

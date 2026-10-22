@@ -10,7 +10,7 @@
  * /v2/order/replace-batch. It must be ≤ the user's approved fee_share_bps and
  * ≤ your builder's registered fee_share_bps, else 400. Omitted = 0 bps (fills
  * are still attributed to your builder code). POST /v2/order/replace does NOT
- * read the header — the replacement order carries no builder fee.
+ * read the header - the replacement order carries no builder fee.
  */
 
 import { API_BASE_URL } from "./config";
@@ -95,7 +95,7 @@ export async function cancelOrder(params: CancelOrderRequest): Promise<CancelOrd
 }
 
 /**
- * Cancel all orders (optionally for one symbol). A JSON body is required —
+ * Cancel all orders (optionally for one symbol). A JSON body is required -
  * at minimum "{}" (an empty body is rejected).
  */
 export async function cancelAllOrders(symbol?: string): Promise<CancelAllOrdersResponse> {
@@ -125,7 +125,7 @@ export async function replaceOrder(
 
 /**
  * Update leverage for a symbol (1..125, and ≤ the market's tier-1 max_leverage).
- * API wallet auth identifies the account — no account_id needed.
+ * API wallet auth identifies the account - no account_id needed.
  */
 export async function updateLeverage(
   symbol: string,

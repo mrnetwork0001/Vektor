@@ -7,7 +7,7 @@ description: Vektor grid bots and liquidation shield on Strike Finance -- plan a
 
 Vektor is a client-side grid engine on Strike Finance V2 (`https://api.strikefinance.org`). Unlike Strike's native `/v2/grid/bot` it is geometric *or* arithmetic, every rung carries `X-Builder-Fee-Bps`, and the Aegis shield can cancel or trim it from the client. The same engines run in the browser terminal, the headless worker, and this CLI.
 
-All commands: `npx tsx cli/vektor.ts <command> [args] [--json]` from the repo root. `--json` prints machine-readable output — always use it from an agent.
+All commands: `npx tsx cli/vektor.ts <command> [args] [--json]` from the repo root. `--json` prints machine-readable output - always use it from an agent.
 
 | Command | Needs | Purpose |
 |---|---|---|
@@ -27,7 +27,7 @@ Environment: `STRIKE_API_URL` (default mainnet), `STRIKE_API_PUBLIC_KEY` / `STRI
 - **Neutral grid.** Buys rest below the mark, sells above, the level nearest the mark stays empty. `levels − 1` rungs are placed; notional per rung = `margin × leverage / (levels − 1)`. Prices snap to tick (buys down, sells up), sizes to step.
 - **Client IDs encode the role**: `vektor-grid-<gridId>-<rung>-<e|x>-<seq>`. `e` = entry, `x` = exit. An entry fill places the exit one rung away for the *filled* quantity; an exit fill books the round trip and re-arms the entry. Cancels/rejects free the rung.
 - **Net per round trip** = spacing − 2×maker − 2×builder (percent of notional). Strike itself refuses grids whose spacing is below `mid × (maker + taker)`; `plan` warns when the net is ≤ 0.
-- **Backtests use mainnet candles** regardless of `STRIKE_API_URL` (testnet books are empty). Each candle is walked open → low/high (toward the close) → close, so every rung a wick touched fills — optimistic on thin books. The range is scaled to the window's first open so the grid *shape* is tested.
+- **Backtests use mainnet candles** regardless of `STRIKE_API_URL` (testnet books are empty). Each candle is walked open → low/high (toward the close) → close, so every rung a wick touched fills - optimistic on thin books. The range is scaled to the window's first open so the grid *shape* is tested.
 - **Shield** (worker and terminal): Rule A, buffer < 8% → cancel resting buys; Rule B, buffer < 5% → reduce-only market trim of 25%, 15 s cooldown, never while a trim is pending. `status` shows `healths[].distanceToLiqPct` and the shield log.
 - **Writes are async.** Strike answers `201 pending` before the engine runs the order. Engine rejections (`order_would_match_immediately`, `insufficient_balance`, ...) arrive on the user stream; the worker's watchdog looks up orders that produce no event within 8 s and frees the rung if the engine never saw them.
 
@@ -57,10 +57,10 @@ For anything that should run unattended, put the spec in `worker/grids.json` and
 
 ## Gotchas
 
-- `deploy` without `--save` places unmanaged orders: nothing re-places exits on fills. Only do that for a placement test, then `stop` is not available (no worker knows the grid) — cancel with `DELETE /v2/order/cancel-all {"symbol": ...}`.
+- `deploy` without `--save` places unmanaged orders: nothing re-places exits on fills. Only do that for a placement test, then `stop` is not available (no worker knows the grid) - cancel with `DELETE /v2/order/cancel-all {"symbol": ...}`.
 - The builder code must be registered on the same network as `STRIKE_API_URL`; testnet does not know mainnet codes (`builder code not found`). Mainnet is the default.
 - `fills` and `deploy` sign with the API wallet; `plan`, `backtest`, `smart-range` use public endpoints only.
-- ADA min notional is $5, BTC $100, ETH/SOL $10 — `plan` warns when a rung is under it; raise `--margin` or lower `--levels`.
+- ADA min notional is $5, BTC $100, ETH/SOL $10 - `plan` warns when a rung is under it; raise `--margin` or lower `--levels`.
 - Builder fees are not itemised on fill rows; `fills` reconstructs them with Strike's formula `floor(notional × bps / 10000, 2)`.
 - Cancel-all, `/v2/orders/replace` and manual cancels on the symbol hit grid rungs too; the worker reconciles against open orders and drops the lost rungs.
 - Max 100 bps builder fee; at 50 bps a round trip pays 1% in builder fees, which eats most tight grids. Default is 10.

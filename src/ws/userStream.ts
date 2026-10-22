@@ -48,7 +48,7 @@ export class UserStream {
 
     const keys = loadApiWalletKeys();
     if (!keys) {
-      console.error("[UserStream] No API wallet keys — did builder connect complete?");
+      console.error("[UserStream] No API wallet keys - did builder connect complete?");
       return;
     }
 
@@ -107,7 +107,7 @@ export class UserStream {
 
     // Logon ack
     if (message?.id === LOGON_REQUEST_ID && message?.status === 200) {
-      console.log("[UserStream] session.logon OK — account", message.result?.account_id);
+      console.log("[UserStream] session.logon OK - account", message.result?.account_id);
       this.isAuthenticated = true;
       this.send({ id: SUBSCRIBE_REQUEST_ID, method: "subscribe", channel: "userstream" });
       return;
@@ -140,7 +140,7 @@ export class UserStream {
     }
   }
 
-  /** session.logon — message "session.logon:{timestamp_ms}:{apiKey}", hex Ed25519 signature. */
+  /** session.logon - message "session.logon:{timestamp_ms}:{apiKey}", hex Ed25519 signature. */
   private sendLogon(privateKey: string, publicKey: string) {
     const timestamp = Date.now(); // milliseconds
     const message = `session.logon:${timestamp}:${publicKey}`;

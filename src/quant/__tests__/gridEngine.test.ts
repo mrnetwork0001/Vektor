@@ -91,7 +91,7 @@ describe("grid fill lifecycle", () => {
     let state = initGridState(plan);
     const sell0 = state.rungs[1].resting[0];
     const r = applyGridFill(state, fillFor(sell0.clientOrderId, "SELL", sell0.size, state.rungs[1].price));
-    // counter BUY at rung 0 — rung 0 holds a resting SELL, so a BUY is fine
+    // counter BUY at rung 0 - rung 0 holds a resting SELL, so a BUY is fine
     expect(r.orders).toHaveLength(1);
     state = r.state;
     // Now fill that BUY exit → re-arm SELL at rung 1; rung 1 is empty, OK. Then a second SELL entry at rung 1 would be a stack.

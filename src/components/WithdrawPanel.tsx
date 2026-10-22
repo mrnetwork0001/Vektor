@@ -19,7 +19,7 @@ const DEFAULT_ASSET: Record<string, string> = {
  * 1. Enter USD amount + asset -> POST /v2/withdraw/quote
  *    (wallet_address = the connected wallet, which signs and receives)
  * 2. Sign message_to_sign with the connected wallet (Cardano: the message is
- *    already hex — passed to signData as-is) and, when the quote has tx_cbor,
+ *    already hex - passed to signData as-is) and, when the quote has tx_cbor,
  *    sign the Cardano funding tx (CIP-30 signTx)
  * 3. POST /v2/withdraw with wallet_signature (+ signed_tx_cbor)
  */

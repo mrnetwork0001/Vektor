@@ -6,7 +6,7 @@ import { roundHalfEven } from "./formatUtils";
 //   rate       = maker_fee_rate_override for maker fills when set (final, may be a rebate)
 //              = bracketRate × (1 − referralDiscount) × (1 − stakingDiscount)
 //                (discounts only apply to positive rates)
-//   builderFee = floor(fillPrice × fillSize × builderBps / 10000, 2 decimals)  — charged on every fill
+//   builderFee = floor(fillPrice × fillSize × builderBps / 10000, 2 decimals)  - charged on every fill
 
 export interface FeeRates {
   takerRate: number;

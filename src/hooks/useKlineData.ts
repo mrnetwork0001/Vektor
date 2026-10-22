@@ -79,7 +79,7 @@ function normalizeKline(raw: any): ChartBar | null {
 
   if (!openTime || !Number.isFinite(open)) return null;
 
-  // Keep time in original unit (ms from API) — TradingView auto-detects
+  // Keep time in original unit (ms from API) - TradingView auto-detects
   return { time: openTime, open, high, low, close, volume };
 }
 
@@ -103,7 +103,7 @@ function fillGaps(lastBar: ChartBar | null, newBar: ChartBar, intervalMs: number
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// HOOK — provides getHistoricalBars + subscribeToRealtimeUpdates
+// HOOK - provides getHistoricalBars + subscribeToRealtimeUpdates
 // for the TradingView datafeed to call
 // ═══════════════════════════════════════════════════════════════════
 
@@ -112,7 +112,7 @@ export function useKlineData(symbol: string) {
   const klineCallbacksRef = useRef<Map<string, (bar: ChartBar) => void>>(new Map());
 
   /**
-   * Fetch historical bars — matches Strike app PriceContext.getHistoricalBars exactly.
+   * Fetch historical bars - matches Strike app PriceContext.getHistoricalBars exactly.
    * TradingView sends from/to in seconds. We convert to ms for API.
    * Returned bars keep time in ms (TradingView auto-detects unit).
    */
@@ -202,7 +202,7 @@ export function useKlineData(symbol: string) {
         if (!k || k.i !== interval) return;
 
         const newBar: ChartBar = {
-          time: Number(k.t), // Keep in ms — matches REST bars
+          time: Number(k.t), // Keep in ms - matches REST bars
           open: parseFloat(k.o),
           high: parseFloat(k.h),
           low: parseFloat(k.l),

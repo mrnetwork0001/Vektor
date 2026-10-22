@@ -58,7 +58,7 @@ export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWa
       </div>
 
       <div className="panel">
-        <h3>Delta-neutral hedge sizer — {symbol}</h3>
+        <h3>Delta-neutral hedge sizer - {symbol}</h3>
         <div className="form-row">
           <Field label={`Spot ${symbol.split("-")[0]} held`}>
             <input type="number" min={0} value={spotQty} onChange={(e) => setSpotQty(+e.target.value)} />
@@ -94,11 +94,11 @@ export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWa
           <div className="kv">
             <Row k="Status" val={h.status} cls={h.status === "DONE" ? "text-green" : ""} />
             <Row k="Perp" val={`${h.plan.side} ${h.plan.totalSize} ${h.plan.symbol}`} />
-            <Row k="Open position" val={hedgePos ? `${hedgePos.positionSide} ${hedgePos.size} @ ${formatPrice(hedgePos.entryPrice)}` : "—"} />
-            <Row k="Perp uPnL" val={hedgePos?.uPnL != null ? formatCurrency(hedgePos.uPnL) : "—"} cls={(hedgePos?.uPnL ?? 0) >= 0 ? "text-green" : "text-red"} />
+            <Row k="Open position" val={hedgePos ? `${hedgePos.positionSide} ${hedgePos.size} @ ${formatPrice(hedgePos.entryPrice)}` : "-"} />
+            <Row k="Perp uPnL" val={hedgePos?.uPnL != null ? formatCurrency(hedgePos.uPnL) : "-"} cls={(hedgePos?.uPnL ?? 0) >= 0 ? "text-green" : "text-red"} />
             <Row k={h.source === "history" ? `Funding collected (${h.payments} hourly payments)` : "Funding collected (simulated)"} val={formatCurrency(h.collectedUsd)} cls="text-green" />
             {hedgePos && <Row k="Position funding total (engine)" val={formatCurrency(hedgePos.accumulatedFundingFees)} cls={hedgePos.accumulatedFundingFees >= 0 ? "text-green" : "text-red"} />}
-            <Row k="Rule C (flip guard)" val={`unwind after 3 adverse hours · last ${h.fundingHistory.slice(-3).map((r) => (r * 100).toFixed(4) + "%").join(" ") || "—"}`} />
+            <Row k="Rule C (flip guard)" val={`unwind after 3 adverse hours · last ${h.fundingHistory.slice(-3).map((r) => (r * 100).toFixed(4) + "%").join(" ") || "-"}`} />
             {(h.status === "DONE" || h.status === "RUNNING") && <button className="btn btn-danger btn-submit" onClick={() => void v.unwindHedge()}>Unwind hedge</button>}
           </div>
         )}

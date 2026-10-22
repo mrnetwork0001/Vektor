@@ -18,12 +18,12 @@ export function useJudgeTour(v: Vektor, setTab: (t: Tab) => void) {
 
   const steps: Step[] = [
     { caption: "Demo mode: the real engines driving an in-browser matching engine. Same code as Live.", ms: 3500, run: () => { vRef.current.switchMode("sim"); vRef.current.setSymbol("ADA-USD"); setTab("grid"); vRef.current.sim.reset(); vRef.current.sim.setSpeed(3); vRef.current.sim.trigger("RANGE"); } },
-    { caption: "Deploying a 12-level geometric grid at 10x through one /v2/orders/batch — every rung carries the builder fee.", ms: 4000, run: async () => { await vRef.current.deployGrid({ lowerPrice: vRef.current.mark * 0.94, upperPrice: vRef.current.mark * 1.06, levels: 12, marginUsd: 600, leverage: 10, mode: "GEOMETRIC" }); } },
+    { caption: "Deploying a 12-level geometric grid at 10x through one /v2/orders/batch - every rung carries the builder fee.", ms: 4000, run: async () => { await vRef.current.deployGrid({ lowerPrice: vRef.current.mark * 0.94, upperPrice: vRef.current.mark * 1.06, levels: 12, marginUsd: 600, leverage: 10, mode: "GEOMETRIC" }); } },
     { caption: "Green = resting buys, red = resting sells. Watch the fill log: each fill places its counter one rung away for the FILLED quantity.", ms: 9000 },
     { caption: "Flash crash −12%. Buy rungs fill, inventory builds, the long walks toward its liquidation price (orange line).", ms: 7000, run: () => vRef.current.sim.trigger("FLASH_CRASH") },
     { caption: "Aegis Shield: buffer < 8% → cancelled the resting buys. Buffer < 5% → reduce-only trim of 25%. One episode, one trim.", ms: 8000, run: () => setTab("shield") },
     { caption: "Funding Harvester: hourly funding × 24 × 365, hedge sized to spot, liquidation from real margin tiers.", ms: 6000, run: () => setTab("funding") },
-    { caption: "Back on the grid: builder fees in the header are what Strike's native grid bot would have paid you — $0. Vektor pays on every fill.", ms: 7000, run: () => { setTab("grid"); vRef.current.sim.setSpeed(1); } },
+    { caption: "Back on the grid: builder fees in the header are what Strike's native grid bot would have paid you - $0. Vektor pays on every fill.", ms: 7000, run: () => { setTab("grid"); vRef.current.sim.setSpeed(1); } },
     { caption: "Switch to Live, connect a wallet, and this exact flow runs on Strike mainnet. Thanks for watching.", ms: 5000 },
   ];
 

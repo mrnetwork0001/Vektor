@@ -99,9 +99,9 @@ export function buildHedgePlan(p: HedgePlanInput): HedgePlan {
 
   if (totalSize <= 0) warnings.push("Spot quantity rounds to zero at the market step size");
   if (notional < p.rules.minNotional) warnings.push(`Notional $${notional.toFixed(2)} is below the $${p.rules.minNotional} minimum`);
-  if (sliceSize * p.markPrice < p.rules.minNotional) warnings.push("Each slice is below min notional — use fewer slices");
+  if (sliceSize * p.markPrice < p.rules.minNotional) warnings.push("Each slice is below min notional - use fewer slices");
   if (p.leverage > 3) warnings.push("Leverage above 3x leaves little room for a rally before the short is liquidated");
-  if (p.perpSide === "LONG") warnings.push("Negative funding: a LONG perp collects it, but that is not a hedge for spot — directional exposure");
+  if (p.perpSide === "LONG") warnings.push("Negative funding: a LONG perp collects it, but that is not a hedge for spot - directional exposure");
 
   return {
     symbol: p.symbol, side: p.perpSide, totalSize,

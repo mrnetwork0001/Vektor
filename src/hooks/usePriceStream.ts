@@ -95,7 +95,7 @@ export function usePriceStream(symbol: string) {
     // ── Order book: subscribe, re-sync on every ack (incl. reconnects) ──
     // Diffs are relative to the server's previous publish (not to our snapshot),
     // a symbol's first subscriber gets a full top-20 push without "0" removals,
-    // and slow clients can silently miss messages — so also re-sync on a crossed
+    // and slow clients can silently miss messages - so also re-sync on a crossed
     // book and every 60s.
     const unsubAck = priceStream.on(`subscribed:depth|${symbol}`, () => void resync());
     const unsubDepth = priceStream.on(`depthUpdate:${symbol}`, (event: DepthUpdate) => {

@@ -20,7 +20,7 @@ primary_region = "ams"
 [http_service]
   internal_port = 8787
   force_https = true
-  auto_stop_machines = false   # it must stay up — that's the point
+  auto_stop_machines = false   # it must stay up - that's the point
   auto_start_machines = true
   min_machines_running = 1
 

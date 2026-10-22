@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useKlineData, SUPPORTED_RESOLUTIONS, normalizeUnixToSeconds } from "../hooks/useKlineData";
 
 // TradingView charting library (loaded from /public/static/charting_library/)
-// @ts-ignore — UMD global, types not in node_modules
+// @ts-ignore - UMD global, types not in node_modules
 const TV_LIB_PATH = "/static/charting_library/";
 
 interface Props {

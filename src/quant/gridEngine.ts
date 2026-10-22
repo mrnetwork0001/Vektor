@@ -69,7 +69,7 @@ export interface GridRung {
   resting: RestingOrder[];
   cycles: number;
   realizedUsd: number;
-  retired?: boolean; // stop-loss fired — never re-armed
+  retired?: boolean; // stop-loss fired - never re-armed
 }
 
 export interface GridPlan {
@@ -102,7 +102,7 @@ export interface GridState {
   log: GridLogEntry[];
   lastTradeId?: number; // highest /v2/history/fill trade_id applied (backfill cursor)
   deployedAt?: number;
-  shifts?: number; // auto-shift (trailing) re-centres so far — see gridShift.ts
+  shifts?: number; // auto-shift (trailing) re-centres so far - see gridShift.ts
   shiftedAt?: number;
 }
 
@@ -123,7 +123,7 @@ export function planGrid(config: GridConfig, rules: MarketRules, fees: FeeContex
   if (levels < 4 || levels > 60) throw new Error("levels must be between 4 and 60");
   if (config.stopLossPct !== undefined && config.stopLossPct < 0) throw new Error("stopLossPct must be ≥ 0");
   const inRange = markPrice > lowerPrice && markPrice < upperPrice;
-  if (!inRange) warnings.push("Mark price is outside the range — only one side will be placed");
+  if (!inRange) warnings.push("Mark price is outside the range - only one side will be placed");
 
   const step = (upperPrice - lowerPrice) / (levels - 1);
   const ratio = Math.pow(upperPrice / lowerPrice, 1 / (levels - 1));
@@ -156,14 +156,14 @@ export function planGrid(config: GridConfig, rules: MarketRules, fees: FeeContex
 
   const active = rungs.filter((r) => r.entrySide !== "NONE");
   const tooSmall = active.filter((r) => r.plannedSize < rules.minSize || r.notionalUsd < rules.minNotional);
-  if (tooSmall.length) warnings.push(`${tooSmall.length} rung(s) below min size / $${rules.minNotional} notional — raise margin or reduce levels`);
+  if (tooSmall.length) warnings.push(`${tooSmall.length} rung(s) below min size / $${rules.minNotional} notional - raise margin or reduce levels`);
 
   const mid = (upperPrice + lowerPrice) / 2;
   const spacingPct = mode === "ARITHMETIC" ? (step / mid) * 100 : (ratio - 1) * 100;
   const feeFloorPct = (fees.makerRate + fees.takerRate) * 100;
   const netCyclePct = spacingPct - 2 * fees.makerRate * 100 - 2 * (fees.builderFeeBps / 100);
-  if (netCyclePct <= 0) warnings.push("Spacing does not cover maker + builder fees — widen the range or reduce levels");
-  if (config.stopLossPct && config.stopLossPct <= spacingPct) warnings.push("Stop-loss is inside one rung spacing — normal grid motion will trigger it");
+  if (netCyclePct <= 0) warnings.push("Spacing does not cover maker + builder fees - widen the range or reduce levels");
+  if (config.stopLossPct && config.stopLossPct <= spacingPct) warnings.push("Stop-loss is inside one rung spacing - normal grid motion will trigger it");
 
   // Funding at full inventory on the receiving side: Σ notional(receiving rungs) × |rate| × 24.
   const rate = config.skew?.mode === "FUNDING" ? (config.skew.fundingRateHourly ?? 0) : 0;
@@ -314,7 +314,7 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
     rung.retired = true;
     for (const r of rungs) for (const o of r.resting) if (o.role === "x" && o.exitFor === rung.index) cancel.push(o.clientOrderId);
     for (const r of rungs) r.resting = r.resting.filter((o) => !cancel.includes(o.clientOrderId));
-    log.push({ t: now, kind: "STOP", msg: `Stop-loss ${fill.side} ${fill.fillQty} @ ${fill.fillPrice} on rung ${rung.index}: ${pnl >= 0 ? "+" : ""}$${pnl.toFixed(4)} — rung retired${cancel.length ? `, ${cancel.length} exit(s) cancelled` : ""}` });
+    log.push({ t: now, kind: "STOP", msg: `Stop-loss ${fill.side} ${fill.fillQty} @ ${fill.fillPrice} on rung ${rung.index}: ${pnl >= 0 ? "+" : ""}$${pnl.toFixed(4)} - rung retired${cancel.length ? `, ${cancel.length} exit(s) cancelled` : ""}` });
     return { state: { ...state, rungs, ...accounting, realizedUsd: fix(realizedUsd, 4), stops, log: log.slice(-300) }, orders, strategies, cancel };
   }
 
@@ -341,7 +341,7 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
       entryRung.realizedUsd = fix(entryRung.realizedUsd + pnl, 4);
       cycles += 1;
       log.push({ t: now, kind: "CYCLE", msg: `Round trip rung ${entryRung.index}→${rung.index}: +$${pnl.toFixed(4)}` });
-      // The entry's stop leg is now orphaned (position closed) — cancel it.
+      // The entry's stop leg is now orphaned (position closed) - cancel it.
       if (fullyFilled) {
         cancel.push(...entryRung.resting.filter((o) => o.role === "s").map((o) => o.clientOrderId));
         entryRung.resting = entryRung.resting.filter((o) => o.role !== "s");
@@ -351,11 +351,11 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
 
   const target = rungs[targetIdx];
   if (!target) {
-    log.push({ t: now, kind: "SKIP", msg: `Rung ${rung.index} filled at the edge of the range — no counter rung` });
+    log.push({ t: now, kind: "SKIP", msg: `Rung ${rung.index} filled at the edge of the range - no counter rung` });
   } else if (target.retired && counterRole === "e") {
-    log.push({ t: now, kind: "SKIP", msg: `Rung ${target.index} was stopped out — not re-arming` });
+    log.push({ t: now, kind: "SKIP", msg: `Rung ${target.index} was stopped out - not re-arming` });
   } else if (target.resting.some((o) => o.side === counterSide && o.role !== "s")) {
-    log.push({ t: now, kind: "SKIP", msg: `Rung ${target.index} already has a resting ${counterSide} — not stacking` });
+    log.push({ t: now, kind: "SKIP", msg: `Rung ${target.index} already has a resting ${counterSide} - not stacking` });
   } else {
     const seq = now % 1_000_000;
     if (counterRole === "e" && bracket) {
@@ -376,7 +376,7 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
   };
 }
 
-/** Client IDs of resting BUY entries/exits — what the Shield cancels (Rule A) to free margin. Stop legs are excluded. */
+/** Client IDs of resting BUY entries/exits - what the Shield cancels (Rule A) to free margin. Stop legs are excluded. */
 export function restingBuyIds(state: GridState): string[] {
   return state.rungs.flatMap((r) => r.resting.filter((o) => o.side === "BUY" && o.role !== "s").map((o) => o.clientOrderId));
 }
@@ -389,7 +389,7 @@ export function restingIds(state: GridState): string[] {
  * Rebuild after a reload: keep only resting orders that are actually on the
  * book (GET /v2/openOrders), drop the rest. An unarmed stop leg is not on the
  * book yet, so it is kept as long as its entry is. Fills that happened while
- * we were away are not replayed — inventory is re-read from /v2/positions by the UI.
+ * we were away are not replayed - inventory is re-read from /v2/positions by the UI.
  */
 export function reconcileGrid(state: GridState, openClientIds: Set<string>, now = Date.now()): { state: GridState; kept: number; dropped: number } {
   let kept = 0, dropped = 0;

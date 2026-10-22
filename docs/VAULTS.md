@@ -2,17 +2,17 @@
 
 Research notes from `vendor/strike-finance-skills/skills/strike-vaults` and `strike-copy-trading`, cross-checked against mainnet public endpoints on 2026-10-22. Items marked **verified** were observed live; everything else is from the skill docs (Strike's own, generated from their backend) and marked **doc**.
 
-## TL;DR — feasible in 48h: **YES for vaults, NO (as a product feature) for copy trading**
+## TL;DR - feasible in 48h: **YES for vaults, NO (as a product feature) for copy trading**
 
 - **Vaults**: a vault is just another trading account. The leader trades it by adding `"vault_id": "<uuid>"` to the exact order bodies Vektor already sends. No new order model, no new auth. Create + trade + public performance reads are all available to an API wallet. The one hard constraint is money: `initial_deposit ≥ $100` from the leader's withdrawable balance.
-- **Copy trading**: there is nothing for a *lead* to do — any non-vault account can be copied, there is no opt-in, and the lead API surface is read-only stats. Followers mirror the lead's **fills** as market IOC orders (not resting orders), so a grid lead's followers would buy every dip and sell every rip at market with taker fees and no builder code. It works, but it is a worse product than the vault and gives us no API to build against. Recommendation: expose "copy me" as a link to Strike's copy page + the lead stats card, nothing more.
+- **Copy trading**: there is nothing for a *lead* to do - any non-vault account can be copied, there is no opt-in, and the lead API surface is read-only stats. Followers mirror the lead's **fills** as market IOC orders (not resting orders), so a grid lead's followers would buy every dip and sell every rip at market with taker fees and no builder code. It works, but it is a worse product than the vault and gives us no API to build against. Recommendation: expose "copy me" as a link to Strike's copy page + the lead stats card, nothing more.
 
-Live proof that the pattern is real: mainnet vault `MARKET WIZARDS` (`536b4d72-…`) currently has **432 open orders tagged `grid-vault_536b4d72-WTI-USD-…`** — a Strike native grid bot running inside a user vault (**verified** via `GET /v2/openOrders?vault_id=…`).
+Live proof that the pattern is real: mainnet vault `MARKET WIZARDS` (`536b4d72-…`) currently has **432 open orders tagged `grid-vault_536b4d72-WTI-USD-…`** - a Strike native grid bot running inside a user vault (**verified** via `GET /v2/openOrders?vault_id=…`).
 
 ## Vaults
 
 ### Concepts (doc)
-- `account_id` of a vault = `vault_` + first 8 chars of `vault_id` (e.g. `vault_536b4d72`). Use it for the user-stream subscription, **not** as a REST `account_id` selector — REST wants the UUID via `vault_id=`.
+- `account_id` of a vault = `vault_` + first 8 chars of `vault_id` (e.g. `vault_536b4d72`). Use it for the user-stream subscription, **not** as a REST `account_id` selector - REST wants the UUID via `vault_id=`.
 - Types: `user` (anyone creates one, becomes leader; default 10% Leader Fee; leader must keep ≥ 5% of shares) and `protocol` (Strike-run, e.g. SLP).
 - Share price = `(wallet balance + uPnL) / total_shares`; starts at 1. Deposits mint shares at current price; withdrawals are deferred `lockup_days × 24h` and execute at the *then* share price.
 - Status `active | paused | closed`. Only `active` accepts new orders and deposits.
@@ -45,7 +45,7 @@ So Vektor's grid in a vault = depositors' capital, leader earns Leader Fee on th
 
 ### Economics (doc)
 - Leader Fee = `commission_bps/10000 × max(0, exec_share_price − depositor avg_entry) × shares`, charged at withdrawal, paid to the leader as **new shares**. No fee on the leader's own withdrawals.
-- Withdrawal unwind: if the vault is short of cash, Strike cancels vault orders (farthest from mark first), runs an RFQ, then reduce-only IOC closes tagged `client_order_id: "vault_wd_<order_id>"` with `act: vault_withdrawal`. **Vektor's reconcile must treat `vault_withdrawal` cancels as "rung gone, don't re-place"** and must not re-arm rungs that a withdrawal unwind closed — see INTEGRATION-vault.md.
+- Withdrawal unwind: if the vault is short of cash, Strike cancels vault orders (farthest from mark first), runs an RFQ, then reduce-only IOC closes tagged `client_order_id: "vault_wd_<order_id>"` with `act: vault_withdrawal`. **Vektor's reconcile must treat `vault_withdrawal` cancels as "rung gone, don't re-place"** and must not re-arm rungs that a withdrawal unwind closed - see INTEGRATION-vault.md.
 - Recovery max margin ratio (`PATCH /v2/vault/:id/recovery-settings`, range (0, 0.5]) caps how much cash a withdrawal may take; default 0.5.
 
 ### Public reads (all **verified** on mainnet, no auth)
@@ -54,9 +54,9 @@ So Vektor's grid in a vault = depositors' capital, leader earns Leader Fee on th
 | `GET /v2/vaults?type=user&limit=3` | `{count: 4, vaults: [{vault_id, type, name, account_id: "vault_536b4d72", leader_account_id, leader_commission_bps: 500, total_shares, share_price, equity, wallet_balance, lockup_days, min_deposit, status, apr, all_time_pnl, return_24h, period_return, depositors: 5, fee_earned, sharpe_ratio}]}` |
 | `GET /v2/vaults?type=protocol` | SLP vault: TVL ≈ $1.03M, `is_verified: true`, commission 0 |
 | `GET /v2/vault/:id/portfolio?period=7d` | `total_value_locked, apr, all_time_pnl, return_24h, volume, all_time_volume, depositors, fee, commission_bps, fee_earned, pending_fees_*, sharpe_ratio, max_drawdown, total_maker_rebates, vault_history[[ts,tvl,pnl,fees,depositors,share_price]]` |
-| `GET /v2/vault/:id/depositors?limit=2` | `{count, depositors: [{address, nickname, deposited, total_deposited, total_withdrawn, current_equity, share_percentage, pnl, deposited_since}]}` — exposes wallet addresses |
-| `GET /v2/openOrders?vault_id=<uuid>` | `{count: 432, orders: [...]}` — the vault's live book, public |
-| `GET /v2/vaults?leader_account_id=<uuid>` | documented; same list shape (not exercised — we have no vault yet) |
+| `GET /v2/vault/:id/depositors?limit=2` | `{count, depositors: [{address, nickname, deposited, total_deposited, total_withdrawn, current_equity, share_percentage, pnl, deposited_since}]}` - exposes wallet addresses |
+| `GET /v2/openOrders?vault_id=<uuid>` | `{count: 432, orders: [...]}` - the vault's live book, public |
+| `GET /v2/vaults?leader_account_id=<uuid>` | documented; same list shape (not exercised - we have no vault yet) |
 
 Gotchas (doc): `GET /v2/vault/:id` does not compute `apr`/returns/`depositors` (use `/portfolio` or the list); invalid `period` is `500` on the list and `404` on portfolio; `period_start_timestamp` is **seconds**.
 
@@ -71,7 +71,7 @@ Public user-stream subscription, no logon: `{"method":"subscribe","channel":"use
 - Lead earns `profit_share_rate` (currently `"0.1"`) of a follower's positive `closed_pnl` when the follower stops.
 
 ### What followers mirror (doc)
-- **Fills only**, as market IOC (same side; reduce-only for reductions). "Resting lead orders and lead cancels are not mirrored." Copies carry `client_order_id: copy:<subscription_id>:<lead_order_id>`; the lead's own client ids do **not** propagate to followers. Lead orders that are TWAP (`twap-`) or native grid (`grid-`, `:grid-`) are **not copied** — Vektor's `vektor-grid-…` ids are not on that exclusion list, so they *would* be copied.
+- **Fills only**, as market IOC (same side; reduce-only for reductions). "Resting lead orders and lead cancels are not mirrored." Copies carry `client_order_id: copy:<subscription_id>:<lead_order_id>`; the lead's own client ids do **not** propagate to followers. Lead orders that are TWAP (`twap-`) or native grid (`grid-`, `:grid-`) are **not copied** - Vektor's `vektor-grid-…` ids are not on that exclusion list, so they *would* be copied.
 - Copied orders carry **no builder code** and no builder fee.
 - Consequence for a grid lead: followers pay taker fees chasing every rung fill with ~seconds of lag, get no take-profit limit (the exit is only placed when the lead's exit *fills*), and the lead gets 10% of whatever profit survives that. Expect followers to underperform the vault badly in a ranging market. This is the opposite of the vault, where depositors own the actual resting grid.
 
@@ -79,6 +79,6 @@ Public user-stream subscription, no logon: `{"method":"subscribe","channel":"use
 Vault: build it. Copy: surface the public stats (`/v2/copy/copiers`, `/v2/copy/lead/stats`) and a "Copy this account on Strike" link; do not build sizing logic around it.
 
 ## What was NOT verified
-- Any vault write (`create`, `deposit`, `withdraw`, `pause`) — needs a funded mainnet account; the endpoints and bodies are from the skill docs.
-- A grid order with `vault_id` reaching the engine, and the builder fee being charged on it — doc-backed only.
-- `VAULT_*` event payloads — doc-backed only; `useUserStream` already routes wrapped `event_type` events, so wiring `VAULT_CREATE_FAILED`/`VAULT_DEPOSIT_FAILED` toasts is a one-liner.
+- Any vault write (`create`, `deposit`, `withdraw`, `pause`) - needs a funded mainnet account; the endpoints and bodies are from the skill docs.
+- A grid order with `vault_id` reaching the engine, and the builder fee being charged on it - doc-backed only.
+- `VAULT_*` event payloads - doc-backed only; `useUserStream` already routes wrapped `event_type` events, so wiring `VAULT_CREATE_FAILED`/`VAULT_DEPOSIT_FAILED` toasts is a one-liner.
