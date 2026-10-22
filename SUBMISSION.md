@@ -52,5 +52,5 @@ What is prototype today, honestly: the vault deploy path is wired but vault fill
 
 ## Honest status
 - Verified on mainnet: every read endpoint, all three WebSockets, builder connect with `vektor`, CLI, worker boot, proof selectors.
-- `<FILL IN after first live grid>`: first real grid placed on `<date>`, `<n>` rungs, fills and builder fees visible at the proof URL above.
+- First real grid placed on mainnet 2026-10-22: 3 rungs on ADA-USD via `/v2/orders/batch`; first fill buy 66 ADA @ 0.21175 (maker, `client_order_id vektor-grid-mvju3867-0-e-0`), counter sell placed within the same second; verifiable at `https://api.strikefinance.org/v2/history/fill?account_id=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9`. This account owns the builder code so Strike disallows its own builder fee; the second-wallet run shows the fee.
 - Not finished: vault fill stream (prototype only), worker lacks brackets/auto-shift/regime (browser hook has them).

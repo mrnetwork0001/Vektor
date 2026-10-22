@@ -142,6 +142,26 @@ Facts the build depends on (all from the official skills): funding is hourly at 
 
 ---
 
+### Live proof (mainnet, 2026-10-22)
+
+First real grid placed by Vektor on Strike mainnet, account `01a162e1-f0fb-77f4-8958-8adaf4b9a2b9` (API-wallet session, so no builder fee on this account - Strike does not let a builder's own account approve its own code; a second wallet will show the fee).
+
+- Deploy: 3 rungs on ADA-USD via one `POST /v2/orders/batch`; engine acks for `vektor-grid-mvju3867-0-e-0`, `-2-e-0`, `-3-e-0`.
+- First fill (17:59:01Z): **buy 66 ADA @ 0.21175, maker, fee −$0.0007 (rebate)** - `/v2/history/fill` row with `client_order_id = vektor-grid-mvju3867-0-e-0`.
+- Counter placed within the same second: `sell 66 @ 0.21232` (`vektor-grid-mvju3867-1-x-941905`) resting beside the two sell entries at 0.21290 / 0.21347.
+- Position: long 66 ADA, entry 0.21175, cross.
+
+Verify yourself (public selectors, no auth):
+
+```bash
+curl "https://api.strikefinance.org/v2/history/fill?account_id=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9&limit=10"
+curl "https://api.strikefinance.org/v2/openOrders?account_id=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9"
+curl "https://api.strikefinance.org/v2/positions?account_id=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9"
+```
+or open `/proof.html?account=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9`.
+
+Found and fixed on the way (all in the repo history): mainnet ADA min notional is $10 (testnet $5) and undersized rungs are silently dropped by the engine, so Deploy now blocks below the minimum; restore raced the open-orders fetch and could wipe the saved grid - now gated, and orphaned `vektor-grid-` orders on the book are adopted; Deploy now sets the symbol leverage on Strike.
+
 ## 6. Running it
 
 **Terminal** - `npm run dev`, open `/app.html`. Demo mode needs nothing. Live mode: connect a wallet (Cardano / Solana / EVM), Builder Connect approves `vektor`, deposit USDC, deploy. "Prove-it preset" sets a tight micro-grid that fills within minutes on a liquid book; "Copy proof summary" copies a markdown block for submissions.
@@ -164,7 +184,7 @@ Facts the build depends on (all from the official skills): funding is hourly at 
 
 ## 8. Known limits
 
-- **First live order**: every read path, auth and the CLI are verified on mainnet; the first real `/v2/orders/batch` placement is pending account funding at the time of writing.
+- **Builder-fee attribution on a live fill** is still to be shown: the funded account owns the builder code and Strike refuses to approve an account for its own builder, so the fee-bearing run needs a second wallet (live placement itself is proven - see Live proof).
 - **Vault execution** is a prototype: `vault_id` is on every order and reads are verified, but fills for a vault arrive on the vault's own user-stream socket, which is not subscribed yet. Do not route real money through a vault until that lands.
 - **Worker parity**: the worker runs plain grids + shield; brackets, auto-shift and the regime guard live in the browser hook today.
 - Backtests use mainnet "last" candles and fill every rung a wick touched - optimistic on thin books, and the UI says so. L3 spoof thresholds are hand-tuned.
