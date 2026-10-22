@@ -1,4 +1,4 @@
-# Vektor headless worker — build from the repo root:  docker build -f worker/Dockerfile -t vektor-worker .
+# Vektor headless worker - build from the repo root:  docker build -f worker/Dockerfile -t vektor-worker .
 FROM node:22-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
