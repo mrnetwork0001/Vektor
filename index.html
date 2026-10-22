@@ -45,11 +45,17 @@
     .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.6px) rotate(45deg); }
     .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
     .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.6px) rotate(-45deg); }
-    .mnav { display: none; flex-direction: column; gap: 4px; padding: 10px 16px 16px; border-top: 1px solid var(--border); background: rgba(10,10,10,0.96); }
+    .mnav { position: fixed; top: 0; bottom: 0; left: 0; z-index: 50; width: min(88vw, 320px); height: 100dvh; display: flex; flex-direction: column; gap: 4px; padding: 16px; border-right: 1px solid var(--border); background: var(--panel); transform: translateX(-100%); transition: transform .25s cubic-bezier(.2,.7,.2,1); overflow-y: auto; }
+    .mnav .mhead { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--border); font-weight: 800; }
+    .mnav .mhead .bolt { color: var(--green); display: inline-flex; margin-right: 6px; }
+    .mnav .mclose { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg2); color: var(--text); font-size: 18px; cursor: pointer; }
     .mnav a { padding: 12px 10px; border-radius: 8px; font-size: 15px; color: var(--muted); }
     .mnav a:hover { background: var(--bg2); color: var(--text); }
-    .mnav .btn { justify-content: center; margin-top: 8px; color: #000; }
-    nav.open .mnav { display: flex; animation: fadeIn .2s ease; }
+    .mnav .btn { justify-content: center; margin-top: auto; color: #000; }
+    .mbackdrop { position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none; transition: opacity .25s; }
+    nav.open .mnav { transform: none; box-shadow: 20px 0 60px rgba(0,0,0,0.5); }
+    nav.open .mbackdrop { opacity: 1; pointer-events: auto; }
+    @media (min-width: 961px) { .mnav, .mbackdrop { display: none; } }
 
     /* hero */
     .hero { padding: 96px 0 72px; position: relative; overflow: hidden; }
@@ -264,7 +270,9 @@
     </ul>
     <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mnav"><span></span><span></span><span></span></button>
   </div>
-  <div class="mnav" id="mnav">
+  <div class="mbackdrop" id="mbackdrop"></div>
+  <div class="mnav" id="mnav" role="dialog" aria-label="Menu">
+    <div class="mhead"><span><span class="bolt"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></span>Vektor</span><button class="mclose" id="mclose" aria-label="Close menu">&times;</button></div>
     <a href="#modules">Modules</a><a href="#features">Features</a><a href="#builder">Builder model</a><a href="#how">How it works</a><a href="#arch">Architecture</a><a href="#roadmap">Roadmap</a><a href="#faq">FAQ</a>
     <a class="btn btn-primary" href="/app.html">Launch App</a>
   </div>
@@ -686,7 +694,11 @@
   var burger = document.getElementById('burger');
   if (burger) {
     burger.addEventListener('click', function () { var open = !nav.classList.contains('open'); nav.classList.toggle('open', open); burger.setAttribute('aria-expanded', String(open)); });
-    document.querySelectorAll('#mnav a').forEach(function (a) { a.addEventListener('click', function () { nav.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); }); });
+    var closeM = function () { nav.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); };
+    document.querySelectorAll('#mnav a').forEach(function (a) { a.addEventListener('click', closeM); });
+    document.getElementById('mbackdrop').addEventListener('click', closeM);
+    document.getElementById('mclose').addEventListener('click', closeM);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeM(); });
   }
 
   document.querySelectorAll('.card').forEach(function (c) {

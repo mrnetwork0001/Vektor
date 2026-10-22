@@ -34,6 +34,8 @@ export default function App() {
   const builderFeeBps = Math.min(BUILDER_FEE_BPS, connectedInfo?.feeShareBps ?? 0);
   const [tab, setTab] = useState<Tab>("grid");
   const [vaultId, setVaultId] = useState<string | null>(null);
+  const [drawer, setDrawer] = useState(false);
+  useEffect(() => { setDrawer(false); }, [tab]);
   const [guardOn, setGuardOn] = useState(true);
   const [fundingBySymbol, setFundingBySymbol] = useState<Record<string, number>>({});
   const [symbolsForRegime, setSymbolsForRegime] = useState<string[]>(["ADA-USD", "BTC-USD", "ETH-USD", "SOL-USD"]);
@@ -86,12 +88,14 @@ export default function App() {
   return (
     <div className="app">
       <ToastContainer position="top-right" autoClose={4000} theme="dark" toastStyle={{ background: "#1a1a1a", color: "#fff", fontSize: 13 }} />
-      <VektorHeader v={v} tab={tab} setTab={setTab} builderCode={connectedInfo?.builderCode ?? BUILDER_CODE} onTour={() => void tour.start()} tourActive={tour.active} accountId={accountId} vaultId={vaultId} />
+      <VektorHeader v={v} tab={tab} setTab={setTab} builderCode={connectedInfo?.builderCode ?? BUILDER_CODE} onTour={() => void tour.start()} tourActive={tour.active} accountId={accountId} vaultId={vaultId} drawerOpen={drawer} onToggleDrawer={() => setDrawer((d) => !d)} />
       <TourOverlay tour={tour} />
       <ConfirmHost />
 
       <div className="app-layout">
-        <aside className="sidebar">
+        <button className={`drawer-backdrop ${drawer ? "show" : ""}`} aria-label="Close menu" onClick={() => setDrawer(false)} />
+        <aside className={`sidebar ${drawer ? "open" : ""}`}>
+          <div className="drawer-head"><span>Controls</span><button className="btn btn-secondary" onClick={() => setDrawer(false)}>Close</button></div>
           <div className="panel">
             <h3>Execution mode</h3>
             <div className="side-toggle">

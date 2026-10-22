@@ -8,7 +8,7 @@ const NETWORK = /testnet/i.test(API_BASE_URL) ? "testnet" : "mainnet";
 
 export type Tab = "grid" | "funding" | "shield";
 
-export function VektorHeader({ v, tab, setTab, builderCode, onTour, tourActive, accountId, vaultId }: { v: Vektor; tab: Tab; setTab: (t: Tab) => void; builderCode: string; onTour: () => void; tourActive: boolean; accountId?: string | null; vaultId?: string | null }) {
+export function VektorHeader({ v, tab, setTab, builderCode, onTour, tourActive, accountId, vaultId, drawerOpen, onToggleDrawer }: { v: Vektor; tab: Tab; setTab: (t: Tab) => void; builderCode: string; onTour: () => void; tourActive: boolean; accountId?: string | null; vaultId?: string | null; drawerOpen?: boolean; onToggleDrawer?: () => void }) {
   const t = v.telemetry;
   const worst = v.healths.reduce<string>((acc, h) => (h.health === "CRITICAL" ? "CRITICAL" : h.health === "WARNING" && acc !== "CRITICAL" ? "WARNING" : acc), "SAFE");
   return (
@@ -18,6 +18,7 @@ export function VektorHeader({ v, tab, setTab, builderCode, onTour, tourActive, 
         <span className={`mode-pill ${v.mode}`}>{v.mode === "sim" ? "DEMO" : `LIVE · ${NETWORK}`}</span>
         <MarketSelector symbols={v.symbols} selected={v.symbol} onChange={v.setSymbol} />
         <button className="btn btn-tour" onClick={onTour} disabled={tourActive} title="45-second guided demo">▶ Judge tour</button>
+        <button className={`burger-btn ${drawerOpen ? "open" : ""}`} aria-label="Toggle controls" aria-expanded={!!drawerOpen} onClick={onToggleDrawer}><span /><span /><span /></button>
       </div>
       <nav className="vk-tabs">
         {([["grid", "Grid Studio"], ["funding", "Funding Harvester"], ["shield", `Aegis Shield${worst !== "SAFE" ? ` · ${worst}` : ""}`]] as [Tab, string][]).map(([k, label]) => (
