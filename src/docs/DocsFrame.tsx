@@ -9,7 +9,7 @@ export function DocsHeader() {
     <header className="docs-header">
       <a className="docs-skip" href="#docs-main">Skip to content</a>
       <div className="docs-header-in">
-        <a className="docs-brand" href="/" aria-label="Vektor home"><img src="/brand/vektor-header.png" alt="Vektor" style={{ height: 30, width: "auto", display: "block" }} /> <span className="docs-brand-sub">Docs</span></a>
+        <a className="docs-brand" href="/" aria-label="Vektor home"><img src="/brand/vektor-header.png" alt="Vektor" style={{ height: 60, width: "auto", display: "block" }} /> <span className="docs-brand-sub">Docs</span></a>
         <a className="docs-btn" href="/app.html">Open the app</a>
       </div>
     </header>
@@ -20,7 +20,7 @@ export function DocsFooter() {
   return (
     <footer className="docs-footer">
       <div className="docs-footer-in">
-        <span className="docs-brand-sm"><img src="/brand/vektor-header.png" alt="Vektor" style={{ height: 24, width: "auto", display: "inline-block", verticalAlign: "middle", marginRight: 8 }} />built for the Strike Finance 48-hour hackathon</span>
+        <span className="docs-brand-sm"><img src="/brand/vektor-header.png" alt="Vektor" style={{ height: 48, width: "auto", display: "inline-block", verticalAlign: "middle", marginRight: 8 }} />built for the Strike Finance 48-hour hackathon</span>
         <span><a href="https://strikefinance.org" target="_blank" rel="noopener noreferrer">strikefinance.org</a> · <a href="/docs">Docs</a> · <a href="/app.html">Launch App</a></span>
       </div>
     </footer>

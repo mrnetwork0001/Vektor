@@ -27,13 +27,13 @@
 
     /* nav */
     nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); background: rgba(10,10,10,0.75); border-bottom: 1px solid var(--border); }
-    nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; max-width: 1545px; }
+    nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 84px; max-width: 1545px; }
     nav ul { margin-left: auto; }
     .brand { font-weight: 800; font-size: 18px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
     .brand .bolt, .brand-sm .bolt { color: var(--green); display: inline-flex; }
     .brand-sm { display: inline-flex; align-items: center; gap: 10px; }
-    .brand-img { height: 34px; width: auto; display: block; }
-    .brand-img-sm { height: 26px; width: auto; display: block; }
+    .brand-img { height: 68px; width: auto; display: block; }
+    .brand-img-sm { height: 52px; width: auto; display: block; }
     nav ul { display: flex; gap: 26px; list-style: none; font-size: 14px; color: var(--muted); }
     nav ul a:hover { color: var(--text); }
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid var(--border2); background: var(--panel); color: var(--text); cursor: pointer; transition: transform .15s, background .15s, border-color .15s; }
@@ -232,7 +232,8 @@
       .flow { grid-template-columns: 1fr 1fr; }
       nav ul { display: none; }
       .burger { display: flex; }
-      nav .wrap { height: 56px; }
+      nav .wrap { height: 72px; }
+      .brand-img { height: 52px; }
       .hero { padding: 40px 0 40px; }
       .hero::after { display: none; }
       h1 { letter-spacing: -1px; }

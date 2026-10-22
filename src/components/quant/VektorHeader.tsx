@@ -14,7 +14,7 @@ export function VektorHeader({ v, tab, setTab, builderCode, onTour, tourActive, 
   return (
     <header className="app-header vk-header">
       <div className="vk-brand">
-        <h1><a href="/" title="Back to the landing page" style={{ display: "inline-flex" }}><img src="/brand/vektor-header.png" alt="Vektor" style={{ height: 30, width: "auto", display: "block" }} /></a></h1>
+        <h1><a href="/" title="Back to the landing page" style={{ display: "inline-flex" }}><img src="/brand/vektor-header.png" alt="Vektor" style={{ height: 60, width: "auto", display: "block" }} /></a></h1>
         <span className={`mode-pill ${v.mode}`}>{v.mode === "sim" ? "DEMO" : `LIVE · ${NETWORK}`}</span>
         <MarketSelector symbols={v.symbols} selected={v.symbol} onChange={v.setSymbol} />
         <button className="btn btn-tour" onClick={onTour} disabled={tourActive} title="45-second guided demo">▶ Judge tour</button>
