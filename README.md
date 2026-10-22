@@ -25,7 +25,7 @@ Copy `.env.example` to `.env`. Defaults point at **mainnet** (`api.strikefinance
 2. [How we built it](#2-how-we-built-it)
 3. [Architecture](#3-architecture)
 4. [Strike integration - every endpoint we use](#4-strike-integration)
-5. [Verification and proof](#5-verification-and-proof)
+5. [Verification and proof](#5-verification-and-proof) · [5b. Mainnet verification log](#5b-mainnet-verification-log-2026-10-22)
 6. [Running it: terminal, worker, CLI, agent skill](#6-running-it)
 7. [Testing](#7-testing)
 8. [Known limits](#8-known-limits)
@@ -172,6 +172,30 @@ curl "https://api.strikefinance.org/v2/positions?account_id=01a162e1-f0fb-77f4-8
 or open `/proof.html?account=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9`.
 
 Found and fixed on the way (all in the repo history): mainnet ADA min notional is $10 (testnet $5) and undersized rungs are silently dropped by the engine, so Deploy now blocks below the minimum; restore raced the open-orders fetch and could wipe the saved grid - now gated, and orphaned `vektor-grid-` orders on the book are adopted; Deploy now sets the symbol leverage on Strike.
+
+## 5b. Mainnet verification log (2026-10-22)
+
+Everything below ran against `api.strikefinance.org` with real funds during the hackathon window. Public selectors (`account_id` / `blockchain_address`, no auth) reproduce each line.
+
+| What | Result | Verify |
+|---|---|---|
+| Builder code | `vektor` registered, 10 bps, Active (owner account `01a162e1-f0fb-77f4-8958-8adaf4b9a2b9`) | app.strikefinance.org/builder-codes |
+| API-wallet sign-in | Owner account signed in with keys from app.strikefinance.org/api-keys (Strike refuses to Builder-Connect an account to its own code) | - |
+| Ethereum deposit (in-app) | 16 USDC via Rabby: auto network switch, ERC-20 approve, deposit, auto-register; credited after 13 confirmations | `/v2/history/transaction?blockchain_address=0xEbB92c8f27368222E4B722FB386DbC6Fe80CC426` · tx `0x5000652a…` |
+| Solana deposit (in-app) | 5 USDC via Phantom (`signAndSendTransaction`), status completed | `…?blockchain_address=GnX9xu9UZgtjNXREKebPRSQLA4FeAgBiXwp5LPY3FHHy&blockchain=solana` · tx `3Gf7Bvva…` |
+| Cardano deposit (in-app) | 95 ADA (≈ $19.74) via Lace: CIP-30 `signTx`, witness merged client-side, `submitTx` | `…?blockchain_address=addr1q8evmul…&blockchain=cardano` · tx `aaf4deb1…` |
+| Grid deploy (no builder) | 3 rungs on ADA-USD via one `POST /v2/orders/batch`, engine acks on the user stream | account `01a162e1…` |
+| First fill + counter | buy 66 ADA @ 0.21175 (maker, rebate) → exit sell placed in the same second | `/v2/history/fill?account_id=01a162e1-f0fb-77f4-8958-8adaf4b9a2b9` |
+| Builder-attributed grid | Second wallet Builder-Connected; every resting order recorded with `Builder: {"Code":"vektor","FeeBps":10}` | `/v2/openOrders?account_id=01a164cf-36b1-7387-aa2f-199cc57f8c3f` |
+| **Builder fee charged** | sell 65 ADA @ 0.21237 (maker) → `builder_fee = 0.01` on the user-stream fill; header showed vol $13.80 · fills 1 · builder fees $0.01 | fill event (public rows itemise commission only) |
+| Leverage sync | Deploy sets symbol leverage via `POST /v2/leverage` - position opened at 3x as configured | `/v2/positions?account_id=01a164cf…` |
+| Reconcile / adopt | After a reload the app rebuilt the running grid from `/v2/openOrders` by client-ID prefix ("Grid adopted · 3 resting rungs") | - |
+| Stop / flatten | Stop grid cancelled resting rungs; reduce-only market close ran on the owner account | `/v2/history/transaction?account_id=01a162e1…` |
+| Withdraw | Owner account withdrew $21.06 through the Strike app (API wallets cannot withdraw by design) | same ledger, type `withdraw` |
+
+Found and fixed during the run: mainnet ADA min notional is $10 (testnet $5) and undersized batch items are silently dropped - Deploy now blocks below the minimum and the Prove-it preset sizes from the live rules; restore raced the open-orders fetch and could wipe the saved grid - now gated on first load, orphaned `vektor-grid-` orders are adopted; public Solana RPCs 403 browser origins - reads go through a same-origin relay; the sidebar clipped under the taller header; leverage was not being set on Strike.
+
+Not exercised on mainnet (verified in the simulator and tests): Shield Rule B trim (needs a position within 5% of liquidation), the Harvester's hedge launch/unwind (same batch + reduce-only paths as the grid and PANIC, pending the next test), auto-shift `/v2/orders/replace`, brackets `/v2/order/strategy`, vault execution.
 
 ## 6. Running it
 
