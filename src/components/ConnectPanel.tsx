@@ -3,7 +3,9 @@ import {
   generateApiWalletKeys,
   storeApiWalletKeys,
   clearApiWalletKeys,
+  loadApiWalletKeys,
 } from "../api/auth";
+import { confirmDialog } from "./quant/ConfirmDialog";
 import { requestSignature, verifySignature } from "../api/builderConnect";
 import {
   detectInstalledWallets,
@@ -45,6 +47,7 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   const [pubKey, setPubKey] = useState("");
   const [privKey, setPrivKey] = useState("");
   const [remember, setRemember] = useState(false);
+  const [exported, setExported] = useState<{ publicKey: string; privateKey: string } | null>(null);
   const KEYS_STORE = "vektor:apiwallet:v1";
   const SESSION_STORE = "vektor:buildersession:v1";
   const [rememberWallet, setRememberWallet] = useState(false);
@@ -223,6 +226,17 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
             <span className="text-sm">{connectedInfo.accountId.slice(0, 12)}...</span>
           </div>
         </div>
+        {exported ? (
+          <div className="notice" style={{ marginTop: 10 }}>
+            <b>Worker keys - keep private.</b> Paste into the VPS <code>.env</code> as below. They can trade (never withdraw) this account{connectedInfo.builderCode ? <> and carry builder code <code>{connectedInfo.builderCode}</code></> : null}. Disconnecting here does not revoke them; a new Builder Connect does.
+            <textarea readOnly rows={3} className="code-block" style={{ width: "100%", marginTop: 6, fontSize: 11 }} value={`STRIKE_API_PUBLIC_KEY=${exported.publicKey}\nSTRIKE_API_PRIVATE_KEY=${exported.privateKey}`} onFocus={(e) => e.currentTarget.select()} />
+            <button className="btn btn-secondary" style={{ marginTop: 6 }} onClick={() => setExported(null)}>Hide</button>
+          </div>
+        ) : (
+          <button className="btn btn-secondary" style={{ marginTop: 10, width: "100%" }} onClick={() => void confirmDialog("Shows this session's API wallet private key so you can run the 24/7 worker with it. Anyone with it can place and cancel orders on this account (not withdraw).", { title: "Export session keys?", okLabel: "Show keys" }).then((ok) => { if (ok) setExported(loadApiWalletKeys()); })}>
+            Export session keys (for the 24/7 worker)
+          </button>
+        )}
         <button onClick={handleDisconnect} className="btn btn-danger" style={{ marginTop: 10 }}>
           Disconnect
         </button>
