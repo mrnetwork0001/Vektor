@@ -164,3 +164,7 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); box-shadow: ins
 @media (min-width: 901px) { .sidebar { position: sticky; top: 61px; max-height: calc(100vh - 61px); overflow-y: auto; } }
 .sidebar > * { flex: none; } /* panels must never shrink to fit the sticky sidebar height */
 .btn-submit, .btn-primary.btn-submit, .btn-danger.btn-submit, .scenario-list .btn, .wt-actions .btn { white-space: normal; line-height: 1.3; } /* full-width buttons may wrap, never overflow */
+
+.btn-copy { transition: background .2s, border-color .2s, color .2s, transform .15s; }
+.btn-copy.copied { background: rgba(37,250,176,0.15); border-color: var(--green); color: var(--green); animation: copyPop .35s ease; }
+@keyframes copyPop { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }

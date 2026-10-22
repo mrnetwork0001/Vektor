@@ -28,6 +28,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
   const [busy, setBusy] = useState(false);
   const [anchor, setAnchor] = useState(mark);
   const [view, setView] = useState<"ladder" | "heatmap">("ladder");
+  const [copied, setCopied] = useState(false);
 
   // Freeze the range anchor so it doesn't drift with every tick while editing.
   useEffect(() => { if (!v.grid && (!anchor || Math.abs(mark / anchor - 1) > 0.03)) setAnchor(mark); }, [mark, anchor, v.grid]);
@@ -126,7 +127,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
         <div className="panel-header">
           <h3>{g ? "Running grid" : "Design grid"}</h3>
           {!g && v.mode === "live" && <button className="btn btn-secondary" onClick={proveIt} title="±0.4%, $15, 2x, 6 levels - fills within minutes on a liquid book">Prove-it preset</button>}
-          {g && v.mode === "live" && <button className="btn btn-secondary" onClick={() => navigator.clipboard?.writeText(proofSummary())} title="Copy a markdown summary of this live grid for the README / submission">Copy proof summary</button>}
+          {g && v.mode === "live" && <button className={`btn btn-secondary btn-copy ${copied ? "copied" : ""}`} onClick={() => { void navigator.clipboard?.writeText(proofSummary()); setCopied(true); setTimeout(() => setCopied(false), 1500); }} title="Copy a markdown summary of this live grid for the README / submission">{copied ? "Copied ✓" : "Copy proof summary"}</button>}
         </div>
         {!g && (
           <>
