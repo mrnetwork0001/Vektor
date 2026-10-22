@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vektor — Autonomous Grid, Funding & Liquidation Engine for Strike Finance</title>
+  <meta name="description" content="Vektor is a quantitative execution terminal for Strike Finance V2: a builder-fee grid studio with backtesting, a delta-neutral funding harvester, and a 24/7 liquidation shield." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a; --bg2: #0f0f0f; --panel: #111; --border: #1e1e1e; --border2: #2a2a2a;
+      --text: #fff; --muted: #8a8a8a; --dim: #5a5a5a;
+      --green: #25fab0; --red: #f43f5e; --amber: #f59e0b; --blue: #60a5fa;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    code, .mono { font-family: var(--mono); font-size: 0.92em; }
+    code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; color: var(--green); }
+
+    /* nav */
+    nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); background: rgba(10,10,10,0.75); border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brand { font-weight: 800; font-size: 18px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+    .brand .bolt { color: var(--green); }
+    nav ul { display: flex; gap: 26px; list-style: none; font-size: 14px; color: var(--muted); }
+    nav ul a:hover { color: var(--text); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid var(--border2); background: var(--panel); color: var(--text); cursor: pointer; transition: transform .15s, background .15s, border-color .15s; }
+    .btn:hover { transform: translateY(-1px); border-color: #3a3a3a; }
+    .btn-primary { background: var(--green); color: #000; border-color: var(--green); }
+    .btn-primary:hover { background: #4cffc0; }
+    .btn-lg { padding: 14px 26px; font-size: 16px; }
+    .btn .arrow { transition: transform .15s; }
+    .btn:hover .arrow { transform: translateX(3px); }
+
+    /* hero */
+    .hero { padding: 96px 0 72px; position: relative; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; inset: -200px 0 0 0; background: radial-gradient(600px 300px at 20% 0%, rgba(37,250,176,0.12), transparent 70%), radial-gradient(500px 300px at 85% 10%, rgba(244,63,94,0.08), transparent 70%); pointer-events: none; }
+    .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; position: relative; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); border: 1px solid rgba(37,250,176,0.3); padding: 5px 12px; border-radius: 999px; margin-bottom: 22px; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: blink 1.6s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    h1 { font-size: clamp(38px, 5vw, 60px); line-height: 1.05; font-weight: 800; letter-spacing: -1.5px; }
+    h1 span { color: var(--green); }
+    .lede { color: var(--muted); font-size: 18px; margin: 22px 0 32px; max-width: 560px; }
+    .cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .cta-note { font-size: 13px; color: var(--dim); margin-top: 14px; }
+    .kpis { display: flex; gap: 32px; margin-top: 40px; flex-wrap: wrap; }
+    .kpi b { display: block; font-size: 26px; font-weight: 800; font-family: var(--mono); color: var(--text); letter-spacing: -0.5px; }
+    .kpi span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+
+    /* hero terminal */
+    .term { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset; }
+    .term-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #333; display: inline-block; }
+    .term-bar i:nth-child(1) { background: #ff5f57; } .term-bar i:nth-child(2) { background: #febc2e; } .term-bar i:nth-child(3) { background: #28c840; }
+    .term-bar .tag { margin-left: auto; color: var(--amber); }
+    .term svg { display: block; width: 100%; height: 300px; }
+    .term-foot { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); }
+    .term-foot div { padding: 10px 14px; border-right: 1px solid var(--border); }
+    .term-foot div:last-child { border-right: 0; }
+    .term-foot small { display: block; font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.6px; }
+    .term-foot b { font-family: var(--mono); font-size: 14px; }
+    .term-log { font-family: var(--mono); font-size: 11px; padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); height: 92px; overflow: hidden; }
+    .term-log div { white-space: nowrap; }
+    .term-log .g { color: var(--green); } .term-log .r { color: var(--red); } .term-log .a { color: var(--amber); } .term-log .b { color: var(--blue); }
+
+    /* sections */
+    section { padding: 88px 0; border-top: 1px solid var(--border); }
+    .sec-head { max-width: 720px; margin-bottom: 44px; }
+    .sec-head .k { color: var(--green); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; }
+    h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; letter-spacing: -1px; line-height: 1.15; }
+    .sec-head p { color: var(--muted); font-size: 17px; margin-top: 14px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 26px; transition: border-color .2s, transform .2s; }
+    .card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .card .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 18px; font-family: var(--mono); font-weight: 700; font-size: 14px; }
+    .ic.g { background: rgba(37,250,176,0.12); color: var(--green); } .ic.r { background: rgba(244,63,94,0.12); color: var(--red); } .ic.a { background: rgba(245,158,11,0.12); color: var(--amber); } .ic.b { background: rgba(96,165,250,0.12); color: var(--blue); }
+    .card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.3px; }
+    .card p { color: var(--muted); font-size: 14.5px; }
+    .card ul { margin: 14px 0 0; padding-left: 0; list-style: none; }
+    .card li { font-size: 13.5px; color: var(--muted); padding: 6px 0; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+    .card li::before { content: "→"; color: var(--green); flex: none; }
+    .card .api { margin-top: 16px; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .card .api span { display: inline-block; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; margin: 3px 4px 0 0; }
+
+    /* module deep dive */
+    .module { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; padding: 48px 0; border-top: 1px solid var(--border); }
+    .module:first-of-type { border-top: 0; padding-top: 0; }
+    .module.flip .vis { order: -1; }
+    .module h3 { font-size: 26px; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 12px; }
+    .module .num { font-family: var(--mono); color: var(--green); font-size: 13px; margin-bottom: 10px; }
+    .module p { color: var(--muted); font-size: 15.5px; }
+    .module .pts { margin-top: 18px; display: grid; gap: 10px; }
+    .module .pt { display: flex; gap: 12px; font-size: 14px; color: #cfcfcf; }
+    .module .pt b { color: var(--green); font-family: var(--mono); flex: none; }
+    .vis { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .vis svg { width: 100%; height: 240px; display: block; }
+    .rules { display: grid; gap: 10px; }
+    .rule { display: grid; grid-template-columns: 70px 1fr; gap: 14px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg2); font-size: 13.5px; }
+    .rule b { font-family: var(--mono); color: var(--amber); }
+    .rule.crit b { color: var(--red); } .rule.info b { color: var(--blue); }
+    .rule span { color: var(--muted); }
+
+    /* compare table */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+    td:first-child { color: var(--muted); }
+    .yes { color: var(--green); font-weight: 600; } .no { color: var(--red); }
+    .tbl { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+    /* flow */
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .step { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; position: relative; }
+    .step .n { font-family: var(--mono); color: var(--green); font-size: 12px; margin-bottom: 8px; }
+    .step b { display: block; font-size: 15px; margin-bottom: 6px; }
+    .step p { color: var(--muted); font-size: 13px; }
+
+    /* arch */
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 22px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: #d0d0d0; }
+    pre .c { color: var(--dim); } pre .k { color: var(--green); }
+
+    /* faq */
+    details { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 600; font-size: 15.5px; list-style: none; display: flex; justify-content: space-between; }
+    summary::after { content: "+"; color: var(--green); font-family: var(--mono); }
+    details[open] summary::after { content: "−"; }
+    details p { color: var(--muted); margin-top: 12px; font-size: 14.5px; }
+
+    /* final cta */
+    .final { text-align: center; padding: 110px 0; background: radial-gradient(700px 300px at 50% 100%, rgba(37,250,176,0.1), transparent 70%); }
+    .final h2 { margin-bottom: 16px; }
+    .final p { color: var(--muted); max-width: 560px; margin: 0 auto 32px; }
+    footer { border-top: 1px solid var(--border); padding: 28px 0; font-size: 13px; color: var(--dim); }
+    footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 960px) {
+      .hero .wrap, .module, .grid3, .grid2 { grid-template-columns: 1fr; }
+      .module.flip .vis { order: 0; }
+      .flow { grid-template-columns: 1fr 1fr; }
+      nav ul { display: none; }
+      .hero { padding: 56px 0 48px; }
+    }
+    @media (max-width: 560px) { .flow { grid-template-columns: 1fr; } .term-foot { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="/"><span class="bolt">⚡</span> Vektor</a>
+    <ul>
+      <li><a href="#modules">Modules</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#builder">Builder model</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#arch">Architecture</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <a class="btn btn-primary" href="/app.html">Launch App <span class="arrow">→</span></a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Built on Strike Finance V2 · CLOB · Ed25519 API Wallets · Builder Codes</div>
+      <h1>The quant terminal that <span>pays its builder</span> on every fill.</h1>
+      <p class="lede">Vektor puts three autonomous engines on Strike's central limit order book: a builder-fee grid studio with real-candle backtesting, a delta-neutral funding harvester, and a 24/7 liquidation shield that acts before the engine does.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="/app.html">Launch App <span class="arrow">→</span></a>
+        <a class="btn btn-lg" href="#modules">See how it works</a>
+      </div>
+      <div class="cta-note">Opens in <b>Demo mode</b> — no wallet needed. Switch to <b>Live</b> to trade on Strike testnet with your API wallet.</div>
+      <div class="kpis">
+        <div class="kpi"><b>3</b><span>autonomous engines</span></div>
+        <div class="kpi"><b>29</b><span>round trips · example 7d ADA backtest</span></div>
+        <div class="kpi"><b>$0 → $32</b><span>builder revenue, native bot vs Vektor (same backtest)</span></div>
+        <div class="kpi"><b>&lt;5%</b><span>buffer triggers auto-trim</span></div>
+      </div>
+      <div class="cta-note" style="margin-top:8px">Backtest figures are one 7-day mainnet ADA-USD run (Oct 2026, 12 levels, 10x, 10 bps) — run your own in the app.</div>
+    </div>
+
+    <div class="term" aria-label="Animated grid preview">
+      <div class="term-bar"><i></i><i></i><i></i> &nbsp;vektor · ADA-USD · grid studio <span class="tag">SIMULATED PREVIEW</span></div>
+      <svg id="hero-svg" viewBox="0 0 600 300" preserveAspectRatio="none"></svg>
+      <div class="term-foot">
+        <div><small>Resting</small><b id="k-rest">10</b></div>
+        <div><small>Round trips</small><b id="k-cyc">0</b></div>
+        <div><small>Grid PnL</small><b id="k-pnl" style="color:var(--green)">$0.00</b></div>
+        <div><small>Builder fees</small><b id="k-fee" style="color:var(--green)">$0.00</b></div>
+      </div>
+      <div class="term-log" id="hero-log"></div>
+    </div>
+  </div>
+</header>
+
+<section id="modules">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">Three modules, one orderbook</div>
+      <h2>Everything a perps trader wishes the exchange shipped.</h2>
+      <p>Each engine is a pure, unit-tested TypeScript module. The same code runs against an in-browser matching engine in Demo mode and against Strike's REST + WebSocket API in Live mode — only the adapter changes.</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="ic g">01</div>
+        <h3>CLOB Grid Studio</h3>
+        <p>A neutral grid — buys below the mark, sells above, the level nearest the mark left empty so the sides never collide. Geometric or arithmetic spacing, 4–60 levels.</p>
+        <ul>
+          <li>Every rung placed in one <code>POST /v2/orders/batch</code>, post-only, with <code>X-Builder-Fee-Bps</code></li>
+          <li>Fill → counter take-profit one rung away for the <em>filled</em> quantity; exit fill → entry re-armed</li>
+          <li>Net profit per round trip shown after maker fees <em>and</em> builder fee</li>
+          <li>Whale-wall radar and VWAP slippage probe on the live top-20 book</li>
+        </ul>
+        <div class="api"><span>/v2/orders/batch</span><span>/price/v2/depth</span><span>@depth diffs</span><span>ORDER_TRADE_UPDATE</span></div>
+      </div>
+      <div class="card">
+        <div class="ic b">02</div>
+        <h3>Funding Harvester</h3>
+        <p>Strike pays funding <b>hourly</b>. Vektor ranks every market by annualised funding (<code>r × 24 × 365</code>), then sizes a 1:1 perp hedge against spot you already hold.</p>
+        <ul>
+          <li>Liquidation price of the hedge from the market's real margin tiers</li>
+          <li>Sliced IOC entry that keeps the builder fee (Strike's TWAP drops it)</li>
+          <li>Rule C: unwinds automatically after 3 consecutive adverse funding hours</li>
+          <li>Live tracker: perp uPnL vs funding collected</li>
+        </ul>
+        <div class="api"><span>/price/v2/premiumIndex</span><span>!markPrice@arr</span><span>margin_tiers</span></div>
+      </div>
+      <div class="card">
+        <div class="ic r">03</div>
+        <h3>Aegis Liquidation Shield</h3>
+        <p>Computes distance-to-liquidation for every open position with the same formulas as Strike's engine and escalates before the engine gets there.</p>
+        <ul>
+          <li><b>Rule A</b> &lt; 8% buffer: cancel resting buy rungs to free margin</li>
+          <li><b>Rule B</b> &lt; 5% buffer: reduce-only market trim of 25%</li>
+          <li>Per-symbol cooldown + pending-trim flag — never fires twice for one episode</li>
+          <li>PANIC button: cancel everything, flatten with <code>close_position</code></li>
+        </ul>
+        <div class="api"><span>/v2/order/cancel</span><span>reduce_only</span><span>ACCOUNT_UPDATE</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="deep">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">Module deep dive</div>
+      <h2>Designed around how Strike's engine actually behaves.</h2>
+      <p>Writes are async — a <code>201 pending</code> means sequenced, not filled. Rejections like <code>order_would_match_immediately</code> arrive on the user stream. Vektor's engines are built for that reality, not a toy exchange.</p>
+    </div>
+
+    <div class="module">
+      <div>
+        <div class="num">01 / GRID STUDIO</div>
+        <h3>Order roles live in the client ID.</h3>
+        <p>Every rung order is tagged <code>vektor-grid-&lt;id&gt;-&lt;rung&gt;-&lt;e|x&gt;-&lt;seq&gt;</code>. When a fill comes back on the user stream, the engine knows exactly which rung and whether it was an entry or an exit — even after a reconnect or a page reload.</p>
+        <div class="pts">
+          <div class="pt"><b>e BUY</b> fills at rung <i>i</i> → place exit SELL at rung <i>i+1</i> for the filled qty</div>
+          <div class="pt"><b>e SELL</b> fills at rung <i>i</i> → place exit BUY at rung <i>i−1</i></div>
+          <div class="pt"><b>x</b> fills → round trip booked, entry re-armed; never stacks on a rung that already rests the same side</div>
+          <div class="pt"><b>CANCELED</b> / REJECTED / EXPIRED → rung freed, logged with the engine reason</div>
+        </div>
+      </div>
+      <div class="vis"><svg id="vis-grid" viewBox="0 0 520 240"></svg></div>
+    </div>
+
+    <div class="module flip">
+      <div>
+        <div class="num">02 / FUNDING HARVESTER</div>
+        <h3>Delta zero, funding positive.</h3>
+        <p>Positive funding means longs pay shorts every hour at HH:00 UTC. Hold 10,000 ADA in your own wallet, short 10,000 ADA-perp at 2x, and you collect funding regardless of direction. Vektor shows the hedge's liquidation price so a rally can't surprise you.</p>
+        <div class="pts">
+          <div class="pt"><b>APR</b> = |hourly rate| × 24 × 365 — Strike funds hourly, not every 8h</div>
+          <div class="pt"><b>LP</b> = (EP − (iso + MA)/size) / (1 + MMR) from the live margin tiers</div>
+          <div class="pt"><b>Entry</b> N IOC limit slices through <code>/v2/orders/batch</code> — builder fee attached</div>
+          <div class="pt"><b>Exit</b> Rule C unwind, or one-click reduce-only flatten</div>
+        </div>
+      </div>
+      <div class="vis"><svg id="vis-fund" viewBox="0 0 520 240"></svg></div>
+    </div>
+
+    <div class="module">
+      <div>
+        <div class="num">03 / AEGIS SHIELD</div>
+        <h3>Programmable, not panicky.</h3>
+        <p>A naive shield fires a trim on every mark tick while you're under the threshold. Aegis tracks a per-symbol cooldown and a pending-trim flag, resets the episode only once you're back to SAFE, and logs every decision with the buffer that triggered it.</p>
+        <div class="rules">
+          <div class="rule"><b>RULE A</b><span>Buffer &lt; 8% → cancel every resting BUY rung on that symbol. Frees locked order margin immediately. Fires once per episode.</span></div>
+          <div class="rule crit"><b>RULE B</b><span>Buffer &lt; 5% → reduce-only market trim of 25% of the position. Cooldown 15s, blocked while a trim is pending.</span></div>
+          <div class="rule info"><b>RULE C</b><span>Funding flipped against the hedge for 3 consecutive hours → unwind the perp leg.</span></div>
+          <div class="rule crit"><b>PANIC</b><span>Cancel all orders on every symbol, flatten every position with <code>close_position: true</code>. Confirmed, then immediate.</span></div>
+        </div>
+      </div>
+      <div class="vis"><svg id="vis-shield" viewBox="0 0 520 240"></svg></div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">What makes it stand out</div>
+      <h2>Not a reskin of the reference app.</h2>
+      <p>Seven things you won't find in a cloned <code>strike-builder-reference</code> with new colours and a chat box.</p>
+    </div>
+    <div class="grid3">
+      <div class="card"><div class="ic g">BT</div><h3>Backtest before you deploy</h3><p>The exact range you draw is replayed over 24h / 7d / 30d of <b>mainnet</b> candles through the same matching engine and grid code as the live grid. Net after builder fee, annualised, max drawdown, time-in-range, equity curve.</p></div>
+      <div class="card"><div class="ic g">ATR</div><h3>Smart range</h3><p>Range = last ± 3×ATR(14). Level count sized so spacing clears Strike's own fee floor (<code>spacing &gt; mid × (maker + taker)</code>). One click applies it to the sliders.</p></div>
+      <div class="card"><div class="ic b">↻</div><h3>Reconcile after reload</h3><p>Live grids persist locally (no secrets) and are rebuilt from <code>GET /v2/openOrders</code> by client-ID prefix on reconnect. Rungs that filled or were cancelled while you were away are dropped, not assumed.</p></div>
+      <div class="card"><div class="ic a">VS</div><h3>Head-to-head vs native grid bot</h3><p>Same range, same candles: Vektor vs Strike's <code>/v2/grid/bot</code>. The native bot is arithmetic-only and carries no builder code, so its builder revenue is $0 by construction. In Live mode, launch the real one and watch both.</p></div>
+      <div class="card"><div class="ic r">▦</div><h3>Liquidity heatmap</h3><p>Bookmap-style time × price × resting notional from the top-20 book, mark overlaid. See where the walls were, not just where they are.</p></div>
+            <div class="card"><div class="ic g">✓</div><h3>Verifiable, not claimed</h3><p>Every fill Vektor makes is tagged. The <a href="/proof.html" style="color:var(--green)">public proof page</a> re-reads them from Strike's history API in <em>your</em> browser and prints the curl commands so you can check the numbers yourself.</p></div>
+      <div class="card"><div class="ic a">⇄</div><h3>Funding skew, brackets, auto-shift</h3><p>Rung sizes tilt toward the side that receives hourly funding. Each entry can carry a stop leg via <code>/v2/order/strategy</code>. When price leaves the range the ladder re-centres in one <code>/v2/orders/replace</code>.</p></div>
+      <div class="card"><div class="ic r">L3</div><h3>L3 radar + regime guard</h3><p>Order-level feed flags spoofed walls and icebergs. Fear &amp; Greed, open-interest shocks and 24h range pause or widen grids before the market does it for you. Plus an agent skill + CLI and vault execution.</p></div>
+      <div class="card"><div class="ic b">!</div><h3>Browser alerts + multi-symbol</h3><p>Shield warnings, trims and grid round trips notify even in a background tab. Run one grid per market — ADA, BTC, ETH, SOL — all shielded, all listed with per-grid PnL and builder fees.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="builder">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">Builder code economics</div>
+      <h2>A 12-rung grid is 12 attributed orders. Every flip is one more.</h2>
+      <p>Strike's Builder Codes pay a per-fill fee (<code>X-Builder-Fee-Bps</code>, 0–100 bps) to the integrator. Market-order buttons generate one fill. A grid generates continuous maker flow for as long as the market ranges. Vektor is built so that <em>all</em> of it is attributed.</p>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Order path</th><th>Honours X-Builder-Fee-Bps</th><th>Vektor uses it for</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /v2/orders/batch</code></td><td class="yes">Yes</td><td>Grid deployment, counter orders, hedge slices, shield trims</td></tr>
+          <tr><td><code>POST /v2/order/strategy</code></td><td class="yes">Yes</td><td>Bracket TP/SL (reference app)</td></tr>
+          <tr><td><code>POST /v2/grid/bot</code> (native)</td><td class="no">No — no builder code at all</td><td>Head-to-head comparison only</td></tr>
+          <tr><td><code>POST /v2/algo/twap</code></td><td class="no">No</td><td>Replaced by Vektor's sliced IOC entry</td></tr>
+          <tr><td><code>POST /v2/order/replace</code></td><td class="no">No</td><td>Avoided — cancel + batch instead</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--muted);font-size:14px;margin-top:18px">Live telemetry in the app header: volume routed, fills, and cumulative builder fees — so the business model is visible on screen, not just in a pitch deck.</p>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">How it works</div>
+      <h2>From wallet signature to self-replenishing grid in five steps.</h2>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="n">01</div><b>Connect</b><p>Cardano / Solana / EVM wallet signs a Builder Connect challenge. A fresh Ed25519 API wallet is generated client-side and approved for your builder code.</p></div>
+      <div class="step"><div class="n">02</div><b>Design</b><p>Drag a range, pick levels and leverage. Vektor snaps to tick/step, checks min notional, and shows net-per-cycle after every fee.</p></div>
+      <div class="step"><div class="n">03</div><b>Backtest</b><p>Replay the grid over real mainnet candles. Compare geometric vs arithmetic, and Vektor vs the native bot.</p></div>
+      <div class="step"><div class="n">04</div><b>Deploy</b><p>One signed <code>/v2/orders/batch</code> request. Every rung rests post-only with the builder fee attached.</p></div>
+      <div class="step"><div class="n">05</div><b>Run shielded</b><p>Fills stream in over <code>/ws/user-api</code>; counters fire in milliseconds. Aegis watches every position and trims before liquidation.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="arch">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">Architecture</div>
+      <h2>Pure engines. One adapter seam. Two backends.</h2>
+      <p>Demo mode is not a mock UI — it's the real engines driving an in-memory matching engine with post-only rejects, reduce-only clamps, maker/taker + builder fees and isolated liquidations. 29 automated tests cover the engines, the simulator and a full render of the app.</p>
+    </div>
+    <div class="grid2">
+      <pre><span class="c">// the seam between engines and the exchange</span>
+<span class="k">interface</span> ExecutionAdapter {
+  mode: <span class="k">"live"</span> | <span class="k">"sim"</span>;
+  placeBatch(orders: CreateOrderRequest[]);
+  cancel(symbol, clientOrderId);
+  cancelAll(symbol?);
+  onFill(cb: (fill: FillEvent) =&gt; void);
+}
+
+<span class="c">// src/api/liveAdapter.ts  → /v2/orders/batch + user stream</span>
+<span class="c">// src/sim/simExchange.ts  → in-memory book, same surface</span></pre>
+      <pre>src/
+  quant/        gridEngine · fundingHarvester
+                liquidationShield · whaleRadar
+                backtest · rangeSuggest
+  sim/          simExchange · priceSim · demoMarkets
+  api/          auth (Ed25519) · liveAdapter · vektor
+  hooks/        useVektor — one grid per symbol,
+                shield, hedge, depth frames, tick loop
+  components/   GridStudio · GridLadder · DepthHeatmap
+    quant/      BacktestCard · HeadToHead · ShieldPanel
+                FundingHarvester · ActiveGrids</pre>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">Where this goes</div>
+      <h2>A business on Strike's order book, not a hackathon demo.</h2>
+      <p>Vektor's revenue is the builder fee on every fill. Every item below multiplies attributed fills.</p>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="n">WEEKS 1–2</div><b>Vektor Grid Vault</b><p><code>vault_id</code> is already on every order. Add the vault stream and anyone can deposit into skewed, shielded grids — every vault fill still pays the builder code.</p></div>
+      <div class="step"><div class="n">WEEKS 2–4</div><b>Headless parity</b><p>Brackets, auto-shift and regime guard in the 24/7 worker; sub-account per strategy; DMA hot path.</p></div>
+      <div class="step"><div class="n">MONTH 2</div><b>STRIKE flywheel</b><p>Builder revenue → STRIKE staking → lower fee tier → wider net-per-cycle → more volume. Revenue share for stakers.</p></div>
+      <div class="step"><div class="n">MONTH 2</div><b>Social layer</b><p>Public strategy pages with verified history, one-click clone, leaderboard and referral codes.</p></div>
+      <div class="step"><div class="n">MONTH 3</div><b>Multi-venue carry</b><p>Route the perp leg to the best hourly funding; spot stays in your wallet. Agent-native via MCP.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k">FAQ</div>
+      <h2>Honest answers.</h2>
+    </div>
+    <details open><summary>Does it run 24/7 if I close the tab?</summary><p>Not yet. Like the reference app, the API wallet key lives in browser memory and the counter-order loop and shield run while the page is open. Grids persist locally and reconcile against open orders when you come back. A Node worker that holds the key is the obvious next step and the engines are already headless-ready (zero React dependencies).</p></details>
+    <details><summary>Why not just use Strike's native grid bot?</summary><p>It exists and Vektor can launch it for comparison. But it ignores <code>X-Builder-Fee-Bps</code> entirely, is arithmetic-only, and the client can't shield its orders. Vektor's grid pays the builder on every fill — that's the business.</p></details>
+    <details><summary>Where does the backtest data come from?</summary><p>Mainnet <code>/price/v2/klines</code>, which is public. Testnet candles are flat because nothing trades there. The backtester walks each candle open → low/high → close so every rung a wick touched gets filled — that's optimistic on thin books and the UI says so.</p></details>
+    <details><summary>What's the 50 bps builder fee from the original plan?</summary><p>Dropped to 10 bps by default. At 50 bps a round trip pays 1% in builder fees alone, which eats most grid spreads. The design card shows net-per-cycle after fees so you can see exactly where the break-even is.</p></details>
+    <details><summary>Is funding every 8 hours?</summary><p>No — Strike funds hourly at HH:00 UTC, and <code>r</code> on <code>markPriceUpdate</code> is the hourly rate. Vektor's APR math, hedge tracker and Rule C all use the hourly convention.</p></details>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>Watch a 12-rung grid auto-flip through a flash crash.</h2>
+    <p>Open the terminal in Demo mode, deploy a grid, hit "Flash crash −12%", and watch Aegis cancel the buys and trim the long before the simulated engine would have liquidated it. Then switch to Live.</p>
+    <a class="btn btn-primary btn-lg" href="/app.html">Launch App <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>⚡ Vektor — built for the Strike Finance 48-hour hackathon</span>
+    <span><a href="https://strikefinance.org" target="_blank" rel="noopener">strikefinance.org</a> · <a href="https://github.com/strike-finance/strike-finance-skills" target="_blank" rel="noopener">strike-finance-skills</a> · <a href="/app.html">Launch App</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // ── Hero: live-ish grid animation (mean-reverting price, rungs flip on touch) ──
+  var svg = document.getElementById('hero-svg');
+  var W = 600, H = 300, PR = 64;
+  var base = 0.2224, lo = base * 0.95, hi = base * 1.05, levels = 11;
+  var rungs = [];
+  for (var i = 0; i < levels; i++) {
+    var p = lo * Math.pow(hi / lo, i / (levels - 1));
+    rungs.push({ p: p, side: i === 5 ? 'none' : (p < base ? 'buy' : 'sell'), role: 'e' });
+  }
+  var hist = [], price = base, seed = 11, cycles = 0, pnl = 0, fees = 0, vol = 0, log = [];
+  function rnd() { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
+  function gauss() { var u = Math.max(rnd(), 1e-9), v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  var y = function (p) { return 8 + (H - 16) * (1 - (p - lo * 0.99) / (hi * 1.01 - lo * 0.99)); };
+  var fmt = function (p) { return p.toFixed(4); };
+  var logEl = document.getElementById('hero-log');
+  function pushLog(cls, msg) { log.push('<div class="' + cls + '">' + new Date().toLocaleTimeString() + '  ' + msg + '</div>'); if (log.length > 6) log.shift(); logEl.innerHTML = log.join(''); }
+  function tick() {
+    var drift = ((base - price) / price) * 0.06;
+    price = price * (1 + drift + 0.004 * gauss());
+    price = Math.max(lo * 1.005, Math.min(hi * 0.995, price));
+    hist.push(price); if (hist.length > 160) hist.shift();
+    for (var i = 0; i < rungs.length; i++) {
+      var r = rungs[i];
+      if (r.side === 'buy' && price <= r.p) {
+        vol += 545; fees += 0.545;
+        if (r.role === 'x') { cycles++; pnl += (rungs[i + 1].p - r.p) * (545 / r.p); pushLog('b', 'EXIT  BUY  ' + fmt(r.p) + '  rung ' + i + '  round trip +$' + ((rungs[i + 1].p - r.p) * (545 / r.p)).toFixed(3)); r.side = 'none'; if (rungs[i + 1]) { rungs[i + 1].side = 'sell'; rungs[i + 1].role = 'e'; } }
+        else { pushLog('g', 'FILL  BUY  ' + fmt(r.p) + '  rung ' + i + '  → SELL x @ ' + fmt(rungs[i + 1].p)); r.side = 'none'; if (rungs[i + 1]) { rungs[i + 1].side = 'sell'; rungs[i + 1].role = 'x'; } }
+      } else if (r.side === 'sell' && price >= r.p) {
+        vol += 545; fees += 0.545;
+        if (r.role === 'x') { cycles++; pnl += (r.p - rungs[i - 1].p) * (545 / r.p); pushLog('b', 'EXIT  SELL ' + fmt(r.p) + '  rung ' + i + '  round trip +$' + ((r.p - rungs[i - 1].p) * (545 / r.p)).toFixed(3)); r.side = 'none'; if (rungs[i - 1]) { rungs[i - 1].side = 'buy'; rungs[i - 1].role = 'e'; } }
+        else { pushLog('r', 'FILL  SELL ' + fmt(r.p) + '  rung ' + i + '  → BUY x @ ' + fmt(rungs[i - 1].p)); r.side = 'none'; if (rungs[i - 1]) { rungs[i - 1].side = 'buy'; rungs[i - 1].role = 'x'; } }
+      }
+    }
+    var s = '<rect x="0" y="' + y(hi) + '" width="' + (W - PR) + '" height="' + (y(lo) - y(hi)) + '" fill="rgba(37,250,176,0.04)" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4 4"/>';
+    var resting = 0;
+    for (var j = 0; j < rungs.length; j++) {
+      var q = rungs[j], c = q.side === 'buy' ? '#25fab0' : q.side === 'sell' ? '#f43f5e' : 'rgba(255,255,255,0.14)';
+      if (q.side !== 'none') resting++;
+      s += '<line x1="0" x2="' + (W - PR) + '" y1="' + y(q.p) + '" y2="' + y(q.p) + '" stroke="' + c + '" stroke-width="' + (q.side === 'none' ? 1 : 1.3) + '"' + (q.side === 'none' ? ' stroke-dasharray="2 4"' : '') + '/>';
+      s += '<text x="' + (W - PR + 5) + '" y="' + (y(q.p) + 3) + '" font-size="9" font-family="JetBrains Mono,monospace" fill="' + c + '">' + fmt(q.p) + (q.side !== 'none' && q.role === 'x' ? ' x' : '') + '</text>';
+    }
+    var d = '';
+    for (var k = 0; k < hist.length; k++) d += (k ? 'L' : 'M') + ((k / 159) * (W - PR)).toFixed(1) + ',' + y(hist[k]).toFixed(1);
+    s += '<path d="' + d + '" fill="none" stroke="#fff" stroke-width="1.4" opacity="0.9"/>';
+    var mx = ((hist.length - 1) / 159) * (W - PR), my = y(price);
+    s += '<circle cx="' + mx + '" cy="' + my + '" r="3" fill="#fff"/><rect x="' + (W - PR - 2) + '" y="' + (my - 7) + '" width="' + PR + '" height="14" fill="#fff" rx="2"/><text x="' + (W - PR + 3) + '" y="' + (my + 3.5) + '" font-size="9.5" font-weight="700" font-family="JetBrains Mono,monospace" fill="#000">' + fmt(price) + '</text>';
+    svg.innerHTML = s;
+    document.getElementById('k-rest').textContent = resting;
+    document.getElementById('k-cyc').textContent = cycles;
+    document.getElementById('k-pnl').textContent = '$' + pnl.toFixed(2);
+    document.getElementById('k-fee').textContent = '$' + fees.toFixed(2);
+  }
+  pushLog('g', 'DEPLOY 10 rungs on ADA-USD via /v2/orders/batch  (X-Builder-Fee-Bps: 10)');
+  for (var w = 0; w < 60; w++) tick();
+  setInterval(tick, 420);
+
+  // ── Static diagrams ──
+  var g = document.getElementById('vis-grid');
+  (function () {
+    var s = '', ys = [40, 70, 100, 130, 160, 190, 220], labels = ['0.2340 SELL', '0.2305 SELL', '0.2270 SELL', '0.2236 · mark (empty)', '0.2202 BUY', '0.2168 BUY', '0.2135 BUY'];
+    for (var i = 0; i < ys.length; i++) {
+      var c = i < 3 ? '#f43f5e' : i === 3 ? 'rgba(255,255,255,0.2)' : '#25fab0';
+      s += '<line x1="20" x2="330" y1="' + ys[i] + '" y2="' + ys[i] + '" stroke="' + c + '" stroke-width="1.4"' + (i === 3 ? ' stroke-dasharray="3 4"' : '') + '/><text x="340" y="' + (ys[i] + 4) + '" font-size="10" font-family="JetBrains Mono,monospace" fill="' + c + '">' + labels[i] + '</text>';
+    }
+    s += '<path d="M20,130 C80,135 120,180 170,190 S260,120 330,100" fill="none" stroke="#fff" stroke-width="1.5"/>';
+    s += '<circle cx="170" cy="190" r="4" fill="#25fab0"/><text x="60" y="212" font-size="10" fill="#25fab0" font-family="JetBrains Mono,monospace">e BUY fills → x SELL @ 0.2202</text>';
+    s += '<circle cx="268" cy="160" r="4" fill="#60a5fa"/><text x="205" y="150" font-size="10" fill="#60a5fa" font-family="JetBrains Mono,monospace">x SELL fills → +PnL, re-arm</text>';
+    g.innerHTML = s;
+  })();
+  var f = document.getElementById('vis-fund');
+  (function () {
+    var s = '<text x="20" y="28" font-size="11" fill="#8a8a8a" font-family="JetBrains Mono,monospace">10,000 ADA spot  +  SHORT 10,000 ADA-perp @ 2x</text>';
+    s += '<line x1="20" x2="500" y1="130" y2="130" stroke="rgba(255,255,255,0.15)"/>';
+    s += '<path d="M20,130 L120,80 L220,170 L320,60 L420,150 L500,100" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.2" stroke-dasharray="3 3"/>';
+    s += '<text x="300" y="52" font-size="9.5" fill="#5a5a5a" font-family="JetBrains Mono,monospace">spot ± perp = 0 Δ</text>';
+    s += '<path d="M20,130 L500,130" fill="none" stroke="#fff" stroke-width="1.6"/>';
+    var x = 20; for (var i = 0; i < 12; i++) { x += 40; s += '<rect x="' + (x - 3) + '" y="' + (128 - i * 5) + '" width="6" height="' + (i * 5 + 2) + '" fill="#25fab0" opacity="0.8"/>'; }
+    s += '<text x="20" y="215" font-size="10.5" fill="#25fab0" font-family="JetBrains Mono,monospace">funding collected every hour at HH:00 UTC → +$1.31/h on $4,200 at 0.0031%/h (27% APR)</text>';
+    f.innerHTML = s;
+  })();
+  var sh = document.getElementById('vis-shield');
+  (function () {
+    var s = '<text x="20" y="26" font-size="11" fill="#8a8a8a" font-family="JetBrains Mono,monospace">ADA-USD LONG 24,500 @ 10x · distance to liquidation</text>';
+    var rows = [['SAFE', 28, '#25fab0', 'mark 0.2224 · liq 0.2021 · 9.1%'], ['WARNING', 16, '#f59e0b', 'Rule A → cancel 5 resting buys'], ['CRITICAL', 8, '#f43f5e', 'Rule B → reduce-only sell 6,125 (25%)'], ['SAFE', 36, '#25fab0', 'buffer restored · episode reset']];
+    for (var i = 0; i < rows.length; i++) {
+      var yy = 56 + i * 44;
+      s += '<text x="20" y="' + (yy + 4) + '" font-size="10" fill="' + rows[i][2] + '" font-family="JetBrains Mono,monospace" font-weight="600">' + rows[i][0] + '</text>';
+      s += '<rect x="100" y="' + (yy - 6) + '" width="220" height="12" rx="6" fill="rgba(255,255,255,0.06)"/><rect x="100" y="' + (yy - 6) + '" width="' + (rows[i][1] * 5.5) + '" height="12" rx="6" fill="' + rows[i][2] + '"/>';
+      s += '<rect x="' + (100 + 8 * 5.5) + '" y="' + (yy - 8) + '" width="1.5" height="16" fill="rgba(255,255,255,0.6)"/><rect x="' + (100 + 5 * 5.5) + '" y="' + (yy - 8) + '" width="1.5" height="16" fill="rgba(255,255,255,0.6)"/>';
+      s += '<text x="330" y="' + (yy + 4) + '" font-size="9.5" fill="#8a8a8a" font-family="JetBrains Mono,monospace">' + rows[i][3] + '</text>';
+    }
+    sh.innerHTML = s;
+  })();
+})();
+</script>
+</body>
+</html>
