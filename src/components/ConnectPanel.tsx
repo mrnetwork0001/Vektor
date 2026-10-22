@@ -44,6 +44,8 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   const [keyMode, setKeyMode] = useState(false);
   const [pubKey, setPubKey] = useState("");
   const [privKey, setPrivKey] = useState("");
+  const [remember, setRemember] = useState(false);
+  const KEYS_STORE = "vektor:apiwallet:v1";
 
   /**
    * Sign in with an API wallet registered at app.strikefinance.org/api-keys.
@@ -51,17 +53,20 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
    * path for the builder's own account, which Strike refuses to Builder-Connect
    * to its own code ("cannot connect an account to its own builder").
    */
-  const handleKeyLogin = async () => {
-    const pub = pubKey.trim().toLowerCase(), priv = privKey.trim().toLowerCase();
+  const handleKeyLogin = async (pubIn?: string, privIn?: string, rememberIn?: boolean) => {
+    const pub = (pubIn ?? pubKey).trim().toLowerCase(), priv = (privIn ?? privKey).trim().toLowerCase();
+    const keep = rememberIn ?? remember;
     if (!/^[0-9a-f]{64}$/.test(pub) || !/^[0-9a-f]{64}([0-9a-f]{64})?$/.test(priv)) { setError("Keys must be raw hex: public 64 chars, private 64 (or 128) chars"); return; }
     setError(""); setLoading("api-key"); setStatus("Checking the API wallet…");
     try {
       storeApiWalletKeys({ publicKey: pub, privateKey: priv.slice(0, 64) });
       const acc = await getAccount();
       setStatus("");
+      try { if (keep) localStorage.setItem(KEYS_STORE, JSON.stringify({ pub, priv: priv.slice(0, 64) })); else localStorage.removeItem(KEYS_STORE); } catch { /* storage blocked */ }
       onConnected({ accountId: acc.account_id, chain: "ethereum", address: acc.blockchain_address ?? "", builderCode: "", feeShareBps: 0, wallet: { chain: "ethereum", walletId: "api-key", address: acc.blockchain_address ?? "", api: null } });
     } catch (e: any) {
       clearApiWalletKeys();
+      try { localStorage.removeItem(KEYS_STORE); } catch { /* ignore */ }
       setError(e.message || "API wallet rejected");
       setStatus("");
     } finally { setLoading(null); }
@@ -70,6 +75,18 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   useEffect(() => {
     const timer = setTimeout(() => setWallets(detectInstalledWallets()), 500);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Remembered API wallet → sign in again automatically after a refresh.
+  useEffect(() => {
+    if (connectedInfo) return;
+    try {
+      const raw = localStorage.getItem(KEYS_STORE);
+      if (!raw) return;
+      const { pub, priv } = JSON.parse(raw);
+      if (pub && priv) { setKeyMode(true); setPubKey(pub); setPrivKey(priv); setRemember(true); void handleKeyLogin(pub, priv, true); }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredWallets = wallets.filter((w) => w.chain === chain);
@@ -140,6 +157,8 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
 
   const handleDisconnect = () => {
     clearApiWalletKeys();
+    try { localStorage.removeItem(KEYS_STORE); } catch { /* ignore */ }
+    setRemember(false); setPubKey(""); setPrivKey("");
     onDisconnected();
   };
 
@@ -191,9 +210,13 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
         </p>
         <div className="form-group"><label>Public key (64 hex)</label><input value={pubKey} onChange={(e) => setPubKey(e.target.value)} placeholder="a1b2c3…" autoComplete="off" spellCheck={false} /></div>
         <div className="form-group"><label>Private key (64 or 128 hex)</label><input type="password" value={privKey} onChange={(e) => setPrivKey(e.target.value)} placeholder="…" autoComplete="off" /></div>
+        <div className="checkbox-row">
+          <input id="remember-keys" type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+          <label htmlFor="remember-keys">Remember keys on this device (stored unencrypted in this browser's local storage; Disconnect forgets them)</label>
+        </div>
         {status && <p className="text-xs text-secondary">{status}</p>}
         {error && <p className="error">{error}</p>}
-        <button className="btn btn-primary btn-submit" disabled={loading !== null || !pubKey || !privKey} onClick={handleKeyLogin}>Sign in with API wallet</button>
+        <button className="btn btn-primary btn-submit" disabled={loading !== null || !pubKey || !privKey} onClick={() => void handleKeyLogin()}>Sign in with API wallet</button>
       </div>
     );
   }
