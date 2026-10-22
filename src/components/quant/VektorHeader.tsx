@@ -2,6 +2,7 @@ import type { Vektor } from "../../hooks/useVektor";
 import { formatCurrency } from "../../math/formatUtils";
 import { MarketSelector } from "../MarketSelector";
 import { API_BASE_URL } from "../../api/config";
+import { confirmDialog } from "./ConfirmDialog";
 
 const NETWORK = /testnet/i.test(API_BASE_URL) ? "testnet" : "mainnet";
 
@@ -29,7 +30,7 @@ export function VektorHeader({ v, tab, setTab, builderCode, onTour, tourActive, 
         <span>fills <b>{t.fills}</b></span>
         <span>builder fees <b className="text-green">{formatCurrency(t.builderFeesUsd)}</b></span>
         {accountId && <a className="btn btn-proof" href={`/proof.html?account=${encodeURIComponent(accountId)}&bps=${v.fees.builderFeeBps}`} target="_blank" rel="noopener" title="Public, verifiable proof of this account's Vektor activity">Proof ↗</a>}
-        <button className="btn btn-danger btn-panic" onClick={() => { if (confirm("Cancel every order and flatten every position?")) void v.panic(); }}>PANIC</button>
+        <button className="btn btn-danger btn-panic" onClick={() => void confirmDialog("Cancel every open order on every symbol and close every position with reduce-only market orders. This cannot be undone.", { title: "PANIC — flatten everything?", okLabel: "Flatten everything", danger: true }).then((ok) => { if (ok) void v.panic(); })}>PANIC</button>
       </div>
     </header>
   );

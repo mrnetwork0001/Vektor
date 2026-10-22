@@ -22,6 +22,7 @@ import { ShieldPanel } from "./components/quant/ShieldPanel";
 import { SimControls } from "./components/quant/SimControls";
 import { ActiveGrids } from "./components/quant/ActiveGrids";
 import { TourOverlay, useJudgeTour } from "./components/quant/JudgeTour";
+import { ConfirmHost } from "./components/quant/ConfirmDialog";
 import { RegimePanel } from "./components/quant/RegimePanel";
 import { VaultPanel } from "./components/quant/VaultPanel";
 import { useRegime } from "./hooks/useRegime";
@@ -87,6 +88,7 @@ export default function App() {
       <ToastContainer position="top-right" autoClose={4000} theme="dark" toastStyle={{ background: "#1a1a1a", color: "#fff", fontSize: 13 }} />
       <VektorHeader v={v} tab={tab} setTab={setTab} builderCode={connectedInfo?.builderCode ?? BUILDER_CODE} onTour={() => void tour.start()} tourActive={tour.active} accountId={accountId} vaultId={vaultId} />
       <TourOverlay tour={tour} />
+      <ConfirmHost />
 
       <div className="app-layout">
         <aside className="sidebar">

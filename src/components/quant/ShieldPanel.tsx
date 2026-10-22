@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Vektor } from "../../hooks/useVektor";
 import { formatCurrency, formatPrice } from "../../math/formatUtils";
 import { alertsEnabled, requestAlerts } from "../../lib/notify";
+import { confirmDialog } from "./ConfirmDialog";
 import { Field, Row } from "./GridStudio";
 
 export function ShieldPanel({ v }: { v: Vektor }) {
@@ -50,7 +51,7 @@ export function ShieldPanel({ v }: { v: Vektor }) {
         <button className="btn btn-secondary btn-submit" disabled={alerts} onClick={() => requestAlerts().then(setAlerts)}>
           {alerts ? "Browser alerts on — shield & round trips notify even in the background" : "Enable browser alerts"}
         </button>
-        <button className="btn btn-danger btn-submit" onClick={() => { if (confirm("Cancel every order and flatten every position?")) void v.panic(); }}>PANIC — flatten everything</button>
+        <button className="btn btn-danger btn-submit" onClick={() => void confirmDialog("Cancel every open order on every symbol and close every position with reduce-only market orders. This cannot be undone.", { title: "PANIC — flatten everything?", okLabel: "Flatten everything", danger: true }).then((ok) => { if (ok) void v.panic(); })}>PANIC — flatten everything</button>
       </div>
 
       <div className="panel">

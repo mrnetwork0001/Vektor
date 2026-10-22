@@ -76,6 +76,11 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); }
 .l3-spoof { color: var(--amber); font-weight: 600; }
 .l3-ice { color: #60a5fa; font-weight: 600; }
 @media (max-width: 1100px) { .l3-grid { grid-template-columns: 1fr; } }
+.confirm-modal { width: 440px; max-width: 90vw; }
+.confirm-modal h3 { font-size: 15px; text-transform: none; letter-spacing: 0; margin-bottom: 8px; }
+.confirm-msg { color: var(--text-secondary); font-size: 13.5px; line-height: 1.5; margin-bottom: 18px; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.confirm-actions .btn { padding: 8px 16px; }
 .btn-proof { padding: 5px 10px; font-size: 12px; border-color: rgba(96,165,250,0.4); color: #60a5fa; }
 .btn-tour { padding: 5px 10px; font-size: 12px; border-color: rgba(37,250,176,0.4); color: var(--green); }
 .tour-bar { position: sticky; top: 53px; z-index: 9; display: flex; align-items: center; gap: 14px; padding: 10px 20px; background: rgba(37,250,176,0.1); border-bottom: 1px solid rgba(37,250,176,0.35); backdrop-filter: blur(8px); }

@@ -79,8 +79,10 @@ describe("Vektor app (demo mode)", () => {
     expect(document.querySelector(".tour-bar")).toBeNull();
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Grid Studio/ })); });
 
-    // Panic flattens
+    // Panic opens the themed confirm dialog (not window.confirm), then flattens
     await act(async () => { fireEvent.click(screen.getAllByText("PANIC")[0]); });
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Flatten everything/ })); });
     await act(async () => { vi.advanceTimersByTime(1000); });
     expect(document.body.textContent).toMatch(/No open positions/);
   });
