@@ -92,3 +92,31 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); }
 .error-panel { border-color: rgba(244,63,94,0.5); }
 
 @media (max-width: 1100px) { .quant-grid { grid-template-columns: 1fr; } .vk-telemetry { flex-wrap: wrap; } }
+
+/* ── Mobile terminal ── */
+@media (max-width: 900px) {
+  .app-layout { flex-direction: column; }
+  .sidebar { width: 100%; min-width: 0; max-height: none; border-right: 0; border-top: 1px solid var(--border); order: 2; }
+  .main-content { max-height: none; order: 1; padding: 10px; }
+  .vk-header { padding: 10px 12px; gap: 8px; }
+  .vk-brand { width: 100%; justify-content: space-between; }
+  .vk-brand h1 { font-size: 15px; }
+  .vk-tabs { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .vk-tabs::-webkit-scrollbar { display: none; }
+  .vk-tab { white-space: nowrap; padding: 6px 10px; font-size: 12.5px; }
+  .vk-telemetry { width: 100%; justify-content: space-between; font-size: 11px; gap: 8px; }
+  .vk-telemetry span:first-child { display: none; }
+  .btn-tour, .btn-proof { padding: 4px 8px; font-size: 11px; }
+  .quant-grid { grid-template-columns: 1fr; gap: 10px; }
+  .ladder, .heatmap { height: 240px; }
+  .stat-row { gap: 12px 16px; }
+  .stat .value { font-size: 14px; }
+  .form-row { grid-template-columns: 1fr 1fr; }
+  .panel-tools { flex-wrap: wrap; gap: 6px; }
+  .tour-bar { top: 0; position: relative; }
+  table.mini.wide { display: block; overflow-x: auto; white-space: nowrap; }
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .confirm-modal { width: 92vw; }
+  input[type="range"] { height: 28px; }
+  .btn { min-height: 36px; }
+}

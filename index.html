@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>Vektor — Autonomous Grid, Funding & Liquidation Engine for Strike Finance</title>
   <meta name="description" content="Vektor is a quantitative execution terminal for Strike Finance V2: a builder-fee grid studio with backtesting, a delta-neutral funding harvester, and a 24/7 liquidation shield." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -38,6 +39,17 @@
     .btn-lg { padding: 14px 26px; font-size: 16px; }
     .btn .arrow { transition: transform .15s; }
     .btn:hover .arrow { transform: translateX(3px); }
+
+    .burger { display: none; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 5px; margin-left: auto; }
+    .burger span { display: block; width: 18px; height: 1.6px; background: var(--text); transition: transform .25s, opacity .2s; }
+    .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.6px) rotate(45deg); }
+    .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.6px) rotate(-45deg); }
+    .mnav { display: none; flex-direction: column; gap: 4px; padding: 10px 16px 16px; border-top: 1px solid var(--border); background: rgba(10,10,10,0.96); }
+    .mnav a { padding: 12px 10px; border-radius: 8px; font-size: 15px; color: var(--muted); }
+    .mnav a:hover { background: var(--bg2); color: var(--text); }
+    .mnav .btn { justify-content: center; margin-top: 8px; color: #000; }
+    nav.open .mnav { display: flex; animation: fadeIn .2s ease; }
 
     /* hero */
     .hero { padding: 96px 0 72px; position: relative; overflow: hidden; }
@@ -209,7 +221,26 @@
       .module.flip .vis { order: 0; }
       .flow { grid-template-columns: 1fr 1fr; }
       nav ul { display: none; }
-      .hero { padding: 56px 0 48px; }
+      .burger { display: flex; }
+      nav .wrap { height: 56px; }
+      .hero { padding: 40px 0 40px; }
+      .hero::after { display: none; }
+      h1 { letter-spacing: -1px; }
+      .lede { font-size: 16px; }
+      .cta-row .btn { flex: 1 1 auto; justify-content: center; }
+      .term svg { height: 220px; }
+      .term-log { height: 76px; }
+      section { padding: 56px 0; }
+      .sec-head { margin-bottom: 28px; }
+      .sec-head p { font-size: 15.5px; }
+      .card { padding: 20px; }
+      .module { gap: 20px; padding: 32px 0; }
+      .module h3 { font-size: 22px; }
+      .vis svg { height: 200px; }
+      .tbl { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .tbl table { min-width: 620px; }
+      .final { padding: 72px 0; }
+      footer .wrap { flex-direction: column; }
       .kpis { grid-template-columns: 1fr 1fr; }
       .kpi:nth-child(2) { border-right: 0; }
       .kpi:nth-child(1), .kpi:nth-child(2) { border-bottom: 1px solid var(--border); }
@@ -231,6 +262,11 @@
       <li><a href="#roadmap">Roadmap</a></li>
       <li><a href="#faq">FAQ</a></li>
     </ul>
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mnav"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mnav" id="mnav">
+    <a href="#modules">Modules</a><a href="#features">Features</a><a href="#builder">Builder model</a><a href="#how">How it works</a><a href="#arch">Architecture</a><a href="#roadmap">Roadmap</a><a href="#faq">FAQ</a>
+    <a class="btn btn-primary" href="/app.html">Launch App</a>
   </div>
 </nav>
 
@@ -645,6 +681,13 @@
   faqs.forEach(function (d) {
     d.addEventListener('toggle', function () { if (d.open) faqs.forEach(function (o) { if (o !== d && o.open) o.open = false; }); });
   });
+
+  // Mobile menu
+  var burger = document.getElementById('burger');
+  if (burger) {
+    burger.addEventListener('click', function () { var open = !nav.classList.contains('open'); nav.classList.toggle('open', open); burger.setAttribute('aria-expanded', String(open)); });
+    document.querySelectorAll('#mnav a').forEach(function (a) { a.addEventListener('click', function () { nav.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); }); });
+  }
 
   document.querySelectorAll('.card').forEach(function (c) {
     c.addEventListener('mousemove', function (e) { var r = c.getBoundingClientRect(); c.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%'); });
