@@ -210,14 +210,14 @@ export const Shield: React.FC = () => {
   return (
     <Fill bg={C.bg}>
       <Glow x="50%" y="50%" color="rgba(245,158,11,0.10)" />
-      <Browser name="shield" url={APP} width={1560} left={180} top={60} startFrom={300} {...DEMO} cams={[
+      <Browser name="shield" url={APP} width={1300} left={70} top={110} startFrom={300} {...DEMO} cams={[
         { f: 0, z: 1 }, { f: 70, rect: "gauge", z: 1.5 }, { f: rel("Under") + 10, rect: "rules", z: 1.5 }, { f: rel("Once") - 10, rect: "log", z: 1.4 },
       ]} />
-      <Card at={rel("eight") - 4} left={120} top={760} width={420} accent={C.amber}>
+      <Card at={rel("eight") - 4} left={1420} top={260} width={420} accent={C.amber}>
         <div style={{ fontFamily: mono, fontSize: 44, color: C.amber }}>&lt; 8%</div>
         <div style={{ fontSize: 24, marginTop: 6 }}>cancel the buy rungs</div>
       </Card>
-      <Card at={rel("five,") - 4} left={570} top={760} width={420} accent={C.red}>
+      <Card at={rel("five,") - 4} left={1420} top={500} width={420} accent={C.red}>
         <div style={{ fontFamily: mono, fontSize: 44, color: C.red }}>&lt; 5%</div>
         <div style={{ fontSize: 24, marginTop: 6 }}>trim 25%, reduce only</div>
       </Card>
