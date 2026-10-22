@@ -162,3 +162,4 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); box-shadow: ins
 .sidebar, .main-content { max-height: none; overflow: visible; }
 .app-layout { align-items: flex-start; }
 @media (min-width: 901px) { .sidebar { position: sticky; top: 61px; max-height: calc(100vh - 61px); overflow-y: auto; } }
+.sidebar > * { flex: none; } /* panels must never shrink to fit the sticky sidebar height */
