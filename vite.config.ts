@@ -14,7 +14,7 @@ export default defineConfig({
   // Production: vercel.json rewrites the same paths.
   server: {
     proxy: {
-      "/rpc/solana": { target: "https://solana-rpc.publicnode.com", changeOrigin: true, rewrite: () => "/" },
+      "/rpc/solana": { target: "https://api.mainnet-beta.solana.com", changeOrigin: true, rewrite: () => "/" },
       "/rpc/ethereum": { target: "https://ethereum-rpc.publicnode.com", changeOrigin: true, rewrite: () => "/" },
     },
   },
