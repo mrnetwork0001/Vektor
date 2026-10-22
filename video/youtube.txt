@@ -1,0 +1,31 @@
+TITLE
+Vektor: the quant terminal that pays its builder on every fill | Strike Finance hackathon
+
+DESCRIPTION
+Vektor is a quant terminal for Strike Finance perps. It runs a grid bot, a funding harvester, the Aegis liquidation shield and server-run Autopilot, and the Vektor builder code rides on every order it places.
+
+Try it: https://tryvektor.vercel.app
+Docs: https://tryvektor.vercel.app/docs
+Public proof page: https://tryvektor.vercel.app/proof.html?account=01a16503-d2a3-74ad-855e-2362748ad8bb&bps=10
+
+Mainnet deposits, each signed in the wallet from inside Vektor:
+Ethereum, 16 USDC: https://etherscan.io/tx/0x5000652a28260cc9152cb5df90327cf57c756ac0748b7fd7ec4f1c1416abd7e8
+Solana, 5 USDC: https://solscan.io/tx/3Gf7BvvapQ1yKLNKrnsjrKSMz2PQUgc84JmqRQqMEKT9uPbsGihhBq1tfFEWFC1tLdJfpBNtShfxukHrpa36H9mW
+Cardano, 95 ADA: https://cardanoscan.io/transaction/aaf4deb1f8d0df3b329b1b428624d1633fc4efd48ccd78bc6aa064e9541ae27c
+
+Feature clips are recorded in the app's Demo mode (simulated book) and tagged on screen. The Autopilot clip and every figure quoted come from the live mainnet account.
+
+CHAPTERS
+0:00 The problem
+0:15 Why Strike
+0:31 The gap
+0:39 Meet Vektor
+0:48 Grid Studio
+1:02 Backtest & head-to-head
+1:14 Funding Harvester
+1:26 Aegis Shield
+1:37 Autopilot (live mainnet fill)
+1:55 Mainnet proof
+2:11 Under the hood
+2:22 Next: Grid Vault
+2:30 Try it
