@@ -52,6 +52,7 @@ export const DEFAULT_MAX_SKEW = 0.5;
 export type RungRole = "e" | "x" | "s";
 
 export interface RestingOrder {
+  acked?: boolean; // engine OPEN acknowledgement seen on the user stream
   clientOrderId: string;
   side: "BUY" | "SELL";
   role: RungRole;
@@ -254,7 +255,7 @@ export function initGridState(plan: GridPlan, now = Date.now(), rules?: MarketRu
     : (() => { const d = buildDeployOrders(plan); return { rungs: d.rungs, count: d.orders.length }; })();
   return {
     plan, rungs, inventory: 0, realizedUsd: 0, feesUsd: 0, builderFeesUsd: 0, volumeUsd: 0, fills: 0, cycles: 0, stops: 0, deployedAt: now,
-    log: [{ t: now, kind: "DEPLOY", msg: `Deployed ${count} rungs on ${plan.config.symbol} (${plan.config.lowerPrice}–${plan.config.upperPrice})${bracket ? ` with ${plan.config.stopLossPct}% stop-loss brackets` : ""}` }],
+    log: [{ t: now, kind: "DEPLOY", msg: `Deployed ${count} rungs on ${plan.config.symbol} (${plan.rungs[0]?.price}–${plan.rungs[plan.rungs.length - 1]?.price})${bracket ? ` with ${plan.config.stopLossPct}% stop-loss brackets` : ""}` }],
   };
 }
 
@@ -291,7 +292,15 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
     log.push({ t: now, kind: "CANCEL", msg: `Rung ${rung.index} ${parsed.role === "s" ? "stop" : fill.side} ${fill.status.toLowerCase()}${fill.closeReason ? ` (${fill.closeReason})` : ""}` });
     return { state: { ...state, rungs, log: log.slice(-300) }, orders, strategies, cancel };
   }
-  if (!(fill.fillQty > 0)) return none;
+  if (!(fill.fillQty > 0)) {
+    // Engine acknowledgement of a resting order (OPEN, no fill yet): log it once so the user sees the rung is live.
+    if (fill.status === "OPEN" && !rung.resting.find((o) => o.clientOrderId === fill.clientOrderId)?.acked) {
+      const rungs2 = state.rungs.map((r) => ({ ...r, resting: r.resting.map((o) => (o.clientOrderId === fill.clientOrderId ? { ...o, acked: true } : o)) }));
+      const entry: GridLogEntry = { t: now, kind: "DEPLOY", msg: `Rung ${rung.index} ${fill.side} resting @ ${rung.price} (engine ack)` };
+      return { ...none, state: { ...state, rungs: rungs2, log: [...state.log, entry].slice(-300) } };
+    }
+    return none;
+  }
 
   let { inventory, realizedUsd, cycles } = state;
   let stops = state.stops ?? 0;
