@@ -8,6 +8,9 @@
 
 import type { ConnectedWallet } from "./wallets";
 
+// Solana's official RPC returns 403 to browser origins; publicnode serves CORS.
+export const SOLANA_RPC = "https://solana-rpc.publicnode.com";
+
 export interface SpotBalance { asset: string; qty: number; source: string }
 
 const NATIVE: Record<ConnectedWallet["chain"], string> = { ethereum: "ETH", solana: "SOL", cardano: "ADA" };
@@ -39,8 +42,10 @@ export async function getSpotBalance(w: ConnectedWallet): Promise<SpotBalance> {
       return { asset: "ETH", qty: Number(BigInt(hex)) / 1e18, source: `${w.walletId} eth_getBalance` };
     }
     case "solana": {
-      const res = await fetch("https://api.mainnet-beta.solana.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [w.address] }) });
+      const res = await fetch(SOLANA_RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [w.address] }) });
+      if (!res.ok) throw new Error(`Solana RPC ${res.status}`);
       const j = await res.json();
+      if (j.error) throw new Error(j.error.message);
       return { asset: "SOL", qty: Number(j.result?.value ?? 0) / 1e9, source: "solana rpc getBalance" };
     }
     case "cardano": {
