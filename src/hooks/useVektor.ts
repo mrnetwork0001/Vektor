@@ -44,6 +44,8 @@ export interface LiveInputs {
   builderFeeBps: number;
   vaultId?: string | null; // run new grids on this vault account (Live only)
   regime?: Record<string, RegimeAssessment>; // regime guard assessments per symbol ({} = guard off)
+  externalSymbols?: string[]; // symbols run server-side by Autopilot - the browser must not trade them
+  onPanic?: () => Promise<void>; // extra panic hook (Autopilot)
 }
 
 export interface HedgeRun { plan: HedgePlan; placed: number; filled: number; status: "RUNNING" | "DONE" | "UNWINDING" | "UNWOUND" | "FAILED"; error?: string; fundingHistory: number[]; collectedUsd: number; payments: number; launchedAt: number; source: "simulated" | "history" }
@@ -115,6 +117,7 @@ export function useVektor(live: LiveInputs) {
   const [error, setError] = useState<string | null>(null);
   const modeRef = useRef(mode); modeRef.current = mode;
   const pendingRef = useRef<Map<string, { symbol: string; t: number }>>(new Map()); // live watchdog
+  const externalRef = useRef<string[]>(live.externalSymbols ?? []); externalRef.current = live.externalSymbols ?? [];
   // Auto-shift (trailing grid)
   const autoShiftRef = useRef<Record<string, boolean>>({});
   const edgeStreakRef = useRef<Record<string, number>>({});
@@ -193,6 +196,14 @@ export function useVektor(live: LiveInputs) {
     return unsub;
   }, [adapter, place, persist, rulesFor]);
 
+  // Symbols handed to Autopilot: drop any browser-side grid for them so fills are not handled twice.
+  const extKey = (live.externalSymbols ?? []).join(",");
+  useEffect(() => {
+    let changed = false;
+    for (const sym of extKey.split(",").filter(Boolean)) if (gridsRef.current[sym]) { delete gridsRef.current[sym]; changed = true; }
+    if (changed) { persist(); bump(); }
+  }, [extKey, persist]);
+
   // ── Unified market view ──
   const mark = mode === "sim" ? sim.ex.mark(symbol) : parseFloat(live.prices[symbol]?.p ?? "0") || 0;
   const depth = mode === "sim" ? sim.depth : live.depth;
@@ -267,7 +278,8 @@ export function useVektor(live: LiveInputs) {
   }, [live.regime, place]);
 
   // ── Shield evaluation (both modes) ──
-  const runShield = useCallback((pos: Position[]) => {
+  const runShield = useCallback((posAll: Position[]) => {
+    const pos = posAll.filter((p) => !externalRef.current.includes(p.symbol)); // server shields its own
     const rulesBySymbol: Record<string, MarketRules> = {};
     for (const p of pos) rulesBySymbol[p.symbol] = rulesFor(p.symbol);
     const before = shieldRef.current.log.length;
@@ -307,6 +319,7 @@ export function useVektor(live: LiveInputs) {
       const next: Record<string, GridState> = {};
       const toPlace: CreateOrderRequest[] = [];
       for (const [sym, g] of Object.entries(saved)) {
+        if (externalRef.current.includes(sym)) continue;
         const b = backfillGrid(g, fills, live.builderFeeBps, rulesFor(sym));
         const r = reconcileGrid(b.state, open);
         const missing = b.orders.filter((o) => !open.has(o.client_order_id!));
@@ -318,7 +331,7 @@ export function useVektor(live: LiveInputs) {
       }
       // Orders on the book that no saved grid knows about (lost memory, other device): adopt them.
       const known = new Set(Object.values(next).flatMap((g) => restingIds(g)));
-      const orphans = live.openOrders.filter((o) => parseRungClientId(o.ClientOrderId) && !known.has(o.ClientOrderId) && !next[o.Symbol]);
+      const orphans = live.openOrders.filter((o) => parseRungClientId(o.ClientOrderId) && !known.has(o.ClientOrderId) && !next[o.Symbol] && !externalRef.current.includes(o.Symbol));
       if (orphans.length) {
         const adopted = adoptGridsFromOpenOrders(orphans, rulesFor, fees);
         for (const [sym, g] of Object.entries(adopted)) { next[sym] = g; notify("Grid adopted", `${sym}: ${restingIds(g).length} resting rung(s) found on the book`); }
@@ -526,6 +539,7 @@ export function useVektor(live: LiveInputs) {
   unwindHedgeRef.current = unwindHedge;
 
   const panic = useCallback(async () => {
+    await live.onPanic?.().catch(() => {});
     for (const sym of Object.keys(gridsRef.current)) await stopGrid(sym);
     await adapter.cancelAll().catch(() => {});
     await place(buildFlattenOrders(positions));

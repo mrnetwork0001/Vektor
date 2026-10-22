@@ -4,6 +4,7 @@ import type { GridMode, GridPlan } from "../../quant/gridEngine";
 import { analyzeDepth, slippageForSize } from "../../quant/whaleRadar";
 import { formatCurrency, formatPrice } from "../../math/formatUtils";
 import { GridLadder } from "./GridLadder";
+import type { Autopilot } from "../../hooks/useAutopilot";
 import { BacktestCard } from "./BacktestCard";
 import { HeadToHead } from "./HeadToHead";
 import { DepthHeatmap } from "./DepthHeatmap";
@@ -13,7 +14,9 @@ import { L3Radar } from "./L3Radar";
 import { API_BASE_URL } from "../../api/config";
 const API_NET = /testnet/i.test(API_BASE_URL) ? "testnet" : "mainnet";
 
-export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | null }) {
+export function GridStudio({ v, accountId, ap }: { v: Vektor; accountId?: string | null; ap?: Autopilot }) {
+  const [autopilotOn, setAutopilotOn] = useState(false);
+  const apLive = !!ap?.available && v.mode === "live" && !!accountId;
   const { mark, symbol } = v;
   const [lowerPct, setLowerPct] = useState(6);
   const [upperPct, setUpperPct] = useState(6);
@@ -49,14 +52,19 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
   const depthInfo = useMemo(() => analyzeDepth(v.depth), [v.depth]);
   const slip = useMemo(() => slippageForSize(v.depth, "BUY", sizeProbe / (mark || 1), mark), [v.depth, sizeProbe, mark]);
   const pos = v.positions.find((p) => p.symbol === symbol);
-  const g = v.grid;
+  const serverGrid = apLive ? ap!.gridFor(symbol) : null;
+  const isServer = !v.grid && !!serverGrid;
+  const g = v.grid ?? serverGrid;
   const l3 = useL3(symbol, v.rulesFor(symbol).tick, mark, v.mode === "live");
   const regimeRec = v.regime[symbol]?.recommendation;
   const paused = regimeRec?.action === "PAUSE";
 
   const deploy = async () => {
     setBusy(true);
-    try { await v.deployGrid(cfg); } finally { setBusy(false); }
+    try {
+      if (apLive && autopilotOn) await ap!.deploy({ symbol, ...cfg, autoShift: false, regimeGuard: Object.keys(v.regime).length > 0 });
+      else await v.deployGrid(cfg);
+    } catch (e: any) { alert(e.message); } finally { setBusy(false); }
   };
 
   // "Prove it" preset: a tight micro-grid designed to fill within minutes on a liquid book
@@ -125,7 +133,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
 
       <div className="panel" data-tour="design">
         <div className="panel-header">
-          <h3>{g ? "Running grid" : "Design grid"}</h3>
+          <h3>{g ? "Running grid" : "Design grid"}{isServer && <span className="chain-badge" style={{ marginLeft: 8 }}>Autopilot · server-run</span>}</h3>
           {!g && v.mode === "live" && <button className="btn btn-secondary" onClick={proveIt} title="±0.4%, $15, 2x, 6 levels - fills within minutes on a liquid book">Prove-it preset</button>}
           {g && v.mode === "live" && <button className={`btn btn-secondary btn-copy ${copied ? "copied" : ""}`} onClick={() => { void navigator.clipboard?.writeText(proofSummary()); setCopied(true); setTimeout(() => setCopied(false), 1500); }} title="Copy a markdown summary of this live grid for the README / submission">{copied ? "Copied ✓" : "Copy proof summary"}</button>}
         </div>
@@ -171,6 +179,12 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
                 Regime guard: {paused ? "EXTREME - deploy paused" : `ELEVATED - range will be widened ×${regimeRec.widenFactor}`}. {v.regime[symbol]?.reasons.join("; ")}
               </div>
             )}
+            {apLive && (
+              <div className="checkbox-row">
+                <input id="autopilot" type="checkbox" checked={autopilotOn} onChange={(e) => setAutopilotOn(e.target.checked)} />
+                <label htmlFor="autopilot"><b>Keep running when I close this tab (Autopilot)</b> - the server holds this session's trade-only key and runs the grid 24/7.</label>
+              </div>
+            )}
             <button className="btn btn-primary btn-submit" data-tour="deploy" disabled={!plan || busy || !mark || paused || belowMin} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
               {busy ? "Placing…" : paused ? "Paused by regime guard" : belowMin ? `Rungs below the $${v.rulesFor(symbol).minNotional} minimum - raise margin or reduce levels` : `Deploy ${plan ? plan.rungs.filter((r) => r.entrySide !== "NONE").length : ""} rungs via /v2/orders/batch`}
             </button>
@@ -185,12 +199,18 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
               <Row k="Net per round trip" val={`${g.plan.netCyclePct}%`} />
               <Row k="Fees paid" val={`${formatCurrency(g.feesUsd)} + ${formatCurrency(g.builderFeesUsd)} builder`} />
             </div>
-            <div className="checkbox-row">
+            {!isServer && <div className="checkbox-row">
               <input id="autoshift" type="checkbox" checked={!!v.autoShift[symbol]} onChange={(e) => v.setAutoShift(symbol, e.target.checked)} />
               <label htmlFor="autoshift">Auto-shift (trailing) - re-centre via one /v2/orders/replace when price leaves the range{v.mode === "live" ? " (wipes every order on this symbol, incl. a native bot)" : ""}</label>
-            </div>
+            </div>}
             {(v.heldOrders[symbol]?.length ?? 0) > 0 && <div className="error">Regime PAUSE: {v.heldOrders[symbol].length} counter order(s) held until conditions calm</div>}
-            <button className="btn btn-danger btn-submit" onClick={() => void v.stopGrid()}>Stop grid & cancel rungs</button>
+            {isServer ? (
+              <>
+                <p className="text-xs text-secondary">Running on the Autopilot server - counters, shield and reconcile continue after you close this tab. This view refreshes every 5 s.</p>
+                <button className="btn btn-danger btn-submit" onClick={() => void ap!.stop(symbol)}>Stop server grid & cancel rungs</button>
+              </>
+            ) : <button className="btn btn-danger btn-submit" onClick={() => void v.stopGrid()}>Stop grid & cancel rungs</button>}
+            {apLive && ap!.enrolled && <button className="btn btn-secondary btn-submit" onClick={() => { if (confirm("Disable Autopilot? Server grids are stopped and the stored key is wiped.")) void ap!.disable(); }}>Disable Autopilot</button>}
             <div className="log">
               {[...g.log].reverse().slice(0, 14).map((l, i) => (
                 <div key={i} className={`log-line log-${l.kind.toLowerCase()}`}><span className="text-secondary">{new Date(l.t).toLocaleTimeString()}</span> {l.msg}</div>

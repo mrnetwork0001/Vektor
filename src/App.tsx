@@ -27,6 +27,7 @@ import { Walkthrough, shouldAutoStart } from "./components/quant/Walkthrough";
 import { RegimePanel } from "./components/quant/RegimePanel";
 import { VaultPanel } from "./components/quant/VaultPanel";
 import { useRegime } from "./hooks/useRegime";
+import { useAutopilot } from "./hooks/useAutopilot";
 import { calculateBalances, calculateOpenOrderCosts } from "./math/balanceCalculations";
 
 export default function App() {
@@ -74,7 +75,8 @@ export default function App() {
   const balances = useMemo(() => calculateBalances(walletBalance, enrichedPositions, openOrderCosts), [walletBalance, enrichedPositions, openOrderCosts]);
 
   // ── Vektor engines (sim or live through the same code) ──
-  const v = useVektor({ accountId, markets, prices, depth, positions: enrichedPositions, openOrders: orders, ordersLoading, ordersLoaded, walletBalance, feeRates, builderFeeBps, vaultId, regime: guardOn ? regime.assessments : {} });
+  const ap = useAutopilot(accountId, connectedInfo?.builderCode, connectedInfo?.feeShareBps);
+  const v = useVektor({ accountId, markets, prices, depth, positions: enrichedPositions, openOrders: orders, ordersLoading, ordersLoaded, walletBalance, feeRates, builderFeeBps, vaultId, regime: guardOn ? regime.assessments : {}, externalSymbols: ap.symbols, onPanic: ap.panic });
   useEffect(() => { setLiveSymbol(v.symbol); }, [v.symbol]);
   // Keyed so a new array/object identity per render cannot loop the regime inputs.
   const fundingKey = v.fundingSnapshots.map((s) => `${s.symbol}:${s.fundingRateHourly.toFixed(8)}`).join(",");
@@ -125,7 +127,7 @@ export default function App() {
         </aside>
 
         <main className="main-content">
-          {tab === "grid" && <GridStudio v={v} accountId={accountId} />}
+          {tab === "grid" && <GridStudio v={v} accountId={accountId} ap={ap} />}
           {tab === "funding" && <FundingHarvester v={v} wallet={connectedInfo?.wallet ?? null} />}
           {tab === "shield" && <ShieldPanel v={v} />}
           <PositionsTable positions={v.positions} basePrec={4} markets={v.markets} prices={prices} feeRates={feeRates} builderFeeBps={v.fees.builderFeeBps} />
