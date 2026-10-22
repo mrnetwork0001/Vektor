@@ -1,4 +1,6 @@
 import { connectWallet as _reconnectWallet } from "../api/wallets";
+import { getSpotBalance } from "../api/spotBalance";
+import { useEffect } from "react";
 import { useState } from "react";
 import { getDepositQuote, buildDepositTx, confirmDeposit } from "../api/deposit";
 import { getCardanoUtxos, type ConnectedWallet } from "../api/wallets";
@@ -36,12 +38,45 @@ async function waitForReceipt(api: any, hash: string): Promise<void> {
   throw new Error("approval not mined after 3 minutes");
 }
 
+// Mainnet token contracts we can read a balance for (ERC-20 balanceOf via eth_call).
+const ERC20: Record<string, { address: string; decimals: number }> = {
+  USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
+};
+async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promise<{ qty: number; gas?: number } | null> {
+  try {
+    if (wallet.chain === "ethereum") {
+      if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
+      const gasHex: string = await wallet.api.request({ method: "eth_getBalance", params: [wallet.address, "latest"] });
+      const gas = Number(BigInt(gasHex)) / 1e18;
+      if (asset === "ETH") return { qty: gas, gas };
+      const t = ERC20[asset]; if (!t) return { qty: NaN, gas };
+      const data = "0x70a08231" + wallet.address.replace(/^0x/, "").toLowerCase().padStart(64, "0");
+      const hex: string = await wallet.api.request({ method: "eth_call", params: [{ to: t.address, data }, "latest"] });
+      return { qty: Number(BigInt(hex)) / 10 ** t.decimals, gas };
+    }
+    const b = await getSpotBalance(wallet);
+    return b.asset === asset ? { qty: b.qty } : { qty: NaN };
+  } catch { return null; }
+}
+
 export function DepositPanel({ wallet }: Props) {
   const chain = wallet.chain;
   const [step, setStep] = useState<"amount" | "sign" | "done">("amount");
   const [amount, setAmount] = useState("");
   const [human, setHuman] = useState("");
   const [asset, setAsset] = useState("USDC");
+  const [bal, setBal] = useState<{ qty: number; gas?: number } | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    setBal(undefined);
+    readWalletBalance(wallet, asset).then((b) => { if (alive) setBal(b); });
+    const t = setInterval(() => readWalletBalance(wallet, asset).then((b) => { if (alive) setBal(b); }), 20_000);
+    return () => { alive = false; clearInterval(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet.address, wallet.chain, asset]);
+  const typed = parseFloat(human);
+  const overBalance = !!bal && Number.isFinite(bal.qty) && Number.isFinite(typed) && typed > bal.qty;
+  const noGas = !!bal && bal.gas !== undefined && bal.gas < 0.0005;
   const [requestId, setRequestId] = useState("");
   const [unsignedTx, setUnsignedTx] = useState("");
   const [approvalTx, setApprovalTx] = useState("");
@@ -144,7 +179,13 @@ export function DepositPanel({ wallet }: Props) {
             </select>
           </div>
           <div className="form-group">
-            <label>Amount in {asset} (e.g. 16 for ${"16"} of USDC)</label>
+            <label style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>Amount in {asset}</span>
+              <span className={overBalance ? "text-red" : ""}>
+                wallet: {bal === undefined ? "reading…" : bal === null ? "unavailable" : Number.isFinite(bal.qty) ? `${bal.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${asset}` : "n/a for this asset"}
+                {bal && bal.gas !== undefined ? ` · ${bal.gas.toFixed(4)} ETH gas` : ""}
+              </span>
+            </label>
             <input
               inputMode="decimal"
               value={human}
@@ -155,7 +196,12 @@ export function DepositPanel({ wallet }: Props) {
               Sent to Strike as <code>{amount || "…"}</code> ({DECIMALS[asset] ?? 6} decimals - {asset === "USDC" || asset === "USDT" ? "6 zeros per dollar" : "smallest on-chain unit"}). Minimum deposit is set by Strike per asset.
             </span>
           </div>
-          <button onClick={handleGetQuote} disabled={!amount || loading} className="btn btn-primary">
+          {overBalance && <p className="error">That's more {asset} than this wallet holds ({bal!.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })}).</p>}
+          {noGas && !overBalance && <p className="error">This wallet has almost no ETH for gas - the deposit transaction will fail.</p>}
+          {bal && Number.isFinite(bal.qty) && !overBalance && (
+            <button className="btn btn-secondary" style={{ marginBottom: 8 }} onClick={() => { const q = Math.floor(bal.qty * 1e6) / 1e6; setHuman(String(q)); setAmount(toRawUnits(q, DECIMALS[asset] ?? 6)); }}>Use max ({bal.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {asset})</button>
+          )}
+          <button onClick={handleGetQuote} disabled={!amount || loading || overBalance} className="btn btn-primary">
             {loading ? "Getting quote..." : "Get Quote"}
           </button>
         </>
