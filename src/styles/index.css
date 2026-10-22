@@ -1,0 +1,816 @@
+/* ── Strike Builder Reference — Dark Theme ── */
+
+:root {
+  --bg: #0a0a0a;
+  --bg-panel: #111111;
+  --bg-input: rgba(255, 255, 255, 0.06);
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --border: #1e1e1e;
+  --text: #ffffff;
+  --text-secondary: #888888;
+  --text-xs: 0.75rem;
+  --green: #25fab0;
+  --red: #f43f5e;
+  --primary: #25fab0;
+  --radius: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Layout ── */
+
+.app {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header h1 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.app-layout {
+  display: flex;
+  gap: 0;
+}
+
+.sidebar {
+  width: 320px;
+  min-width: 320px;
+  border-right: 1px solid var(--border);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 52px);
+}
+
+.main-content {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 52px);
+}
+
+/* ── Chart ── */
+
+.chart-panel {
+  margin-bottom: 12px;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.chart-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chart-price {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.interval-tabs {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.interval-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.interval-tab:hover {
+  background: var(--bg-hover);
+}
+
+.interval-tab.active {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.chart-container {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chart-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  background: var(--bg-panel);
+  z-index: 1;
+}
+
+.trading-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* ── Panel ── */
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.panel h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* ── Forms ── */
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+.form-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary);
+}
+
+input[type="range"] {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+textarea {
+  resize: vertical;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.code-block {
+  background: #050505;
+  border-color: #222;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+/* ── Buttons ── */
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #000;
+  width: 100%;
+}
+
+.btn-secondary {
+  background: var(--bg-input);
+  color: var(--text);
+  margin-top: 6px;
+  width: 100%;
+}
+
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 10px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.btn-long {
+  background: var(--green);
+  color: #000;
+}
+
+.btn-short {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-disabled {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.btn-close-position {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-close-position:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.close-modal {
+  max-width: 380px;
+}
+
+.btn-max {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.side-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.side-toggle .btn {
+  opacity: 0.4;
+}
+
+.side-toggle .btn.active {
+  opacity: 1;
+}
+
+/* ── Text utilities ── */
+
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-secondary { color: var(--text-secondary); }
+.text-sm { font-size: 12px; }
+.text-xs { font-size: 11px; }
+.error { color: var(--red); font-size: 12px; margin-top: 6px; }
+
+/* ── Wallet Connect ── */
+
+.chain-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 12px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.chain-tab {
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.chain-tab.active {
+  background: var(--primary);
+  color: #000;
+}
+
+.wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wallet-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.wallet-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--bg-hover);
+}
+
+.wallet-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wallet-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.wallet-name {
+  flex: 1;
+  text-align: left;
+}
+
+.wallet-status {
+  font-size: 11px;
+  color: var(--primary);
+}
+
+.connected-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.connected-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.chain-badge {
+  text-transform: capitalize;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.input-highlight {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px rgba(37, 250, 176, 0.2);
+}
+
+/* ── Badges ── */
+
+.badge-long {
+  color: var(--green);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.badge-short {
+  color: var(--red);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* ── Price Bar ── */
+
+.price-bar {
+  display: flex;
+  gap: 24px;
+  padding: 10px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.price-item {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.price-item .label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.price-item .value {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.price-main {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+
+/* ── Order Book ── */
+
+.orderbook {
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.ob-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 4px 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ob-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.ob-spread {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.spread-price {
+  font-weight: 600;
+}
+
+.spread-value {
+  color: var(--text-secondary);
+}
+
+.grouping-select {
+  width: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+/* ── Tables ── */
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th {
+  text-align: left;
+  padding: 8px 6px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #111;
+  white-space: nowrap;
+}
+
+/* ── Account Panel ── */
+
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.account-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-item .label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.account-item .value {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Trading Mode Row (Cross/Isolated + Leverage) ── */
+
+.trading-mode-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 6px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.mode-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.mode-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.leverage-btn {
+  flex: 0 0 auto;
+  min-width: 50px;
+  text-align: center;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ── Order Type Tabs ── */
+
+.order-type-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 8px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.order-type-tab {
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.order-type-tab.active {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+/* ── Checkbox Row ── */
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.checkbox-row label {
+  margin: 0;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+/* ── Modal Overlay ── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  width: 320px;
+  max-width: 90vw;
+}
+
+.modal-content h3 {
+  margin-bottom: 4px;
+}
+
+/* ── Leverage Modal ── */
+
+.leverage-display {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 16px 0;
+}
+
+.leverage-slider {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.leverage-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.leverage-presets {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.preset-btn {
+  flex: 1;
+  padding: 6px 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-btn.active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(37, 250, 176, 0.1);
+}
+
+/* ── Margin Mode Modal ── */
+
+.margin-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.margin-mode-option {
+  padding: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  color: var(--text);
+}
+
+.margin-mode-option:hover {
+  border-color: var(--primary);
+}
+
+.margin-mode-option.active {
+  border-color: var(--primary);
+  background: rgba(37, 250, 176, 0.08);
+}
+
+.mode-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.mode-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ── Order Form Details ── */
+
+.order-details {
+  margin: 10px 0;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 12px;
+}
+
+.detail-row span:first-child {
+  color: var(--text-secondary);
+}
+
+/* ── Market Select ── */
+
+.market-select {
+  width: auto;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--bg-input);
+}
