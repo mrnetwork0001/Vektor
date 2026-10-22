@@ -1,3 +1,4 @@
+import { connectWallet as _reconnectWallet } from "../api/wallets";
 import { useState } from "react";
 import { getWithdrawQuote, confirmWithdraw, type WithdrawQuoteResponse } from "../api/withdraw";
 import { signMessage, signCardanoTx, type ConnectedWallet } from "../api/wallets";
@@ -33,6 +34,8 @@ export function WithdrawPanel({ wallet, withdrawableBalance }: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleGetQuote = async () => {
+    // A restored session has no live wallet object - reconnect the extension before signing.
+    if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
     setError("");
     setLoading(true);
     try {

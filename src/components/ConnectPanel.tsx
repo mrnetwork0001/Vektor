@@ -46,6 +46,8 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   const [privKey, setPrivKey] = useState("");
   const [remember, setRemember] = useState(false);
   const KEYS_STORE = "vektor:apiwallet:v1";
+  const SESSION_STORE = "vektor:buildersession:v1";
+  const [rememberWallet, setRememberWallet] = useState(false);
 
   /**
    * Sign in with an API wallet registered at app.strikefinance.org/api-keys.
@@ -75,6 +77,26 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   useEffect(() => {
     const timer = setTimeout(() => setWallets(detectInstalledWallets()), 500);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Remembered Builder Connect session → restore the API wallet and account without re-signing.
+  useEffect(() => {
+    if (connectedInfo) return;
+    try {
+      const raw = localStorage.getItem(SESSION_STORE);
+      if (!raw) return;
+      const sess = JSON.parse(raw);
+      if (!sess?.keys?.publicKey || !sess?.keys?.privateKey) return;
+      storeApiWalletKeys(sess.keys);
+      setRememberWallet(true);
+      setStatus("Restoring session…");
+      getAccount().then((acc) => {
+        setStatus("");
+        onConnected({ accountId: acc.account_id, chain: sess.chain, address: sess.address, builderCode: sess.builderCode, feeShareBps: sess.feeShareBps,
+          wallet: { chain: sess.chain, walletId: sess.walletId, address: sess.address, api: null } }); // api reconnects on demand
+      }).catch((e) => { clearApiWalletKeys(); try { localStorage.removeItem(SESSION_STORE); } catch { /* ignore */ } setStatus(""); setError(`Saved session expired: ${e.message}`); });
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Remembered API wallet → sign in again automatically after a refresh.
@@ -138,6 +160,14 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
       });
       storeApiWalletKeys(keys);
 
+      // Opt-in: keep the generated API wallet + account info so a refresh restores the
+      // trading session without re-signing. The wallet extension object itself cannot
+      // be persisted; Deposit/Withdraw reconnect it on demand.
+      try {
+        if (rememberWallet) localStorage.setItem(SESSION_STORE, JSON.stringify({ keys, accountId: result.account_id, chain: connected.chain, walletId: connected.walletId, address: connected.address, builderCode: result.builder_code, feeShareBps: result.fee_share_bps }));
+        else localStorage.removeItem(SESSION_STORE);
+      } catch { /* storage blocked */ }
+
       setStatus("");
       onConnected({
         accountId: result.account_id,
@@ -157,8 +187,8 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
 
   const handleDisconnect = () => {
     clearApiWalletKeys();
-    try { localStorage.removeItem(KEYS_STORE); } catch { /* ignore */ }
-    setRemember(false); setPubKey(""); setPrivKey("");
+    try { localStorage.removeItem(KEYS_STORE); localStorage.removeItem(SESSION_STORE); } catch { /* ignore */ }
+    setRemember(false); setRememberWallet(false); setPubKey(""); setPrivKey("");
     onDisconnected();
   };
 
@@ -248,6 +278,11 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
             {c.charAt(0).toUpperCase() + c.slice(1)}
           </button>
         ))}
+      </div>
+
+      <div className="checkbox-row">
+        <input id="remember-wallet" type="checkbox" checked={rememberWallet} onChange={(e) => setRememberWallet(e.target.checked)} />
+        <label htmlFor="remember-wallet">Remember this session on this device (the API wallet Strike issues is stored unencrypted in local storage; Disconnect forgets it. Deposit/Withdraw will ask the wallet to reconnect.)</label>
       </div>
 
       <div className="wallet-list">
