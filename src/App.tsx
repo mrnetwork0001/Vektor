@@ -23,6 +23,7 @@ import { SimControls } from "./components/quant/SimControls";
 import { ActiveGrids } from "./components/quant/ActiveGrids";
 import { TourOverlay, useJudgeTour } from "./components/quant/JudgeTour";
 import { ConfirmHost } from "./components/quant/ConfirmDialog";
+import { Walkthrough, shouldAutoStart } from "./components/quant/Walkthrough";
 import { RegimePanel } from "./components/quant/RegimePanel";
 import { VaultPanel } from "./components/quant/VaultPanel";
 import { useRegime } from "./hooks/useRegime";
@@ -35,6 +36,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("grid");
   const [vaultId, setVaultId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
+  const [walkthrough, setWalkthrough] = useState(() => shouldAutoStart());
   useEffect(() => { setDrawer(false); }, [tab]);
   const [guardOn, setGuardOn] = useState(true);
   const [fundingBySymbol, setFundingBySymbol] = useState<Record<string, number>>({});
@@ -88,7 +90,8 @@ export default function App() {
   return (
     <div className="app">
       <ToastContainer position="top-right" autoClose={4000} theme="dark" toastStyle={{ background: "#1a1a1a", color: "#fff", fontSize: 13 }} />
-      <VektorHeader v={v} tab={tab} setTab={setTab} builderCode={connectedInfo?.builderCode ?? BUILDER_CODE} onTour={() => void tour.start()} tourActive={tour.active} accountId={accountId} vaultId={vaultId} drawerOpen={drawer} onToggleDrawer={() => setDrawer((d) => !d)} />
+      <VektorHeader v={v} tab={tab} setTab={setTab} builderCode={connectedInfo?.builderCode ?? BUILDER_CODE} onTour={() => void tour.start()} tourActive={tour.active} accountId={accountId} vaultId={vaultId} drawerOpen={drawer} onToggleDrawer={() => setDrawer((d) => !d)} onHelp={() => { setDrawer(false); setWalkthrough(true); }} />
+      <Walkthrough open={walkthrough} onClose={() => setWalkthrough(false)} setTab={setTab} />
       <TourOverlay tour={tour} />
       <ConfirmHost />
 
@@ -96,7 +99,7 @@ export default function App() {
         <button className={`drawer-backdrop ${drawer ? "show" : ""}`} aria-label="Close menu" onClick={() => setDrawer(false)} />
         <aside className={`sidebar ${drawer ? "open" : ""}`}>
           <div className="drawer-head"><span>Controls</span><button className="btn btn-secondary" onClick={() => setDrawer(false)}>Close</button></div>
-          <div className="panel">
+          <div className="panel" data-tour="mode">
             <h3>Execution mode</h3>
             <div className="side-toggle">
               <button className={`btn ${v.mode === "sim" ? "active" : ""}`} onClick={() => v.switchMode("sim")}>Demo</button>

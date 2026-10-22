@@ -57,7 +57,7 @@ export function BacktestCard({ v, cfg, onApplyRange }: Props) {
   };
 
   return (
-    <div className="panel">
+    <div className="panel" data-tour="backtest">
       <div className="panel-header">
         <h3>Backtest before you deploy</h3>
         <div className="side-toggle">

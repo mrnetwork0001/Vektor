@@ -87,7 +87,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
 
   return (
     <div className="quant-grid">
-      <div className="panel ladder-panel">
+      <div className="panel ladder-panel" data-tour="ladder">
         <div className="panel-header">
           <h3>CLOB Grid Studio - {symbol}</h3>
           <div className="panel-tools">
@@ -116,7 +116,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" data-tour="design">
         <div className="panel-header">
           <h3>{g ? "Running grid" : "Design grid"}</h3>
           {!g && v.mode === "live" && <button className="btn btn-secondary" onClick={proveIt} title="±0.4%, $15, 2x, 6 levels - fills within minutes on a liquid book">Prove-it preset</button>}
@@ -164,7 +164,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
                 Regime guard: {paused ? "EXTREME - deploy paused" : `ELEVATED - range will be widened ×${regimeRec.widenFactor}`}. {v.regime[symbol]?.reasons.join("; ")}
               </div>
             )}
-            <button className="btn btn-primary btn-submit" disabled={!plan || busy || !mark || paused} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
+            <button className="btn btn-primary btn-submit" data-tour="deploy" disabled={!plan || busy || !mark || paused} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
               {busy ? "Placing…" : paused ? "Paused by regime guard" : `Deploy ${plan ? plan.rungs.filter((r) => r.entrySide !== "NONE").length : ""} rungs via /v2/orders/batch`}
             </button>
             {v.mode === "live" && <p className="text-xs text-secondary" style={{ marginTop: 6 }}>Live mode places real post-only orders on {symbol}. Counter orders fire from user-stream fills while this tab is open; the grid is saved locally and reconciled against open orders after a reload.</p>}
@@ -193,7 +193,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
         )}
       </div>
 
-      <div className="panel">
+      <div className="panel" data-tour="radar">
         <h3>Whale radar & impact</h3>
         {depthInfo ? (
           <>

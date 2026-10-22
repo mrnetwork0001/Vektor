@@ -32,7 +32,7 @@ export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWa
 
   return (
     <div className="quant-grid">
-      <div className="panel ladder-panel">
+      <div className="panel ladder-panel" data-tour="funding">
         <h3>Funding APR radar (hourly funding × 24 × 365)</h3>
         <table className="mini wide">
           <thead><tr><th>Market</th><th>Mark</th><th>Funding / h</th><th>APR</th><th>Basis</th><th>Receiver</th><th>$ / day on $10k</th><th>Next</th></tr></thead>

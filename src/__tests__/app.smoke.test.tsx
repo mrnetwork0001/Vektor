@@ -25,6 +25,17 @@ describe("Vektor app (demo mode)", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Vektor/);
     expect(screen.getByText("DEMO")).toBeTruthy();
 
+    // First-run walkthrough appears, can be stepped and skipped; "?" replays it
+    expect(screen.getByRole("dialog", { name: /walkthrough/i })).toBeTruthy();
+    await act(async () => { vi.advanceTimersByTime(600); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /^Next$/ })); });
+    await act(async () => { vi.advanceTimersByTime(600); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Skip tour/ })); });
+    expect(screen.queryByRole("dialog", { name: /walkthrough/i })).toBeNull();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Help: show the walkthrough/ })); });
+    expect(screen.getByRole("dialog", { name: /walkthrough/i })).toBeTruthy();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Skip tour/ })); });
+
     // Let the demo market tick a few times so the ladder has history
     await act(async () => { vi.advanceTimersByTime(3000); });
 

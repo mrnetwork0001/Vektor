@@ -36,7 +36,7 @@ export function ShieldPanel({ v }: { v: Vektor }) {
         })}
       </div>
 
-      <div className="panel">
+      <div className="panel" data-tour="shield-rules">
         <h3>Rules</h3>
         <div className="checkbox-row"><input id="sh-on" type="checkbox" checked={r.enabled} onChange={(e) => setShieldRules({ enabled: e.target.checked })} /><label htmlFor="sh-on"><b>Shield enabled</b></label></div>
         <div className="checkbox-row"><input id="sh-a" type="checkbox" checked={r.ruleA} onChange={(e) => setShieldRules({ ruleA: e.target.checked })} /><label htmlFor="sh-a">Rule A - cancel resting buy rungs</label></div>
