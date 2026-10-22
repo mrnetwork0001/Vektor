@@ -36,11 +36,18 @@ export function RegimePanel({ regime, symbol, enabled, setEnabled }: Props) {
         <KV k="Open interest vs baseline" v={a?.raw.oiDeltaPct != null ? `${a.raw.oiDeltaPct > 0 ? "+" : ""}${a.raw.oiDeltaPct}% (${regime.baselineSamples(symbol)} samples)` : "collecting…"} cls={a && Math.abs(a.raw.oiDeltaPct ?? 0) >= 25 ? "text-red" : ""} />
         <KV k="24h range" v={a?.raw.range24hPct != null ? `${a.raw.range24hPct}%` : "-"} cls={a && a.components.range24h >= 50 ? "text-red" : ""} />
         <KV k="Funding (APR)" v={a?.raw.fundingAprPct != null ? `${a.raw.fundingAprPct}%` : "-"} />
-        <KV k="Components" v={a ? `sent ${a.components.sentiment} · oi ${a.components.oiShock} · range ${a.components.range24h} · fund ${a.components.funding}` : "-"} />
       </div>
+      {a && (
+        <div className="regime-chips" title="Score components (0-100)">
+          <span className="regime-chip">sentiment<b>{a.components.sentiment}</b></span>
+          <span className="regime-chip">OI shock<b>{a.components.oiShock}</b></span>
+          <span className="regime-chip">24h range<b>{a.components.range24h}</b></span>
+          <span className="regime-chip">funding<b>{a.components.funding}</b></span>
+        </div>
+      )}
 
       {a && (
-        <div style={{ padding: "8px 10px", borderRadius: 6, background: `${color}14`, border: `1px solid ${color}55`, fontSize: 13, margin: "6px 0 10px" }}>
+        <div className="regime-rec" style={{ background: `${color}14`, border: `1px solid ${color}55` }}>
           <b style={{ color }}>{rec?.action}{rec?.widenFactor ? ` ×${rec.widenFactor}` : ""}</b>
           <span className="text-secondary"> - {a.reasons.join("; ")}</span>
         </div>
