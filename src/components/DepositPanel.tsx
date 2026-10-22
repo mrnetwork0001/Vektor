@@ -284,7 +284,11 @@ export function DepositPanel({ wallet }: Props) {
 
       {step === "done" && (
         <>
-          <p className="text-green">Deposit submitted! Awaiting blockchain confirmation.</p>
+          <p className="text-green">Deposit submitted and registered with Strike.</p>
+          <div className="notice">
+            <b>Usually takes 2–5 minutes to show up.</b> Strike waits for block confirmations (about 12 on Ethereum) before crediting your balance. You'll get a "Deposit credited" toast and the Account panel updates by itself - no need to reload.
+            {txHash && <span className="text-xs text-secondary" style={{ display: "block", marginTop: 6 }}>Track it: <a href={`https://etherscan.io/tx/${txHash}`} target="_blank" rel="noopener" style={{ color: "var(--green)" }}>{txHash.slice(0, 12)}…{txHash.slice(-6)}</a></span>}
+          </div>
           <button onClick={() => { setStep("amount"); setTxHash(""); }} className="btn btn-secondary">
             New Deposit
           </button>

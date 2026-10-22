@@ -168,3 +168,6 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); box-shadow: ins
 .btn-copy { transition: background .2s, border-color .2s, color .2s, transform .15s; }
 .btn-copy.copied { background: rgba(37,250,176,0.15); border-color: var(--green); color: var(--green); animation: copyPop .35s ease; }
 @keyframes copyPop { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+.notice { margin: 8px 0 10px; padding: 10px 12px; border-radius: 8px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.35); font-size: 12.5px; line-height: 1.45; color: var(--text); }
+.notice b { color: var(--amber); }
