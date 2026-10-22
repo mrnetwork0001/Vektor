@@ -36,6 +36,7 @@ export interface FillEvent {
   commission: number; // negative = rebate
   builderFee: number;
   timestamp: number;
+  tradeId?: number; // engine trade id - used to drop duplicate fill deliveries
   status: "OPEN" | "FILLED" | "PARTIALLY_FILLED" | "CANCELED" | "REJECTED" | "EXPIRED";
   closeReason?: string;
 }

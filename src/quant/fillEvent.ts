@@ -19,6 +19,6 @@ export function toFillEvent(d: OrderTradeUpdateData): FillEvent {
     symbol: d.s, clientOrderId: d.c, orderId: d.i, side: d.S,
     fillQty: isFill ? num(d.l) : 0, fillPrice: num(d.L), cumFilled: cum, orderQty: qty,
     isMaker: !!d.m, commission: isFill ? num(d.n) : 0, builderFee: isFill ? num(d.builder_fee) : 0,
-    timestamp: d.E, status, closeReason: d.cr || undefined,
+    timestamp: d.E, tradeId: isFill ? Number(d.t) : undefined, status, closeReason: d.cr || undefined,
   };
 }

@@ -21,7 +21,7 @@ export function fillRowToEvent(r: FillRow, builderFeeBps: number): FillEvent {
     side: r.side === "buy" ? "BUY" : "SELL", fillQty: size, fillPrice: price,
     cumFilled: size, orderQty: size, // history rows don't carry the order size; reconcile fixes resting state afterwards
     isMaker: r.role === "maker", commission: r.fee_type === "commission" ? parseFloat(r.fee) : 0,
-    builderFee: builderFeeFor(size * price, builderFeeBps), timestamp: r.timestamp, status: "FILLED",
+    builderFee: builderFeeFor(size * price, builderFeeBps), timestamp: r.timestamp, tradeId: r.trade_id, status: "FILLED",
   };
 }
 

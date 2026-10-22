@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { backfillGrid, fillRowToEvent, fundingCollected, telemetryFromFills } from "../backfill";
-import { planGrid, initGridState, restingIds } from "../gridEngine";
+import { planGrid, initGridState, restingIds, applyGridFill } from "../gridEngine";
 import type { FillRow } from "../../api/history";
 import type { MarketRules } from "../types";
 
@@ -9,6 +9,22 @@ const fees = { makerRate: 0, takerRate: 0.0005, builderFeeBps: 10 };
 const cfg = { symbol: "ADA-USD", lowerPrice: 0.38, upperPrice: 0.46, markPrice: 0.42, levels: 9, marginUsd: 600, leverage: 3, mode: "ARITHMETIC" as const };
 
 const row = (o: Partial<FillRow>): FillRow => ({ id: 1, trade_id: 1, order_id: 1, symbol: "ADA-USD", side: "buy", role: "maker", price: "0.41", size: "100", realized_pnl: "0", fee: "0", fee_type: "none", timestamp: 1000, client_order_id: "x", ...o });
+
+describe("dedupe", () => {
+  it("applies a fill only once per trade id (stream duplicate + backfill replay)", () => {
+    const plan = planGrid(cfg, rules, fees);
+    let state = initGridState(plan);
+    const id = state.rungs[3].resting[0].clientOrderId;
+    const ev = { ...fillRowToEvent(row({ trade_id: 42, client_order_id: id, price: "0.41", size: "100" }), 10) };
+    state = applyGridFill(state, ev).state;
+    const again = applyGridFill(state, ev);
+    expect(again.state).toBe(state);
+    expect(again.orders).toHaveLength(0);
+    const b = backfillGrid(state, [row({ trade_id: 42, client_order_id: id, price: "0.41", size: "100" })], 10);
+    expect(b.replayed).toBe(0);
+    expect(state.inventory).toBe(100);
+  });
+});
 
 describe("backfill", () => {
   it("replays only this grid's fills newer than the cursor, in trade order, and advances the cursor", () => {

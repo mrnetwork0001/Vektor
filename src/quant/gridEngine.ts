@@ -101,7 +101,8 @@ export interface GridState {
   cycles: number;
   stops?: number; // stop-loss legs that fired
   log: GridLogEntry[];
-  lastTradeId?: number; // highest /v2/history/fill trade_id applied (backfill cursor)
+  lastTradeId?: number; // highest trade id applied (backfill cursor)
+  seenTrades?: number[]; // recent trade ids already applied (dedupe across stream, reconnects and backfill)
   deployedAt?: number;
   shifts?: number; // auto-shift (trailing) re-centres so far - see gridShift.ts
   shiftedAt?: number;
@@ -292,6 +293,7 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
     log.push({ t: now, kind: "CANCEL", msg: `Rung ${rung.index} ${parsed.role === "s" ? "stop" : fill.side} ${fill.status.toLowerCase()}${fill.closeReason ? ` (${fill.closeReason})` : ""}` });
     return { state: { ...state, rungs, log: log.slice(-300) }, orders, strategies, cancel };
   }
+  if (fill.fillQty > 0 && fill.tradeId !== undefined && (state.seenTrades ?? []).includes(fill.tradeId)) return none; // duplicate delivery
   if (!(fill.fillQty > 0)) {
     // Engine acknowledgement of a resting order (OPEN, no fill yet): log it once so the user sees the rung is live.
     if (fill.status === "OPEN" && !rung.resting.find((o) => o.clientOrderId === fill.clientOrderId)?.acked) {
@@ -310,7 +312,7 @@ export function applyGridFill(state: GridState, fill: FillEvent, now = Date.now(
   const accounting = {
     inventory: fix(inventory, 8),
     feesUsd: fix(state.feesUsd + fill.commission, 4), builderFeesUsd: fix(state.builderFeesUsd + fill.builderFee, 4),
-    volumeUsd: fix(state.volumeUsd + fill.fillQty * fill.fillPrice, 2), fills: state.fills + 1,
+    volumeUsd: fix(state.volumeUsd + fill.fillQty * fill.fillPrice, 2), fills: state.fills + 1, ...(fill.tradeId !== undefined ? { seenTrades: [...(state.seenTrades ?? []), fill.tradeId].slice(-500), lastTradeId: Math.max(state.lastTradeId ?? 0, fill.tradeId) } : {}),
   };
 
   // ── Stop-loss leg fired: book the loss, retire the rung, cancel its orphaned exit ──
