@@ -158,7 +158,7 @@ First real grid placed by Vektor on Strike mainnet, account `01a162e1-f0fb-77f4-
 curl "https://api.strikefinance.org/v2/openOrders?account_id=01a164cf-36b1-7387-aa2f-199cc57f8c3f"
 ```
 
-First fill on that account (18:33:53Z): **sell 65 ADA @ 0.21237, maker** - counter buy placed at 0.21179 in the same second; position SHORT at 3x (Deploy now sets the symbol leverage). The public fill row itemises only the commission (`fee_type: commission`); the builder fee is delivered on the user-stream fill event (`builder_fee`) and in the builder's dashboard, which is where Vektor's header telemetry reads it from.
+First fill on that account (18:33:53Z): **sell 65 ADA @ 0.21237, maker** - counter buy placed at 0.21179 in the same second; position SHORT at 3x (Deploy now sets the symbol leverage). Strike delivered `builder_fee = 0.01` on the user-stream fill event (exactly `floor(13.80 × 10 bps, 2 dp)`), and Vektor's header telemetry showed **vol $13.80 · fills 1 · builder fees $0.01**. The public fill row itemises only the commission; the builder fee lives on the fill event and in the Builder Codes dashboard.
 
 Verify yourself (public selectors, no auth):
 
