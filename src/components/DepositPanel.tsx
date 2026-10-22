@@ -26,6 +26,16 @@ function toRawUnits(n: number, decimals: number): string {
   return (i + frac).replace(/^0+(?=\d)/, "");
 }
 
+/** Poll eth_getTransactionReceipt until mined (max ~3 min). */
+async function waitForReceipt(api: any, hash: string): Promise<void> {
+  for (let i = 0; i < 90; i++) {
+    const r = await api.request({ method: "eth_getTransactionReceipt", params: [hash] });
+    if (r) { if (r.status === "0x0") throw new Error("approval transaction reverted"); return; }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+  throw new Error("approval not mined after 3 minutes");
+}
+
 export function DepositPanel({ wallet }: Props) {
   const chain = wallet.chain;
   const [step, setStep] = useState<"amount" | "sign" | "done">("amount");
@@ -36,6 +46,9 @@ export function DepositPanel({ wallet }: Props) {
   const [unsignedTx, setUnsignedTx] = useState("");
   const [approvalTx, setApprovalTx] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [evmTx, setEvmTx] = useState<any>(null);
+  const [evmApproval, setEvmApproval] = useState<any>(null);
+  const [signStatus, setSignStatus] = useState("");
   const [usdValue, setUsdValue] = useState("");
   const [depositAddress, setDepositAddress] = useState("");
   const [error, setError] = useState("");
@@ -67,12 +80,37 @@ export function DepositPanel({ wallet }: Props) {
       setApprovalTx(
         tx.format === "evm_tx_params" && tx.approval_tx ? JSON.stringify(tx.approval_tx, null, 2) : ""
       );
+      setEvmTx(tx.format === "evm_tx_params" ? tx.unsigned_tx : null);
+      setEvmApproval(tx.format === "evm_tx_params" ? tx.approval_tx ?? null : null);
       setStep("sign");
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  /** EVM: ask the wallet extension to send the approval (if any) and the deposit, then confirm with the returned hash. */
+  const handleSignEvm = async () => {
+    setError(""); setLoading(true);
+    try {
+      if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
+      const send = (tx: any) => wallet.api.request({ method: "eth_sendTransaction", params: [{ from: tx.from ?? wallet.address, to: tx.to, data: tx.data, value: tx.value ?? "0x0", ...(tx.gas ? { gas: tx.gas } : {}) }] }) as Promise<string>;
+      if (evmApproval) {
+        setSignStatus("1/2 Approve USDC spend in your wallet…");
+        const h = await send(evmApproval);
+        setSignStatus(`Approval sent (${h.slice(0, 10)}…) - waiting for it to mine…`);
+        await waitForReceipt(wallet.api, h);
+      }
+      setSignStatus(evmApproval ? "2/2 Confirm the deposit in your wallet…" : "Confirm the deposit in your wallet…");
+      const hash = await send(evmTx);
+      setTxHash(hash);
+      setSignStatus(`Deposit sent (${hash.slice(0, 10)}…) - registering with Strike…`);
+      await confirmDeposit({ request_id: requestId, tx_hash: hash });
+      setStep("done");
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+    } finally { setLoading(false); setSignStatus(""); }
   };
 
   const handleConfirm = async () => {
@@ -127,23 +165,37 @@ export function DepositPanel({ wallet }: Props) {
         <>
           <p>USD Value: <strong>${usdValue}</strong></p>
           <p className="text-secondary text-xs">Strike vault: {depositAddress}</p>
-          {approvalTx && (
-            <div className="form-group">
-              <label>ERC-20 approval (send first):</label>
-              <textarea readOnly value={approvalTx} rows={4} className="code-block" />
-            </div>
+          {evmTx ? (
+            <>
+              <button onClick={handleSignEvm} disabled={loading} className="btn btn-primary btn-submit">
+                {loading ? signStatus || "Waiting for wallet…" : evmApproval ? "Approve & deposit with wallet (2 signatures)" : "Deposit with wallet (1 signature)"}
+              </button>
+              <p className="text-xs text-secondary" style={{ margin: "6px 0 10px" }}>
+                Your wallet will pop up{evmApproval ? " twice: an ERC-20 approval, then the deposit" : " once"}. Needs a little ETH for gas. Credit lands after confirmations.
+              </p>
+              <details>
+                <summary className="text-xs text-secondary" style={{ cursor: "pointer" }}>Manual: raw transactions + paste hash</summary>
+                {approvalTx && <div className="form-group"><label>ERC-20 approval (send first)</label><textarea readOnly value={approvalTx} rows={4} className="code-block" /></div>}
+                <div className="form-group"><label>Unsigned transaction</label><textarea readOnly value={unsignedTx} rows={4} className="code-block" /></div>
+                <div className="form-group"><label>TX hash</label><input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="0x…" /></div>
+                <button onClick={handleConfirm} disabled={txHash.trim().length < 10 || loading} className="btn btn-secondary">{loading ? "Confirming..." : "Confirm deposit by hash"}</button>
+              </details>
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label>Unsigned transaction (sign + submit with your wallet):</label>
+                <textarea readOnly value={unsignedTx} rows={4} className="code-block" />
+              </div>
+              <div className="form-group">
+                <label>Paste TX hash after submitting:</label>
+                <input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="tx hash" />
+              </div>
+              <button onClick={handleConfirm} disabled={txHash.trim().length < 10 || loading} className="btn btn-primary">
+                {loading ? "Confirming..." : "Confirm Deposit"}
+              </button>
+            </>
           )}
-          <div className="form-group">
-            <label>Unsigned transaction (sign + submit with your wallet):</label>
-            <textarea readOnly value={unsignedTx} rows={4} className="code-block" />
-          </div>
-          <div className="form-group">
-            <label>Paste TX hash after submitting:</label>
-            <input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="tx hash" />
-          </div>
-          <button onClick={handleConfirm} disabled={txHash.trim().length < 10 || loading} className="btn btn-primary">
-            {loading ? "Confirming..." : "Confirm Deposit"}
-          </button>
         </>
       )}
 
