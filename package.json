@@ -12,7 +12,8 @@
     "worker": "tsx worker/index.ts",
     "cli": "tsx cli/vektor.ts",
     "autopilot": "tsx server/index.ts",
-    "typecheck:server": "tsc -p tsconfig.server.json"
+    "typecheck:server": "tsc -p tsconfig.server.json",
+    "build:stats": "esbuild scripts/stats-function.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/stats.js"
   },
   "dependencies": {
     "@noble/ed25519": "^2.1.0",
