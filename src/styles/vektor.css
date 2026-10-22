@@ -120,3 +120,46 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); }
   input[type="range"] { height: 28px; }
   .btn { min-height: 36px; }
 }
+
+/* ── Phone-first terminal (≤ 900px: bottom tab bar; ≤ 600px: single column everything) ── */
+@media (max-width: 900px) {
+  html, body { overflow-x: hidden; }
+  .app { padding-bottom: 64px; } /* room for the bottom tab bar */
+  .vk-tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; background: rgba(17,17,17,0.96); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 4px; overflow: visible; }
+  .vk-tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 12px; border-radius: 8px; }
+  .vk-tab.active { background: rgba(37,250,176,0.1); color: var(--green); border-color: rgba(37,250,176,0.3); }
+  .vk-header { position: sticky; top: 0; z-index: 25; background: rgba(10,10,10,0.92); backdrop-filter: blur(10px); }
+  .sidebar, .main-content { overflow: visible; }
+  .panel { padding: 12px; }
+  .table-container, .account-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-container table { min-width: 720px; }
+  .trading-grid { grid-template-columns: 1fr; }
+  .modal-content { width: 92vw; }
+  .log { max-height: 180px; }
+  .checkbox-row label { line-height: 1.35; }
+}
+@media (max-width: 600px) {
+  .vk-brand { flex-wrap: wrap; gap: 6px; }
+  .vk-brand .market-select { flex: 1 1 auto; min-width: 120px; }
+  .mode-pill { font-size: 9px; }
+  .vk-telemetry { font-size: 10.5px; gap: 6px; }
+  .vk-telemetry span { white-space: nowrap; }
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 10px; }
+  .stat .label { font-size: 10px; }
+  .form-row { grid-template-columns: 1fr; }
+  .side-toggle { flex-wrap: wrap; }
+  .side-toggle .btn { flex: 1 1 45%; }
+  .scenario-list { grid-template-columns: 1fr 1fr; }
+  .connected-row { flex-wrap: wrap; gap: 2px 8px; }
+  .connected-row .text-sm { text-align: right; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .ladder, .heatmap { height: 200px; }
+  .ladder-panel .panel-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .gauge-head { flex-direction: column; gap: 2px; }
+  .grid-row { flex-wrap: wrap; }
+  .tour-caption { font-size: 12.5px; }
+  .btn-submit, .btn-primary.btn-submit { padding: 12px; font-size: 14px; }
+  input[type="number"], input[type="text"], select { font-size: 16px; } /* prevents iOS zoom on focus */
+  .l3-grid { grid-template-columns: 1fr; }
+  .equity { height: 56px; }
+  .heatmap-wrap canvas { height: 200px; }
+}
