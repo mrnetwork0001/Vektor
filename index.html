@@ -49,10 +49,18 @@
     h1 span { color: var(--green); }
     .lede { color: var(--muted); font-size: 18px; margin: 22px 0 32px; max-width: 560px; }
     .cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    .cta-note { font-size: 13px; color: var(--dim); margin-top: 14px; }
-    .kpis { display: flex; gap: 32px; margin-top: 40px; flex-wrap: wrap; }
-    .kpi b { display: block; font-size: 26px; font-weight: 800; font-family: var(--mono); color: var(--text); letter-spacing: -0.5px; }
-    .kpi span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .cta-note { font-size: 13px; color: var(--muted); margin-top: 16px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .pill { font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(245,158,11,0.5); color: var(--amber); }
+    .pill.live { border-color: rgba(37,250,176,0.5); color: var(--green); }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 36px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); overflow: hidden; }
+    .kpi { padding: 16px 18px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .kpi:last-child { border-right: 0; }
+    .kpi b { font-size: 26px; font-weight: 800; font-family: var(--mono); color: var(--text); letter-spacing: -0.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .kpi b.hl { color: var(--green); }
+    .kpi b em { font-style: normal; font-size: 14px; color: var(--dim); font-weight: 600; }
+    .kpi span { font-size: 12px; color: var(--text); font-weight: 600; margin-top: 4px; }
+    .kpi small { font-size: 11px; color: var(--dim); }
+    .kpi-foot { font-size: 11.5px; color: var(--dim); margin-top: 10px; }
 
     /* hero terminal */
     .term { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset; }
@@ -148,6 +156,9 @@
       .flow { grid-template-columns: 1fr 1fr; }
       nav ul { display: none; }
       .hero { padding: 56px 0 48px; }
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .kpi:nth-child(2) { border-right: 0; }
+      .kpi:nth-child(1), .kpi:nth-child(2) { border-bottom: 1px solid var(--border); }
     }
     @media (max-width: 560px) { .flow { grid-template-columns: 1fr; } .term-foot { grid-template-columns: 1fr 1fr; } }
   </style>
@@ -178,14 +189,14 @@
         <a class="btn btn-primary btn-lg" href="/app.html">Launch App <span class="arrow">→</span></a>
         <a class="btn btn-lg" href="#modules">See how it works</a>
       </div>
-      <div class="cta-note">Opens in <b>Demo mode</b> — no wallet needed. Switch to <b>Live</b> to trade on Strike testnet with your API wallet.</div>
+      <div class="cta-note"><span class="pill">Demo</span> opens instantly, no wallet needed &nbsp;·&nbsp; <span class="pill live">Live</span> trades on Strike mainnet with your wallet</div>
       <div class="kpis">
-        <div class="kpi"><b>3</b><span>autonomous engines</span></div>
-        <div class="kpi"><b>29</b><span>round trips · example 7d ADA backtest</span></div>
-        <div class="kpi"><b>$0 → $32</b><span>builder revenue, native bot vs Vektor (same backtest)</span></div>
-        <div class="kpi"><b>&lt;5%</b><span>buffer triggers auto-trim</span></div>
+        <div class="kpi"><b>3</b><span>Autonomous engines</span><small>Grid · Harvester · Shield</small></div>
+        <div class="kpi"><b>29</b><span>Round trips</span><small>7-day ADA-USD backtest</small></div>
+        <div class="kpi"><b class="hl">$32<em> vs $0</em></b><span>Builder revenue</span><small>Vektor vs Strike's native bot</small></div>
+        <div class="kpi"><b>&lt;5%</b><span>Buffer to liquidation</span><small>triggers the auto-trim</small></div>
       </div>
-      <div class="cta-note" style="margin-top:8px">Backtest figures are one 7-day mainnet ADA-USD run (Oct 2026, 12 levels, 10x, 10 bps) — run your own in the app.</div>
+      <div class="kpi-foot">Backtest: one 7-day mainnet ADA-USD run, Oct 2026, 12 levels · 10x · 10 bps. Run your own in the app.</div>
     </div>
 
     <div class="term" aria-label="Animated grid preview">
