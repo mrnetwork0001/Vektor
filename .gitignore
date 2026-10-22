@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+.DS_Store
+*.local
+worker/state.json
+worker/grids.json
