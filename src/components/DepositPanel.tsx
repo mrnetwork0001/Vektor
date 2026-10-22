@@ -1,5 +1,7 @@
 import { connectWallet as _reconnectWallet } from "../api/wallets";
 import { getSpotBalance } from "../api/spotBalance";
+import { addWitnessSet } from "../lib/cardanoTx";
+import { VersionedTransaction, Transaction } from "@solana/web3.js";
 import { useEffect } from "react";
 import { useState } from "react";
 import { getDepositQuote, buildDepositTx, confirmDeposit } from "../api/deposit";
@@ -184,6 +186,42 @@ export function DepositPanel({ wallet }: Props) {
     } finally { setLoading(false); setSignStatus(""); }
   };
 
+  /** Solana: deserialize Strike's base64 tx, wallet signs + sends, signature is the tx hash. */
+  const handleSignSolana = async () => {
+    setError(""); setLoading(true);
+    try {
+      if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
+      const raw = Uint8Array.from(atob(unsignedTx), (c) => c.charCodeAt(0));
+      let tx: VersionedTransaction | Transaction;
+      try { tx = VersionedTransaction.deserialize(raw); } catch { tx = Transaction.from(raw); }
+      setSignStatus("Confirm the deposit in your Solana wallet…");
+      const res = await wallet.api.signAndSendTransaction(tx);
+      const sig: string = typeof res === "string" ? res : res?.signature;
+      if (!sig) throw new Error("wallet returned no signature");
+      setTxHash(sig);
+      setSignStatus(`Sent (${sig.slice(0, 10)}…) - registering with Strike…`);
+      await confirmDeposit({ request_id: requestId, tx_hash: sig });
+      setStep("done");
+    } catch (e: any) { setError(e?.message ?? String(e)); } finally { setLoading(false); setSignStatus(""); }
+  };
+
+  /** Cardano: CIP-30 signTx → merge the witness set into the tx (body untouched) → submitTx. */
+  const handleSignCardano = async () => {
+    setError(""); setLoading(true);
+    try {
+      if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
+      setSignStatus("Sign the deposit in your Cardano wallet…");
+      const witness: string = await wallet.api.signTx(unsignedTx, true);
+      const signed = addWitnessSet(unsignedTx, witness);
+      setSignStatus("Submitting to the Cardano network…");
+      const hash: string = await wallet.api.submitTx(signed);
+      setTxHash(hash);
+      setSignStatus(`Submitted (${hash.slice(0, 10)}…) - registering with Strike…`);
+      await confirmDeposit({ request_id: requestId, tx_hash: hash });
+      setStep("done");
+    } catch (e: any) { setError(e?.info ?? e?.message ?? String(e)); } finally { setLoading(false); setSignStatus(""); }
+  };
+
   const handleConfirm = async () => {
     setError("");
     setLoading(true);
@@ -248,13 +286,13 @@ export function DepositPanel({ wallet }: Props) {
         <>
           <p>USD Value: <strong>${usdValue}</strong></p>
           <p className="text-secondary text-xs">Strike vault: {depositAddress}</p>
-          {evmTx ? (
+          {(evmTx || chain === "solana" || chain === "cardano") ? (
             <>
-              <button onClick={handleSignEvm} disabled={loading} className="btn btn-primary btn-submit">
-                {loading ? signStatus || "Waiting for wallet…" : evmApproval ? "Approve & deposit with wallet (2 signatures)" : "Deposit with wallet (1 signature)"}
+              <button onClick={evmTx ? handleSignEvm : chain === "solana" ? handleSignSolana : handleSignCardano} disabled={loading} className="btn btn-primary btn-submit">
+                {loading ? signStatus || "Waiting for wallet…" : evmTx ? (evmApproval ? "Approve & deposit with wallet (2 signatures)" : "Deposit with wallet (1 signature)") : "Deposit with wallet (1 signature)"}
               </button>
               <p className="text-xs text-secondary" style={{ margin: "6px 0 10px" }}>
-                Your wallet will pop up{evmApproval ? " twice: an ERC-20 approval, then the deposit" : " once"}. Needs a little ETH for gas. Credit lands after confirmations.
+                {evmTx ? `Your wallet will pop up${evmApproval ? " twice: an ERC-20 approval, then the deposit" : " once"}. Needs a little ETH for gas.` : chain === "solana" ? "Phantom/Solflare will ask once; the transaction expires in ~60 s, so sign promptly. Needs a little SOL for fees." : "Your Cardano wallet will ask once; Vektor adds the witness and submits it. Credit after confirmations."} Credit lands after confirmations.
               </p>
               <details>
                 <summary className="text-xs text-secondary" style={{ cursor: "pointer" }}>Manual: raw transactions + paste hash</summary>
