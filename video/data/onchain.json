@@ -1,0 +1,621 @@
+{
+  "read_at_utc": "2026-10-22T20:04:34.043Z",
+  "sources": {
+    "strike": "https://api.strikefinance.org",
+    "eth_rpc": "https://ethereum-rpc.publicnode.com",
+    "sol_rpc": "https://api.mainnet-beta.solana.com",
+    "koios": "https://api.koios.rest/api/v1",
+    "autopilot": "https://vektor.38-49-213-208.sslip.io/health"
+  },
+  "builder": {
+    "code": "vektor",
+    "fee_bps": 10,
+    "note": "Builder fee appears on the user-stream fill event (builder_fee); Strike's public fill rows show commission only. ETH-account fill 18:33:53Z carried builder_fee 0.01, observed in the app header 'builder fees $0.01'."
+  },
+  "addresses": {
+    "eth": "0xEbB92c8f27368222E4B722FB386DbC6Fe80CC426",
+    "sol": "GnX9xu9UZgtjNXREKebPRSQLA4FeAgBiXwp5LPY3FHHy",
+    "ada": "addr1q8evmulashpenxt7f3th24ek7qn0h7eclcp28juemas8kpeuvw6c5ayua84954ucpzhk6pu2hydh8wrw7hzexvvxpcgsuntw5y"
+  },
+  "strike": {
+    "owner": {
+      "account_id": "01a162e1-f0fb-77f4-8958-8adaf4b9a2b9",
+      "fills": [
+        {
+          "trade_id": 2236607,
+          "utc": "2026-10-22T17:59:01.062Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 66,
+          "price": 0.21175,
+          "role": "maker",
+          "fee": -0.00069878,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvju3867-0-e-0"
+        },
+        {
+          "trade_id": 2236727,
+          "utc": "2026-10-22T18:15:13.893Z",
+          "symbol": "ADA-USD",
+          "side": "sell",
+          "size": 66,
+          "price": 0.21131,
+          "role": "taker",
+          "fee": 0.00697323,
+          "fee_type": "commission",
+          "realized_pnl": -0.02904,
+          "client_order_id": "01a164d3-06e4-7687-84eb-8f7a7c35d3f9"
+        }
+      ],
+      "ledger": [
+        {
+          "utc": "2026-10-22T17:03:53.299Z",
+          "type": "deposit",
+          "amount_usd": 21.09920875,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "21100000",
+          "tx_hash": "0xe6a17f260a8bc9c9906b57699804bb3f014f6017b6df1ea73cb412c38938c381",
+          "blockchain": "ethereum"
+        },
+        {
+          "utc": "2026-10-22T17:59:01.062Z",
+          "type": "fee",
+          "amount_usd": 0.00069878,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:00:00.134Z",
+          "type": "funding",
+          "amount_usd": -0.001169111706928616,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:15:13.893Z",
+          "type": "fee",
+          "amount_usd": -0.00697323,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:15:13.893Z",
+          "type": "realized_pnl",
+          "amount_usd": -0.02904,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:16:42.331Z",
+          "type": "withdraw",
+          "amount_usd": 21.06,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "20060877",
+          "tx_hash": "0x74219cc83f50daa65059df740c934f83105498e11f41deb5d2abd4666d4b8a51",
+          "blockchain": "ethereum"
+        }
+      ],
+      "open_orders": [],
+      "positions": []
+    },
+    "eth": {
+      "account_id": "01a164cf-36b1-7387-aa2f-199cc57f8c3f",
+      "fills": [
+        {
+          "trade_id": 2236902,
+          "utc": "2026-10-22T18:33:53.072Z",
+          "symbol": "ADA-USD",
+          "side": "sell",
+          "size": 65,
+          "price": 0.21237,
+          "role": "maker",
+          "fee": -0.0006902,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvjvmgaz-2-e-0"
+        },
+        {
+          "trade_id": 2236915,
+          "utc": "2026-10-22T18:42:35.567Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 65,
+          "price": 0.2125,
+          "role": "taker",
+          "fee": 0.00690625,
+          "fee_type": "commission",
+          "realized_pnl": -0.00845,
+          "client_order_id": "01a164ec-13ad-7042-bf71-dc7bf1c6f232"
+        }
+      ],
+      "ledger": [
+        {
+          "utc": "2026-10-22T18:29:29.343Z",
+          "type": "deposit",
+          "amount_usd": 16.0007,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "16000000",
+          "tx_hash": "0x5000652a28260cc9152cb5df90327cf57c756ac0748b7fd7ec4f1c1416abd7e8",
+          "blockchain": "ethereum"
+        },
+        {
+          "utc": "2026-10-22T18:33:53.072Z",
+          "type": "fee",
+          "amount_usd": 0.0006902,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:42:35.567Z",
+          "type": "fee",
+          "amount_usd": -0.00690625,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:42:35.567Z",
+          "type": "realized_pnl",
+          "amount_usd": -0.00845,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T18:43:17.892Z",
+          "type": "withdraw",
+          "amount_usd": 15.96,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "14961496",
+          "tx_hash": "52TVPFJZ58wcAyF9xrjdKHUd6KQ52d7FqaGBhDHG3CH93QTn343xoEwiFsRmUfrnzG49mMLWNCebSKBuPr4ZC5aX",
+          "blockchain": "solana"
+        }
+      ],
+      "open_orders": [],
+      "positions": []
+    },
+    "sol": {
+      "account_id": "01a164ed-d806-7564-9c17-b6b72adc1607",
+      "fills": [],
+      "ledger": [
+        {
+          "utc": "2026-10-22T18:56:01.253Z",
+          "type": "deposit",
+          "amount_usd": 4.9995,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "5000000",
+          "tx_hash": "3Gf7BvvapQ1yKLNKrnsjrKSMz2PQUgc84JmqRQqMEKT9uPbsGihhBq1tfFEWFC1tLdJfpBNtShfxukHrpa36H9mW",
+          "blockchain": "solana"
+        },
+        {
+          "utc": "2026-10-22T18:59:31.230Z",
+          "type": "deposit",
+          "amount_usd": 9.0001125,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "9000000",
+          "tx_hash": "tFdtSnSNG2f3cYHbP214wAVZt2M8Q4c4M4FdtWQv2VWzgCpiWKYWQiezppvo1Sdbcx8UYtcBt9PNrRBRqyPNNeH",
+          "blockchain": "solana"
+        },
+        {
+          "utc": "2026-10-22T18:59:49.926Z",
+          "type": "withdraw",
+          "amount_usd": 13.99,
+          "status": "completed",
+          "asset": "USDC",
+          "asset_amount": "12991299",
+          "tx_hash": "4TtXT8KQs1WBAjR5tKMpwm4wr648ptUexQpdMd1iUA8LDo9kzB37otVo4a1iDDybqLQ4F3vaHMeLjujPs4hfsPTc",
+          "blockchain": "solana"
+        }
+      ],
+      "open_orders": [],
+      "positions": []
+    },
+    "ada": {
+      "account_id": "01a16503-d2a3-74ad-855e-2362748ad8bb",
+      "fills": [
+        {
+          "trade_id": 2237057,
+          "utc": "2026-10-22T19:15:49.034Z",
+          "symbol": "ADA-USD",
+          "side": "sell",
+          "size": 50,
+          "price": 0.21248,
+          "role": "taker",
+          "fee": 0.005312,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-hedge-ADA-USD-0-48331"
+        },
+        {
+          "trade_id": 2237061,
+          "utc": "2026-10-22T19:17:10.266Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 50,
+          "price": 0.21254,
+          "role": "taker",
+          "fee": 0.0053135,
+          "fee_type": "commission",
+          "realized_pnl": -0.003,
+          "client_order_id": "vektor-flatten-ADA-USD-630192"
+        },
+        {
+          "trade_id": 2237101,
+          "utc": "2026-10-22T19:24:26.514Z",
+          "symbol": "ADA-USD",
+          "side": "sell",
+          "size": 65,
+          "price": 0.21338,
+          "role": "maker",
+          "fee": -0.00069348,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvjxc4jl-3-e-0"
+        },
+        {
+          "trade_id": 2237124,
+          "utc": "2026-10-22T19:27:31.058Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 65,
+          "price": 0.21346,
+          "role": "taker",
+          "fee": 0.00693745,
+          "fee_type": "commission",
+          "realized_pnl": -0.0052,
+          "client_order_id": "01a16515-34f1-7e62-bc6e-f20c00c41c6e"
+        },
+        {
+          "trade_id": 2237166,
+          "utc": "2026-10-22T19:36:37.697Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 65,
+          "price": 0.21317,
+          "role": "maker",
+          "fee": -0.0006928,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvjxpo18-1-e-0"
+        },
+        {
+          "trade_id": 2237181,
+          "utc": "2026-10-22T19:40:10.907Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 65,
+          "price": 0.21278,
+          "role": "maker",
+          "fee": -0.00069154,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvjy0nuos1-1-e-0"
+        },
+        {
+          "trade_id": 2237203,
+          "utc": "2026-10-22T19:46:16.907Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 65,
+          "price": 0.21222,
+          "role": "maker",
+          "fee": -0.00068972,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvjy0nuos1-0-e-0"
+        },
+        {
+          "trade_id": 2237266,
+          "utc": "2026-10-22T19:53:07.142Z",
+          "symbol": "ADA-USD",
+          "side": "sell",
+          "size": 195,
+          "price": 0.21277,
+          "role": "taker",
+          "fee": 0.02074508,
+          "fee_type": "commission",
+          "realized_pnl": 0.00910065,
+          "client_order_id": "01a1652c-a545-7204-ac6c-3551828b9863"
+        },
+        {
+          "trade_id": 2237283,
+          "utc": "2026-10-22T19:59:56.061Z",
+          "symbol": "ADA-USD",
+          "side": "buy",
+          "size": 65,
+          "price": 0.21247,
+          "role": "maker",
+          "fee": -0.00069053,
+          "fee_type": "commission",
+          "realized_pnl": 0,
+          "client_order_id": "vektor-grid-mvjyli6p-1-e-0"
+        }
+      ],
+      "ledger": [
+        {
+          "utc": "2026-10-22T19:10:19.829Z",
+          "type": "deposit",
+          "amount_usd": 19.735882,
+          "status": "settled",
+          "asset": "ADA",
+          "asset_amount": "95000000",
+          "tx_hash": "aaf4deb1f8d0df3b329b1b428624d1633fc4efd48ccd78bc6aa064e9541ae27c#0",
+          "blockchain": "cardano"
+        },
+        {
+          "utc": "2026-10-22T19:15:49.034Z",
+          "type": "fee",
+          "amount_usd": -0.005312,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:17:10.266Z",
+          "type": "fee",
+          "amount_usd": -0.0053135,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:17:10.266Z",
+          "type": "realized_pnl",
+          "amount_usd": -0.003,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:24:26.514Z",
+          "type": "fee",
+          "amount_usd": 0.00069348,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:27:31.058Z",
+          "type": "fee",
+          "amount_usd": -0.00693745,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:27:31.058Z",
+          "type": "realized_pnl",
+          "amount_usd": -0.0052,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:36:37.697Z",
+          "type": "fee",
+          "amount_usd": 0.0006928,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:40:10.908Z",
+          "type": "fee",
+          "amount_usd": 0.00069154,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:46:16.910Z",
+          "type": "fee",
+          "amount_usd": 0.00068972,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:53:07.142Z",
+          "type": "fee",
+          "amount_usd": -0.02074508,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:53:07.142Z",
+          "type": "realized_pnl",
+          "amount_usd": 0.00910065,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T19:59:56.061Z",
+          "type": "fee",
+          "amount_usd": 0.00069053,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        },
+        {
+          "utc": "2026-10-22T20:00:00.123Z",
+          "type": "funding",
+          "amount_usd": -0.001217191900488375,
+          "status": "completed",
+          "asset": null,
+          "asset_amount": null,
+          "tx_hash": null,
+          "blockchain": ""
+        }
+      ],
+      "open_orders": [
+        {
+          "side": "sell",
+          "size": 65,
+          "price": 0.21304,
+          "client_order_id": "vektor-grid-mvjyli6p-2-x-196166",
+          "builder": {
+            "Code": "vektor",
+            "FeeBps": 10
+          }
+        },
+        {
+          "side": "sell",
+          "size": 65,
+          "price": 0.21362,
+          "client_order_id": "vektor-grid-mvjyli6p-3-e-0",
+          "builder": {
+            "Code": "vektor",
+            "FeeBps": 10
+          }
+        },
+        {
+          "side": "buy",
+          "size": 66,
+          "price": 0.2119,
+          "client_order_id": "vektor-grid-mvjyli6p-0-e-0",
+          "builder": {
+            "Code": "vektor",
+            "FeeBps": 10
+          }
+        }
+      ],
+      "positions": [
+        {
+          "symbol": "ADA-USD",
+          "size": 65,
+          "entry": 0.21247,
+          "leverage": 3
+        }
+      ]
+    }
+  },
+  "chain": {
+    "eth": {
+      "approve": {
+        "hash": "0x4ce2ee67a773ca4ed68ae428998699269bd9a453c4bcbb5c080e27977208ffa9",
+        "block": 26249943,
+        "utc": "2026-10-22T18:26:59.000Z",
+        "from": "0xebb92c8f27368222e4b722fb386dbc6fe80cc426",
+        "to": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "status": "success",
+        "method": "0x095ea7b3",
+        "usdc_transfers": [],
+        "explorer": "https://etherscan.io/tx/0x4ce2ee67a773ca4ed68ae428998699269bd9a453c4bcbb5c080e27977208ffa9"
+      },
+      "deposit": {
+        "hash": "0x5000652a28260cc9152cb5df90327cf57c756ac0748b7fd7ec4f1c1416abd7e8",
+        "block": 26249944,
+        "utc": "2026-10-22T18:27:11.000Z",
+        "from": "0xebb92c8f27368222e4b722fb386dbc6fe80cc426",
+        "to": "0xbf4cfccd11257e568a936a7867d138f54a43cffa",
+        "status": "success",
+        "method": "0x61cd1530",
+        "usdc_transfers": [
+          {
+            "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "from": "0xebb92c8f27368222e4b722fb386dbc6fe80cc426",
+            "to": "0xbf4cfccd11257e568a936a7867d138f54a43cffa",
+            "amount": 16
+          }
+        ],
+        "explorer": "https://etherscan.io/tx/0x5000652a28260cc9152cb5df90327cf57c756ac0748b7fd7ec4f1c1416abd7e8"
+      }
+    },
+    "sol": {
+      "deposit": {
+        "signature": "3Gf7BvvapQ1yKLNKrnsjrKSMz2PQUgc84JmqRQqMEKT9uPbsGihhBq1tfFEWFC1tLdJfpBNtShfxukHrpa36H9mW",
+        "slot": 460144738,
+        "utc": "2026-10-22T18:55:27.000Z",
+        "status": "success",
+        "fee_sol": 0.000005,
+        "token_deltas": [
+          {
+            "owner": "Dj9NkHyMMLyQGnYz2necVuHF6ELXqxUa3EsRZNHiPrrt",
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "delta": 5
+          },
+          {
+            "owner": "GnX9xu9UZgtjNXREKebPRSQLA4FeAgBiXwp5LPY3FHHy",
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "delta": -5
+          }
+        ],
+        "explorer": "https://solscan.io/tx/3Gf7BvvapQ1yKLNKrnsjrKSMz2PQUgc84JmqRQqMEKT9uPbsGihhBq1tfFEWFC1tLdJfpBNtShfxukHrpa36H9mW"
+      }
+    },
+    "ada": {
+      "deposit": {
+        "hash": "aaf4deb1f8d0df3b329b1b428624d1633fc4efd48ccd78bc6aa064e9541ae27c",
+        "block": 14102478,
+        "utc": "2026-10-22T19:10:19.000Z",
+        "fee_ada": 0.39668,
+        "outputs": [
+          {
+            "to": "addr1w9m5m4v8vfpq74n6cd0z33r3jlatfkfsykpcjaxze8af33qxh7jf2",
+            "ada": 1.60332
+          }
+        ],
+        "explorer": "https://cardanoscan.io/transaction/aaf4deb1f8d0df3b329b1b428624d1633fc4efd48ccd78bc6aa064e9541ae27c"
+      }
+    }
+  },
+  "autopilot": {
+    "ok": true,
+    "tenants": 2,
+    "maxTenants": 50,
+    "markets": 33,
+    "uptimeSec": 1038
+  }
+}

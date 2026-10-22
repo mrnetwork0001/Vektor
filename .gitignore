@@ -6,3 +6,8 @@ dist
 worker/state.json
 worker/grids.json
 server/data/
+video/node_modules/
+video/out/
+video/.cache/
+video/public/footage/
+video/public/stills/
