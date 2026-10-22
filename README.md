@@ -59,6 +59,8 @@ Copy `.env.example` to `.env`. Defaults point at **mainnet** (`api.strikefinance
 - **Watchdog** - a `201` with no user-stream event within 8 s is checked with `GET /v2/order`; a 404 means Strike silently dropped it and the rung is freed.
 - **Run as vault** - `vault_id` threaded through every grid order; vault list/create/performance panel (prototype, see limits).
 - **Multi-symbol grids, browser alerts, 45-second Judge tour, themed confirm dialogs, mobile layout with a left drawer.**
+- **In-app deposits on all three chains** - Ethereum (auto-switch to mainnet, ERC-20 approve then deposit), Solana (`signAndSendTransaction`), Cardano (CIP-30 `signTx`, witness set merged into the unsigned CBOR without touching the body, `submitTx`); amount typed in plain units, live wallet balance + gas check, hash registered with Strike automatically. Ethereum path exercised on mainnet; Solana/Cardano paths follow Strike's documented formats and are unit-tested but not yet run with a real wallet.
+- **API-wallet sign-in** for the builder's own account (Strike won't Builder-Connect an account to its own code), "remember on this device" for both sign-in modes, first-run walkthrough with a `?` replay button.
 
 ---
 
