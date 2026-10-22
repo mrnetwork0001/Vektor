@@ -17,10 +17,20 @@ interface Props {
  *    the tx with their wallet (outside this reference app).
  * 3. Paste tx hash -> POST /v2/deposit (confirm)
  */
+// Smallest-unit decimals per asset (USDC/USDT 6, ADA lovelace 6, SOL lamports 9, ETH wei 18).
+const DECIMALS: Record<string, number> = { USDC: 6, USDT: 6, USDM: 6, ADA: 6, SOL: 9, ETH: 18 };
+/** Exact integer string without float drift: 16 → "16000000". */
+function toRawUnits(n: number, decimals: number): string {
+  const [i, f = ""] = String(n).split(".");
+  const frac = (f + "0".repeat(decimals)).slice(0, decimals);
+  return (i + frac).replace(/^0+(?=\d)/, "");
+}
+
 export function DepositPanel({ wallet }: Props) {
   const chain = wallet.chain;
   const [step, setStep] = useState<"amount" | "sign" | "done">("amount");
   const [amount, setAmount] = useState("");
+  const [human, setHuman] = useState("");
   const [asset, setAsset] = useState("USDC");
   const [requestId, setRequestId] = useState("");
   const [unsignedTx, setUnsignedTx] = useState("");
@@ -96,12 +106,16 @@ export function DepositPanel({ wallet }: Props) {
             </select>
           </div>
           <div className="form-group">
-            <label>Amount (smallest unit: lamports/lovelace/wei, USDC = 1e-6)</label>
+            <label>Amount in {asset} (e.g. 16 for ${"16"} of USDC)</label>
             <input
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="e.g. 1000000000"
+              inputMode="decimal"
+              value={human}
+              onChange={(e) => { const h = e.target.value; setHuman(h); const n = parseFloat(h); setAmount(Number.isFinite(n) && n > 0 ? toRawUnits(n, DECIMALS[asset] ?? 6) : ""); }}
+              placeholder="16"
             />
+            <span className="text-xs text-secondary" style={{ display: "block", marginTop: 4 }}>
+              Sent to Strike as <code>{amount || "…"}</code> ({DECIMALS[asset] ?? 6} decimals - {asset === "USDC" || asset === "USDT" ? "6 zeros per dollar" : "smallest on-chain unit"}). Minimum deposit is set by Strike per asset.
+            </span>
           </div>
           <button onClick={handleGetQuote} disabled={!amount || loading} className="btn btn-primary">
             {loading ? "Getting quote..." : "Get Quote"}
