@@ -1,7 +1,7 @@
 {
   "name": "vektor",
   "version": "1.0.0",
-  "description": "Vektor — CLOB grid studio, funding harvester and liquidation shield on Strike Finance V2",
+  "description": "Vektor \u2014 CLOB grid studio, funding harvester and liquidation shield on Strike Finance V2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -38,5 +38,6 @@
   },
   "bin": {
     "vektor": "cli/vektor.ts"
-  }
+  },
+  "license": "MIT"
 }

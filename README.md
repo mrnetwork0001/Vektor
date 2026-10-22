@@ -10,7 +10,7 @@ Built for the Strike Finance 48-hour hackathon (Oct 21-23, 2026). Vektor is a qu
 ```bash
 npm install
 npm run dev          # http://localhost:5173 - landing; Launch App opens the terminal in Demo mode (no wallet needed)
-npm test             # 78 tests: engines, backtester, simulator, CLI, full app render
+npm test             # 89 tests: engines, backtester, simulator, CLI, full app render
 npm run build        # dist/index.html + dist/app.html + dist/proof.html - deploy dist/ as static files
 npm run worker       # headless 24/7 engine (needs STRIKE_API_* keys in the environment)
 npm run cli -- plan ADA-USD --lower 0.21 --upper 0.235 --levels 12 --margin 200 --leverage 5
@@ -31,7 +31,6 @@ Copy `.env.example` to `.env`. Defaults point at **mainnet** (`api.strikefinance
 7. [Testing](#7-testing)
 8. [Known limits](#8-known-limits)
 9. [Roadmap](#9-roadmap)
-10. [Judging criteria mapping](#10-judging-criteria)
 
 ---
 
@@ -237,7 +236,7 @@ Any user of the public app can hand their grid to the Autopilot server and close
 
 ## 7. Testing
 
-`npm test` - 78 tests across 15 files: grid lifecycle (fills, partials, cancels, reconcile), skew and brackets, auto-shift (hysteresis, carry-forward, end-to-end sim), funding maths, shield cooldown/pending-trim, whale radar, L3 heuristics, regime scoring, backtester and range suggestion, backfill/telemetry, simulator (post-only rejects, reduce-only clamps, bracket legs), spot-balance CBOR, vault helpers, CLI parsing, and a full jsdom render of the app that deploys, crashes the market, checks the shield log, runs the tour and panics.
+`npm test` - 89 tests across 15 files: grid lifecycle (fills, partials, cancels, reconcile), skew and brackets, auto-shift (hysteresis, carry-forward, end-to-end sim), funding maths, shield cooldown/pending-trim, whale radar, L3 heuristics, regime scoring, backtester and range suggestion, backfill/telemetry, simulator (post-only rejects, reduce-only clamps, bracket legs), spot-balance CBOR, vault helpers, CLI parsing, and a full jsdom render of the app that deploys, crashes the market, checks the shield log, runs the tour and panics.
 
 `npx tsc --noEmit` is clean; `npm run build` emits all three pages.
 
@@ -268,14 +267,6 @@ Vektor's revenue is the builder fee on every fill; each milestone multiplies att
 
 ---
 
-## 10. Judging criteria
+## License
 
-| Criterion | Where Vektor answers it |
-|---|---|
-| Innovation | Funding-aware skew, L3 spoof/iceberg radar, backtest-before-deploy on the real engine, verifiable proof page |
-| Integration with Strike | 20+ endpoints, 3 WebSockets, builder-fee mapping of every order path, engine-spec formulas, vaults and L3 |
-| Utility & impact | Ranging markets become yield, high funding becomes carry, the shield trims before the engine liquidates; continuous attributed maker flow for Strike |
-| Technical execution | Pure engines, one adapter seam, 78 tests, reconcile/backfill/watchdog built for an async engine, headless worker |
-| Future potential | Roadmap above; `vault_id` already threaded; CLI + agent skill shipped |
-
-See [SUBMISSION.md](SUBMISSION.md) for the submission text and [DEMO-SCRIPT.md](DEMO-SCRIPT.md) for the video shot list.
+[MIT](LICENSE) © 2026 mrnetwork
