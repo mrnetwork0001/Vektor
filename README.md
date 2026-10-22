@@ -200,9 +200,28 @@ Found and fixed during the run: mainnet ADA min notional is $10 (testnet $5) and
 
 Not exercised on mainnet (verified in the simulator and tests): Shield Rule B trim (needs a position within 5% of liquidation), auto-shift `/v2/orders/replace`, brackets `/v2/order/strategy`, vault execution.
 
-## 5c. Autopilot (keeps grids running after you close the tab)
+## 5c. Autopilot - grids that keep running after you close the tab
 
-Tick **Keep running when I close this tab (Autopilot)** before Deploy. The app enrolls this session's trade-only Strike API key with the Autopilot server (signed, encrypted at rest), and the server runs the grid's counter orders, shield, reconcile and regime guard 24/7 for every enrolled user. The grid card then mirrors the server (badge "Autopilot · server-run"); Stop and PANIC go to the server; **Disable Autopilot** stops server grids and wipes the key. Details, endpoints and deployment: [server/README.md](server/README.md). Hidden unless `VITE_AUTOPILOT_URL` is set.
+**Live:** https://vektor.38-49-213-208.sslip.io/health · verified on mainnet 2026-10-22 (see §5b).
+
+Any user of the public app can hand their grid to the Autopilot server and close the browser. Nobody at Vektor trades; the server runs *each user's own* account.
+
+**How it works**
+1. You connect your wallet (Builder Connect) and design a grid as usual.
+2. You tick **Keep running when I close this tab (Autopilot)** and press Deploy.
+3. The browser **enrolls** your session's Strike API wallet with the server: the request is signed with that key (Ed25519), the server checks the signature and timestamp, validates the key against Strike (`GET /v2/account`), and stores it **encrypted (AES-256-GCM)** with a master key that never leaves the server.
+4. The server deploys the grid and runs, 24/7 and per account: counter orders on every fill, trade-ID de-duplication, reconcile/backfill on restart, the Aegis shield every 2 s, regime guard and auto-shift. Every order carries `X-Builder-Fee-Bps`, so builder attribution is unchanged.
+5. The browser becomes a **read-only mirror** (badge "Autopilot · server-run", polled every 5 s) and stops placing orders for that market, so orders are never doubled. Stop and PANIC go to the server.
+6. **Disable Autopilot** stops your server grids and wipes your stored key. A new Builder Connect on Strike also revokes it.
+
+**Why it's safe enough to offer**
+- The stored key is a Strike API wallet: it can **trade and cancel, never withdraw**.
+- Every control call (`status`, `grids`, `panic`, `disable`) must be signed by that same key with a fresh timestamp; replays are rejected. There are no passwords and no shared admin token.
+- The server binds to `127.0.0.1` behind nginx/TLS; CORS is limited to the app's origin; private keys are never logged.
+
+**Endpoints** - `GET /health` · `POST/DELETE /v1/enroll` · `GET /v1/status` · `POST /v1/grids` · `DELETE /v1/grids/:symbol` · `POST /v1/panic`. Run it with `npm run autopilot`; deployment notes (pm2, nginx, env) in [server/README.md](server/README.md). The app shows the toggle only when `VITE_AUTOPILOT_URL` is set.
+
+**Honest status** - enroll, server-side deploy and builder-stamped resting orders are verified on mainnet. A server-handled fill after the tab closed, server auto-shift and the regime-held queue are covered by tests with a fake Strike client, not yet observed live.
 
 ## 6. Running it
 
