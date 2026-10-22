@@ -7,9 +7,23 @@ const stripBrowserHeaders = (proxy: any) => {
   proxy.on("proxyReq", (req: any) => { req.removeHeader("origin"); req.removeHeader("referer"); req.removeHeader("cookie"); });
 };
 
+// Dev only: serve /docs and /docs/<slug> from docs.html (production uses prerendered files).
+function docsRoutes() {
+  return {
+    name: "vektor-docs-routes",
+    configureServer(server: any) {
+      server.middlewares.use((req: any, _res: any, next: any) => {
+        const url: string = req.url ?? "";
+        if (/^\/docs(\/[^.?]*)?(\?.*)?$/.test(url)) req.url = "/docs.html";
+        next();
+      });
+    },
+  };
+}
+
 // Multi-page: / is the landing page, /app.html is the trading terminal.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), docsRoutes()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -29,6 +43,7 @@ export default defineConfig({
         landing: path.resolve(__dirname, "index.html"),
         app: path.resolve(__dirname, "app.html"),
         proof: path.resolve(__dirname, "proof.html"),
+        docs: path.resolve(__dirname, "docs.html"),
       },
     },
   },

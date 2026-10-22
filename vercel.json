@@ -1,6 +1,17 @@
 {
   "rewrites": [
-    { "source": "/rpc/solana", "destination": "/api/rpc?chain=solana" },
-    { "source": "/rpc/ethereum", "destination": "/api/rpc?chain=ethereum" }
-  ]
+    {
+      "source": "/rpc/solana",
+      "destination": "/api/rpc?chain=solana"
+    },
+    {
+      "source": "/rpc/ethereum",
+      "destination": "/api/rpc?chain=ethereum"
+    },
+    {
+      "source": "/docs/:slug((?!.*\\.).*)",
+      "destination": "/docs/:slug/index.html"
+    }
+  ],
+  "trailingSlash": false
 }
