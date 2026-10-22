@@ -151,6 +151,13 @@ First real grid placed by Vektor on Strike mainnet, account `01a162e1-f0fb-77f4-
 - Counter placed within the same second: `sell 66 @ 0.21232` (`vektor-grid-mvju3867-1-x-941905`) resting beside the two sell entries at 0.21290 / 0.21347.
 - Position: long 66 ADA, entry 0.21175, cross.
 
+
+**Builder-attributed run (second wallet, 2026-10-22 ~18:30Z)** - account `01a164cf-36b1-7387-aa2f-199cc57f8c3f` Builder-Connected to `vektor` (10 bps), funded $16 USDC through Vektor's in-app deposit flow (tx `0x5000652a…abd7e8`, credited after 13 confirmations). Grid of 3 rungs deployed; Strike's open-order records show every rung stamped `Builder: {"Code":"vektor","FeeBps":10}`:
+
+```bash
+curl "https://api.strikefinance.org/v2/openOrders?account_id=01a164cf-36b1-7387-aa2f-199cc57f8c3f"
+```
+
 Verify yourself (public selectors, no auth):
 
 ```bash
