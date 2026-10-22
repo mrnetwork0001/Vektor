@@ -49,7 +49,7 @@ const SPL: Record<string, { address: string; decimals: number }> = {
 const ERC20: Record<string, { address: string; decimals: number }> = {
   USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
 };
-const PUBLIC_RPC = "https://ethereum-rpc.publicnode.com";
+const PUBLIC_RPC = "/rpc/ethereum"; // same-origin proxy → ethereum-rpc.publicnode.com
 async function rpc(method: string, params: unknown[]): Promise<string> {
   const r = await fetch(PUBLIC_RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
   const j = await r.json(); if (j.error) throw new Error(j.error.message); return j.result;

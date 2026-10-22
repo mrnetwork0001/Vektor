@@ -10,6 +10,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Same-origin proxies for public RPCs that browsers can't reach directly (CORS / bot filters).
+  // Production: vercel.json rewrites the same paths.
+  server: {
+    proxy: {
+      "/rpc/solana": { target: "https://solana-rpc.publicnode.com", changeOrigin: true, rewrite: () => "/" },
+      "/rpc/ethereum": { target: "https://ethereum-rpc.publicnode.com", changeOrigin: true, rewrite: () => "/" },
+    },
+  },
   build: {
     rollupOptions: {
       input: {

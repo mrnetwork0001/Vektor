@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/rpc/solana", "destination": "https://solana-rpc.publicnode.com/" },
+    { "source": "/rpc/ethereum", "destination": "https://ethereum-rpc.publicnode.com/" }
+  ]
+}

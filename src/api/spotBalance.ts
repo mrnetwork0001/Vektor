@@ -9,7 +9,8 @@
 import type { ConnectedWallet } from "./wallets";
 
 // Solana's official RPC returns 403 to browser origins; try CORS-friendly public endpoints in order.
-export const SOLANA_RPCS = ["https://solana-rpc.publicnode.com", "https://solana.drpc.org", "https://rpc.ankr.com/solana_mainnet", "https://api.mainnet-beta.solana.com"];
+// "/rpc/solana" is a same-origin proxy (vite.config.ts in dev, vercel.json in production) - browsers block most public Solana RPCs.
+export const SOLANA_RPCS = ["/rpc/solana", "https://solana-rpc.publicnode.com", "https://solana.drpc.org", "https://api.mainnet-beta.solana.com"];
 export const SOLANA_RPC = SOLANA_RPCS[0];
 
 /** JSON-RPC call with endpoint fallback; throws with every endpoint's failure if all fail. */
@@ -18,11 +19,11 @@ export async function solanaRpc<T = any>(method: string, params: unknown[]): Pro
   for (const url of SOLANA_RPCS) {
     try {
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
-      if (!res.ok) { errors.push(`${new URL(url).host} ${res.status}`); continue; }
+      if (!res.ok) { errors.push(`${url.startsWith("/") ? url : new URL(url).host} ${res.status}`); continue; }
       const j = await res.json();
-      if (j.error) { errors.push(`${new URL(url).host} ${j.error.message}`); continue; }
+      if (j.error) { errors.push(`${url.startsWith("/") ? url : new URL(url).host} ${j.error.message}`); continue; }
       return j.result as T;
-    } catch (e: any) { errors.push(`${new URL(url).host} ${e?.message ?? "network"}`); }
+    } catch (e: any) { errors.push(`${url.startsWith("/") ? url : new URL(url).host} ${e?.message ?? "network"}`); }
   }
   throw new Error(`Solana RPC unavailable (${errors.join("; ")})`);
 }
