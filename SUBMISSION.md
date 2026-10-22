@@ -2,9 +2,9 @@
 
 **One line:** An autonomous quant terminal for Strike V2 - a builder-fee grid studio with real-candle backtesting, a delta-neutral funding harvester, and a 24/7 liquidation shield - plus a headless worker, a CLI/agent skill, and a public proof page so judges can verify every fill against Strike's own API.
 
-- Live app: `<VERCEL URL>` (opens in Demo mode; **▶ Judge tour** in the header runs a 45-second guided demo)
-- Proof page: `<VERCEL URL>/proof.html?account=<ACCOUNT_ID>&bps=10`
-- Repo: `<GITHUB URL>`
+- Live app: https://tryvektor.vercel.app/app.html (opens in Demo mode; **▶ Judge tour** in the header runs a 45-second guided demo) · landing https://tryvektor.vercel.app · docs https://tryvektor.vercel.app/docs
+- Proof page: https://tryvektor.vercel.app/proof.html?account=01a164cf-36b1-7387-aa2f-199cc57f8c3f&bps=10
+- Repo: https://github.com/mrnetwork0001/Vektor
 - Demo video: `<VIDEO URL>`
 - Builder code: `vektor` (registered on mainnet, 10 bps)
 
