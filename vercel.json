@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/rpc/solana", "destination": "https://api.mainnet-beta.solana.com/" },
-    { "source": "/rpc/ethereum", "destination": "https://ethereum-rpc.publicnode.com/" }
+    { "source": "/rpc/solana", "destination": "/api/rpc?chain=solana" },
+    { "source": "/rpc/ethereum", "destination": "/api/rpc?chain=ethereum" }
   ]
 }
