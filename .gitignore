@@ -5,3 +5,4 @@ dist
 *.local
 worker/state.json
 worker/grids.json
+server/data/
