@@ -116,7 +116,7 @@ export default function App() {
                 <>
                   <VaultPanel accountId={accountId} vaultId={vaultId} setVaultId={setVaultId} />
                   <AccountPanel walletBalance={walletBalance} availableBalance={balances.availableBalance} marginBalance={balances.marginBalance} totalInitialMargin={balances.totalInitialMargin} totalUnrealizedPnL={balances.totalUnrealizedPnL} />
-                  <DepositPanel wallet={connectedInfo.wallet} />
+                  {connectedInfo.wallet.walletId !== "api-key" && <DepositPanel wallet={connectedInfo.wallet} />}
                 </>
               )}
             </>

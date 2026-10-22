@@ -14,6 +14,7 @@ import {
   type SupportedChain,
 } from "../api/wallets";
 import { BUILDER_CODE, BUILDER_FEE_BPS } from "../api/config";
+import { getAccount } from "../api/account";
 
 export interface ConnectedInfo {
   accountId: string;
@@ -40,6 +41,31 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+  const [keyMode, setKeyMode] = useState(false);
+  const [pubKey, setPubKey] = useState("");
+  const [privKey, setPrivKey] = useState("");
+
+  /**
+   * Sign in with an API wallet registered at app.strikefinance.org/api-keys.
+   * No builder approval is involved (so no builder fee is charged) - this is the
+   * path for the builder's own account, which Strike refuses to Builder-Connect
+   * to its own code ("cannot connect an account to its own builder").
+   */
+  const handleKeyLogin = async () => {
+    const pub = pubKey.trim().toLowerCase(), priv = privKey.trim().toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(pub) || !/^[0-9a-f]{64}([0-9a-f]{64})?$/.test(priv)) { setError("Keys must be raw hex: public 64 chars, private 64 (or 128) chars"); return; }
+    setError(""); setLoading("api-key"); setStatus("Checking the API wallet…");
+    try {
+      storeApiWalletKeys({ publicKey: pub, privateKey: priv.slice(0, 64) });
+      const acc = await getAccount();
+      setStatus("");
+      onConnected({ accountId: acc.account_id, chain: "ethereum", address: acc.blockchain_address ?? "", builderCode: "", feeShareBps: 0, wallet: { chain: "ethereum", walletId: "api-key", address: acc.blockchain_address ?? "", api: null } });
+    } catch (e: any) {
+      clearApiWalletKeys();
+      setError(e.message || "API wallet rejected");
+      setStatus("");
+    } finally { setLoading(null); }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setWallets(detectInstalledWallets()), 500);
@@ -129,7 +155,7 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
         <div className="connected-info">
           <div className="connected-row">
             <span className="text-secondary">Builder</span>
-            <span className="chain-badge">{connectedInfo.builderCode}</span>
+            <span className="chain-badge">{connectedInfo.builderCode || "none (API wallet)"}</span>
           </div>
           <div className="connected-row">
             <span className="text-secondary">Max builder fee</span>
@@ -156,6 +182,22 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
   }
 
   // ── Connect state ──
+  if (keyMode) {
+    return (
+      <div className="panel">
+        <div className="panel-header"><h3>API wallet sign-in</h3><button className="btn btn-secondary" onClick={() => setKeyMode(false)}>Back</button></div>
+        <p className="text-xs text-secondary" style={{ marginBottom: 10 }}>
+          For the builder's own account (Strike won't Builder-Connect an account to its own code). Register a key at <a href="https://app.strikefinance.org/api-keys" target="_blank" rel="noopener" style={{ color: "var(--green)" }}>app.strikefinance.org/api-keys</a>, paste both halves. Keys stay in memory only. Orders placed this way carry <b>no builder fee</b>.
+        </p>
+        <div className="form-group"><label>Public key (64 hex)</label><input value={pubKey} onChange={(e) => setPubKey(e.target.value)} placeholder="a1b2c3…" autoComplete="off" spellCheck={false} /></div>
+        <div className="form-group"><label>Private key (64 or 128 hex)</label><input type="password" value={privKey} onChange={(e) => setPrivKey(e.target.value)} placeholder="…" autoComplete="off" /></div>
+        {status && <p className="text-xs text-secondary">{status}</p>}
+        {error && <p className="error">{error}</p>}
+        <button className="btn btn-primary btn-submit" disabled={loading !== null || !pubKey || !privKey} onClick={handleKeyLogin}>Sign in with API wallet</button>
+      </div>
+    );
+  }
+
   return (
     <div className="panel">
       <h3>Connect Wallet</h3>
@@ -208,6 +250,8 @@ export function ConnectPanel({ onConnected, onDisconnected, connectedInfo }: Pro
 
       {status && <p className="text-secondary text-sm" style={{ marginTop: 8 }}>{status}</p>}
       {error && <p className="error">{error}</p>}
+      <button className="btn btn-secondary btn-submit" onClick={() => { setError(""); setKeyMode(true); }} style={{ marginTop: 10 }}>Sign in with API wallet keys instead</button>
+      {error.includes("own builder") && <p className="text-xs text-secondary" style={{ marginTop: 6 }}>This wallet owns the builder code, so Strike won't approve it for itself. Use API wallet keys for this account, or connect a different wallet to trade through the builder.</p>}
     </div>
   );
 }

@@ -156,3 +156,9 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); box-shadow: ins
 .wt-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .wt-actions .btn { padding: 7px 14px; }
 @media (max-width: 600px) { .wt-tip { left: 12px !important; right: 12px; width: auto; } .btn-help { display: none; } }
+
+/* ── Layout: let the document scroll; sticky header; no fixed-height columns ── */
+.vk-header { position: sticky; top: 0; z-index: 25; }
+.sidebar, .main-content { max-height: none; overflow: visible; }
+.app-layout { align-items: flex-start; }
+@media (min-width: 901px) { .sidebar { position: sticky; top: 61px; max-height: calc(100vh - 61px); overflow-y: auto; } }
