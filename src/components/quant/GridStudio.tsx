@@ -79,6 +79,7 @@ export function GridStudio({ v, accountId, ap }: { v: Vektor; accountId?: string
     setFundingSkew(false); setStopLossPct(0);
   };
   const belowMin = !!plan && plan.warnings.some((w) => /below min/i.test(w));
+  const noFunds = v.mode === "live" && !!plan && margin > v.wallet; // live account cannot cover the grid margin
   const proofSummary = () => {
     if (!g) return "";
     const lines = [
@@ -185,8 +186,8 @@ export function GridStudio({ v, accountId, ap }: { v: Vektor; accountId?: string
                 <label htmlFor="autopilot"><b>Keep running when I close this tab (Autopilot)</b> - the server holds this session's trade-only key and runs the grid 24/7.</label>
               </div>
             )}
-            <button className="btn btn-primary btn-submit" data-tour="deploy" disabled={!plan || busy || !mark || paused || belowMin} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
-              {busy ? "Placing…" : paused ? "Paused by regime guard" : belowMin ? `Rungs below the $${v.rulesFor(symbol).minNotional} minimum - raise margin or reduce levels` : `Deploy ${plan ? plan.rungs.filter((r) => r.entrySide !== "NONE").length : ""} rungs via /v2/orders/batch`}
+            <button className="btn btn-primary btn-submit" data-tour="deploy" disabled={!plan || busy || !mark || paused || belowMin || noFunds} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
+              {busy ? "Placing…" : paused ? "Paused by regime guard" : noFunds ? `Insufficient balance - margin $${margin} > account $${v.wallet.toFixed(2)}` : belowMin ? `Rungs below the $${v.rulesFor(symbol).minNotional} minimum - raise margin or reduce levels` : `Deploy ${plan ? plan.rungs.filter((r) => r.entrySide !== "NONE").length : ""} rungs via /v2/orders/batch`}
             </button>
             {v.mode === "live" && <p className="text-xs text-secondary" style={{ marginTop: 6 }}>Live mode places real post-only orders on {symbol}. Counter orders fire from user-stream fills while this tab is open; the grid is saved locally and reconciled against open orders after a reload.</p>}
           </>
