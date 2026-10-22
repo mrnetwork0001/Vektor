@@ -1,54 +1,60 @@
 {
   "title": "Vektor: the quant terminal that pays its builder on every fill",
   "model": "eleven_multilingual_v2",
-  "target_seconds": 160,
+  "target_seconds": 165,
   "voices": {
     "narrator": {
-      "name": "TBD",
-      "id": "TBD",
-      "settings": { "stability": 0.5, "similarity_boost": 0.8, "style": 0.25, "use_speaker_boost": true }
+      "name": "Sarah",
+      "id": "EXAVITQu4vr4xnSDxMaL",
+      "settings": {
+        "stability": 0.5,
+        "similarity_boost": 0.8,
+        "style": 0.25,
+        "use_speaker_boost": true
+      }
     }
   },
-  "facts_source": "data/onchain.json (read back 2026-10-22 by scripts/onchain.mjs)",
+  "facts_source": "data/onchain.json (scripts/onchain.mjs) for every hash, block, time and amount; Strike facts from vendor/strike-finance-skills and docs.strikefinance.org",
   "scenes": [
     {
-      "id": "open",
-      "seconds": 13,
-      "visual": "Grid ladder motif on black. A price line drifts down and touches the 0.21247 rung; it lights mint. A second rung above flashes amber and settles. Timestamp 19:59:56 UTC. Data card: buy 65 ADA at 0.21247, maker. Then: sell 65 at 0.21304, resting, builder vektor.",
-      "lines": [
-        {
-          "voice": "narrator",
-          "text": "October twenty second, 19:59 UTC. A grid on Strike buys 65 ADA at 0.21247. Within a second, its exit is resting one rung higher. Nobody had the tab open.",
-          "say": "October twenty second, nineteen fifty-nine U T C. A grid on Strike buys sixty-five ADA at zero point two one two four seven. Within a second, its exit is resting one rung higher. Nobody had the tab open."
-        }
-      ]
-    },
-    {
       "id": "problem",
-      "seconds": 13,
-      "visual": "Light tone. Three cards pop in: 'Ranging market: nobody harvests it', 'Funding paid every hour: nobody collects it', 'Liquidation: nobody watches'.",
+      "seconds": 15,
+      "visual": "Dark. Kinetic type, four short lines pop as cards: sideways markets, hourly funding, liquidation, a closed tab. Motif: the ladder sits dim, a price line drifts through unlit rungs.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Perps traders lose three ways. Sideways markets go unharvested. Funding is paid every hour, and most never collect it. And liquidations hit while nobody is watching."
+          "text": "Perps traders lose money four quiet ways. Sideways markets go unharvested. Funding is paid every hour, and most never collect it. Liquidations hit while nobody is watching. And the bot stops the moment the tab closes."
         }
       ]
     },
     {
-      "id": "builders",
-      "seconds": 12,
-      "visual": "Full-bleed mint. Strike Finance logo. Table: batch orders pay the builder fee, the native grid bot and TWAP pay zero.",
+      "id": "strike",
+      "seconds": 15,
+      "visual": "Full-bleed mint. Strike Finance logo. Fact chips pop in sync: central limit order book, hourly funding, builder codes, Ed25519 API wallets, Cardano Ethereum Solana logos, public history and L3 feeds.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Strike pays builders a fee on every fill they route. But its own grid bot and TWAP carry no builder code. Every one of those fills pays the builder nothing."
+          "text": "Strike is the right place to fix that. A real central limit order book. Funding every hour. Builder codes that pay the integrator on every fill. Trading keys that can never withdraw. Deposits from Cardano, Ethereum and Solana wallets.",
+          "say": "Strike is the right place to fix that. A real central limit order book. Funding every hour. Builder codes that pay the integrator on every fill. Trading keys that can never withdraw. Deposits from Cardano, Ethereum and Solana wallets."
+        }
+      ]
+    },
+    {
+      "id": "gap",
+      "seconds": 7.5,
+      "visual": "Light tone. Table card: order path vs builder fee. Batch orders: yes. Native grid bot: no. TWAP: no. The 'no' rows flash red.",
+      "lines": [
+        {
+          "voice": "narrator",
+          "text": "But Strike's own grid bot and TWAP carry no builder code. Every fill they make pays the builder nothing.",
+          "say": "But Strike's own grid bot and T-wap carry no builder code. Every fill they make pays the builder nothing."
         }
       ]
     },
     {
       "id": "turn",
       "seconds": 9,
-      "visual": "Dark. Vektor bolt draws on, wordmark. Tagline with 'every fill' in italic serif mint.",
+      "visual": "Dark. Vektor bolt draws on, wordmark builds. Tagline with 'every fill' in italic serif mint. The ladder motif lights rung by rung.",
       "lines": [
         {
           "voice": "narrator",
@@ -59,104 +65,106 @@
     },
     {
       "id": "grid",
-      "seconds": 16,
-      "visual": "Browser frame over the live app (Grid Studio, demo then live footage). Camera to the ladder, then the Deploy button, then the log lines 'resting (engine ack)'.",
+      "seconds": 14,
+      "visual": "Browser frame (Demo mode tag) on Grid Studio: camera to the ladder, the design card, Deploy, then the log lines filling as rungs fill and exits appear.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Grid Studio places a whole ladder in one batch, post only, with the builder code on every rung. When a rung fills, the exit goes up one level for the exact filled size. Then the rung re-arms."
+          "text": "Grid Studio places a whole ladder in one batch, post only, with the builder code on every rung. When a rung fills, the exit goes one level up for the exact filled size. Then the rung re-arms."
         }
       ]
     },
     {
       "id": "backtest",
-      "seconds": 13,
-      "visual": "Backtest card footage: 7d mainnet candles, equity curve, round trips, net after builder fee. Head-to-head table: Vektor builder revenue vs native bot zero.",
+      "seconds": 12,
+      "visual": "Browser frame (Demo mode) on the Backtest card: 7d mainnet candles, equity curve, round trips. Then the head-to-head table: builder revenue Vektor vs native bot.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Before you deploy, Vektor replays your exact range over real mainnet candles. Same engine, fees included. Then it runs the same range against Strike's native bot, side by side."
+          "text": "Before you deploy, Vektor replays your exact range over real mainnet candles. Same engine, fees included. Then it runs Strike's native bot on the same range, side by side.",
+          "say": "Before you deploy, Vek-tor replays your exact range over real mainnet candles. Same engine, fees included. Then it runs Strike's native bot on the same range, side by side."
         }
       ]
     },
     {
       "id": "harvester",
-      "seconds": 14,
-      "visual": "Funding Harvester footage: APR radar table, hedge sizer, tracker DONE 50/50. Data card: sell 50 ADA at 0.21248, buy back 50 at 0.21254.",
+      "seconds": 12,
+      "visual": "Browser frame (Demo mode) on Funding Harvester: APR radar table, hedge sizer with liquidation from margin tiers, tracker. Card: mainnet hedge short 50 ADA at 0.21248, closed at 0.21254.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "The Funding Harvester ranks every market by hourly funding. It sizes a hedge against the spot you hold, from real margin tiers. On mainnet it shorted 50 ADA, and unwound it cleanly."
+          "text": "The Funding Harvester ranks every market by hourly funding, and sizes a hedge against the spot you hold. On mainnet it shorted 50 ADA, then unwound it cleanly."
         }
       ]
     },
     {
       "id": "shield",
-      "seconds": 12,
-      "visual": "Aegis Shield footage: gauge SAFE 184.22% to liquidation. Rule A and Rule B cards pop in. Demo flash crash clip shows the trim.",
+      "seconds": 11,
+      "visual": "Browser frame (Demo mode) on Aegis Shield after a simulated crash: gauge, rules, log with Rule A and Rule B lines. Cards: 8% cancel buys, 5% trim 25%.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Aegis watches every position. Under eight percent of buffer, it cancels the buy rungs. Under five, it trims a quarter, reduce only. Once per episode, never twice.",
-          "say": "Ee-jis watches every position. Under eight percent of buffer, it cancels the buy rungs. Under five, it trims a quarter, reduce only. Once per episode, never twice."
+          "text": "Aegis watches every position. Under eight percent of buffer, it cancels the buy rungs. Under five, it trims a quarter, reduce only. Once per episode.",
+          "say": "Ee-jis watches every position. Under eight percent of buffer, it cancels the buy rungs. Under five, it trims a quarter, reduce only. Once per episode."
         }
       ]
     },
     {
       "id": "autopilot",
-      "seconds": 14,
-      "visual": "Footage: tick 'Keep running when I close this tab (Autopilot)', Deploy, badge 'Autopilot · server-run'. Diagram: browser signs, key encrypted, server runs. Then the tab closes and the ladder keeps lighting.",
+      "seconds": 18.5,
+      "visual": "Card: the Autopilot checkbox, then a diagram: wallet signs, key encrypted, server runs. A browser tab closes. Highlight: 19:59:56 UTC, buy 65 ADA at 0.21247, exit sell 65 at 0.21304 resting, Builder vektor 10 bps. The ladder keeps lighting on its own.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Tick one box, and Autopilot takes the grid to the server. Your trade only key is enrolled with a signature and encrypted at rest. It can never withdraw. Close the tab. It keeps trading."
+          "text": "Tick one box, and Autopilot moves your grid to the server. Your trading key is enrolled with a signature and encrypted at rest. Then close the tab. At 19:59 UTC, with no tab open, the server bought 65 ADA and set its exit one rung higher.",
+          "say": "Tick one box, and Autopilot moves your grid to the server. Your trading key is enrolled with a signature and encrypted at rest. Then close the tab. At nineteen fifty-nine U T C, with no tab open, the server bought sixty-five ADA and set its exit one rung higher."
         }
       ]
     },
     {
       "id": "proof",
-      "seconds": 18,
-      "visual": "Three chain logos. Cards with figures from onchain.json: Ethereum 16 USDC block 26249944; Solana 5 USDC slot 460144738; Cardano 95 ADA = $19.74 block 14102478. Then the builder card: sell 65 ADA at 0.21237, builder fee $0.01. Explorer page clips.",
+      "seconds": 16,
+      "visual": "Three chain cards with explorer clips: Ethereum 16 USDC block 26249944, Solana 5 USDC slot 460144738, Cardano 95 ADA block 14102478. Then the builder card: sell 65 ADA at 0.21237, builder fee 0.01 dollars, from the fill event.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "All of this ran on mainnet, from three chains. 16 USDC from Ethereum. 5 USDC from Solana. 95 ADA from Cardano. Each signed in the wallet, from inside Vektor. And on a real fill, Strike charged the builder fee.",
-          "say": "All of this ran on mainnet, from three chains. Sixteen U S D C from Ethereum. Five U S D C from Solana. Ninety-five ADA from Cardano. Each signed in the wallet, from inside Vek-tor. And on a real fill, Strike charged the builder fee."
+          "text": "All of it ran on mainnet. 16 USDC from Ethereum. 5 USDC from Solana. 95 ADA from Cardano. Each signed in the wallet, from inside Vektor. And on a real fill, Strike paid the builder fee.",
+          "say": "All of it ran on mainnet. Sixteen U S D C from Ethereum. Five U S D C from Solana. Ninety-five ADA from Cardano. Each signed in the wallet, from inside Vek-tor. And on a real fill, Strike paid the builder fee."
         }
       ]
     },
     {
       "id": "under",
-      "seconds": 12,
-      "visual": "Dark. Architecture diagram: pure engines, one adapter seam, sim and live backends, worker, autopilot, CLI. Count up to 89 tests. Proof page footage with curl commands.",
+      "seconds": 11,
+      "visual": "Dark. Architecture diagram: pure engines, one adapter, demo and live backends, autopilot server. Count to 89 tests. Proof page footage with its curl commands.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Under the hood, the engines are pure and tested. The demo runs them on a simulated book. Live runs them on Strike. And the proof page lets anyone check every fill against Strike's own API."
+          "text": "Under the hood, the engines are pure and tested. The demo runs them on a simulated book. Live runs them on Strike. And the proof page lets anyone check every fill."
         }
       ]
     },
     {
       "id": "next",
-      "seconds": 11,
-      "visual": "Roadmap cards pop: Grid Vault, STRIKE flywheel, strategy pages, agents.",
+      "seconds": 7.5,
+      "visual": "Roadmap cards: Grid Vault, STRIKE staking flywheel, strategy pages, agent access.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Next, a Vektor Grid Vault that anyone can deposit into. Every vault fill still pays the builder.",
-          "say": "Next, a Vek-tor Grid Vault that anyone can deposit into. Every vault fill still pays the builder."
+          "text": "Next, a Vektor Grid Vault anyone can deposit into. Every vault fill still pays the builder.",
+          "say": "Next, a Vek-tor Grid Vault anyone can deposit into. Every vault fill still pays the builder."
         }
       ]
     },
     {
       "id": "close",
       "seconds": 9,
-      "visual": "Full-bleed mint then dark. Vektor logo, tagline, tryvektor.vercel.app, 'Built on Strike Finance'.",
+      "visual": "Full-bleed mint then dark. Vektor logo, tagline, tryvektor.vercel.app, Strike Finance hackathon.",
       "lines": [
         {
           "voice": "narrator",
-          "text": "Vektor. Built on Strike. Pays on every fill. Try it at try vektor dot vercel dot app.",
-          "say": "Vek-tor. Built on Strike. Pays on every fill. Try it at try vek-tor dot vercel dot app."
+          "text": "Vektor. Built on Strike. Paid on every fill. Try it at tryvektor dot vercel dot app.",
+          "say": "Vek-tor. Built on Strike. Paid on every fill. Try it at try vek-tor dot vercel dot app."
         }
       ]
     }

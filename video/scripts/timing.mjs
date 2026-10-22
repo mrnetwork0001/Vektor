@@ -12,10 +12,10 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(fileURLToPath(import.meta.url), "../..");
 const FPS = 30, MAX = 5250; // 2:55 ceiling
-const END_HOLD = { close: 130, turn: 30, open: 24 }; // min frames after last word, per scene
-const TRIM_ORDER = ["meet", "rewind", "bell", "guard", "setup", "heist", "purse", "problem", "unique", "open"];
+const END_HOLD = { close: 130, turn: 30, problem: 20 }; // min frames after last word, per scene
+const TRIM_ORDER = ["under", "next", "backtest", "harvester", "shield", "grid", "proof", "strike", "gap", "autopilot", "problem"];
 // Words the voice is given phonetically (script.json `say`) are shown as written.
-const DISPLAY = { animer: "Animr" };
+const DISPLAY = { vektor: "Vektor", "vek": "Vektor", tor: "", eejis: "Aegis", twap: "TWAP" };
 const show = (w) => { const k = w.toLowerCase().replace(/[^a-z]/g, ""); return DISPLAY[k] ? w.replace(/[A-Za-z]+/, DISPLAY[k]) : w; };
 const script = JSON.parse(readFileSync(join(ROOT, "script.json"), "utf8"));
 const dur = (f) => parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", f]).toString());

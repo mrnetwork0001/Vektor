@@ -1,0 +1,195 @@
+{
+ "backtest": {
+  "file": "footage/backtest.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 572,
+  "marks": {
+   "bt_click": 150,
+   "bt_result": 330,
+   "h2h_click": 373,
+   "h2h_result": 568
+  },
+  "scale": 2,
+  "view": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "card": {
+    "x": 332,
+    "y": 255,
+    "width": 622,
+    "height": 492
+   },
+   "h2h": {
+    "x": 966,
+    "y": 255,
+    "width": 622,
+    "height": 492
+   }
+  }
+ },
+ "docs": {
+  "file": "footage/docs.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 276,
+  "marks": {
+   "docs_view": 90
+  }
+ },
+ "grid": {
+  "file": "footage/grid.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 638,
+  "marks": {
+   "grid_view": 45,
+   "grid_deploy": 181,
+   "grid_running": 469,
+   "grid_log": 631
+  },
+  "scale": 2,
+  "view": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "design": {
+    "x": 332,
+    "y": 80,
+    "width": 622,
+    "height": 622
+   },
+   "deploy": {
+    "x": 349,
+    "y": 643,
+    "width": 588,
+    "height": 42
+   },
+   "ladder": {
+    "x": 332,
+    "y": 70,
+    "width": 1256,
+    "height": 487
+   },
+   "telemetry": {
+    "x": 1083,
+    "y": 31,
+    "width": 497,
+    "height": 28
+   }
+  }
+ },
+ "harvester": {
+  "file": "footage/harvester.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 523,
+  "marks": {
+   "harv_tab": 66,
+   "harv_launch": 294,
+   "harv_done": 444
+  },
+  "scale": 2,
+  "view": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "radar": {
+    "x": 332,
+    "y": 104,
+    "width": 1256,
+    "height": 229
+   },
+   "sizer": {
+    "x": 332,
+    "y": 324,
+    "width": 622,
+    "height": 469
+   },
+   "tracker": {
+    "x": 966,
+    "y": 324,
+    "width": 622,
+    "height": 469
+   }
+  }
+ },
+ "landing": {
+  "file": "footage/landing.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 546,
+  "marks": {
+   "landing_hero": 133,
+   "landing_features": 272,
+   "landing_builder": 464
+  }
+ },
+ "proof": {
+  "file": "footage/proof.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 312,
+  "marks": {
+   "proof_view": 89,
+   "proof_scrolled": 305
+  }
+ },
+ "proof_ada": {
+  "file": "footage/proof_ada.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 312,
+  "marks": {
+   "proof_ada_view": 89,
+   "proof_ada_scrolled": 306
+  }
+ },
+ "shield": {
+  "file": "footage/shield.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 560,
+  "marks": {
+   "crash": 54,
+   "shield_tab": 373,
+   "shield_view": 553
+  },
+  "scale": 2,
+  "view": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "rules": {
+    "x": 332,
+    "y": 199,
+    "width": 622,
+    "height": 486
+   },
+   "log": {
+    "x": 966,
+    "y": 199,
+    "width": 622,
+    "height": 486
+   }
+  }
+ },
+ "autopilot": {
+  "file": "footage/autopilot.mp4",
+  "width": 3200,
+  "height": 1788,
+  "durationFrames": 259,
+  "marks": {},
+  "scale": 2,
+  "view": {
+   "w": 1600,
+   "h": 894
+  },
+  "rects": {}
+ }
+}

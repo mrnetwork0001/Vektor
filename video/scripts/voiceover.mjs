@@ -23,12 +23,10 @@ const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, "utf8")) : { li
 
 // Per-line performance direction (overrides merged over the voice settings).
 const OVERRIDES = {
-  // The cold open: unhurried, a little hush.
-  open_0: { stability: 0.55, style: 0.3, speed: 0.93 },
-  // The House Chog: a sly, playful whisper of a line.
-  heist_0: { stability: 0.38, style: 0.6, speed: 1.0 },
+  // The open: measured, a little weight on each loss.
+  problem_0: { stability: 0.55, style: 0.3, speed: 0.95 },
   turn_0: { stability: 0.55, style: 0.3, speed: 0.92 },
-  unique_0: { speed: 0.97 },
+  autopilot_0: { speed: 0.97 },
   // The close: slow and settled.
   close_0: { stability: 0.6, style: 0.3, speed: 0.9 },
 };

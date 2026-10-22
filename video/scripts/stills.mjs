@@ -8,7 +8,7 @@ const ROOT = new URL("..", import.meta.url).pathname;
 const frames = process.argv.slice(2).map(Number);
 mkdirSync(join(ROOT, "out/stills"), { recursive: true });
 const serveUrl = await bundle({ entryPoint: join(ROOT, "src/index.ts"), publicDir: join(ROOT, "public") });
-const composition = await selectComposition({ serveUrl, id: "Animr" });
+const composition = await selectComposition({ serveUrl, id: "Vektor" });
 for (const frame of frames) {
   const output = join(ROOT, "out/stills", `f${frame}.png`);
   try {
