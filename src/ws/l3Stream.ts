@@ -130,7 +130,12 @@ export class L3Stream {
       for (const u of pending) if (u.sequence > sub.last) { this.apply(sub, u); if (!sub.synced) return; }
       this.emitStatus(sub);
     } catch (e: any) {
-      this.emitStatus(sub, e?.message ?? "snapshot failed");
+      // A TypeError here is a network/CORS failure (the snapshot endpoint sends no
+      // Access-Control-Allow-Origin header to browsers). Back off for 10 minutes
+      // instead of hammering the 10 req/s limit; the worker/CLI are unaffected.
+      const cors = e instanceof TypeError;
+      if (cors) sub.unavailableUntil = Date.now() + 600_000;
+      this.emitStatus(sub, cors ? "L3 snapshot blocked by CORS in the browser (worker/CLI only)" : e?.message ?? "snapshot failed");
       this.restart(sub);
     }
   }

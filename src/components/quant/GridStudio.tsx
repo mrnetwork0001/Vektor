@@ -61,9 +61,15 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
   // "Prove it" preset: a tight micro-grid designed to fill within minutes on a liquid book
   // (±0.4% around the mark, $15 margin, 2x, 6 levels) so real fills + builder fees land fast.
   const proveIt = () => {
-    setAnchor(mark); setLowerPct(0.4); setUpperPct(0.4); setLevels(6); setMargin(15); setLeverage(2); setMode("ARITHMETIC");
+    // Size from the LIVE market's min notional (mainnet ADA is $10, testnet was $5): 4 levels = 3 active rungs,
+    // 3x leverage, margin so each rung clears the minimum with 40% headroom.
+    const r = v.rulesFor(symbol);
+    const lev = 3, lv = 4, active = lv - 1;
+    const marginNeeded = Math.ceil((r.minNotional * 1.4 * active) / lev);
+    setAnchor(mark); setLowerPct(1); setUpperPct(1); setLevels(lv); setMargin(Math.max(10, marginNeeded)); setLeverage(lev); setMode("ARITHMETIC");
     setFundingSkew(false); setStopLossPct(0);
   };
+  const belowMin = !!plan && plan.warnings.some((w) => /below min/i.test(w));
   const proofSummary = () => {
     if (!g) return "";
     const lines = [
@@ -164,8 +170,8 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
                 Regime guard: {paused ? "EXTREME - deploy paused" : `ELEVATED - range will be widened ×${regimeRec.widenFactor}`}. {v.regime[symbol]?.reasons.join("; ")}
               </div>
             )}
-            <button className="btn btn-primary btn-submit" data-tour="deploy" disabled={!plan || busy || !mark || paused} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
-              {busy ? "Placing…" : paused ? "Paused by regime guard" : `Deploy ${plan ? plan.rungs.filter((r) => r.entrySide !== "NONE").length : ""} rungs via /v2/orders/batch`}
+            <button className="btn btn-primary btn-submit" data-tour="deploy" disabled={!plan || busy || !mark || paused || belowMin} onClick={deploy} title={paused ? v.regime[symbol]?.reasons.join("; ") : undefined}>
+              {busy ? "Placing…" : paused ? "Paused by regime guard" : belowMin ? `Rungs below the $${v.rulesFor(symbol).minNotional} minimum - raise margin or reduce levels` : `Deploy ${plan ? plan.rungs.filter((r) => r.entrySide !== "NONE").length : ""} rungs via /v2/orders/batch`}
             </button>
             {v.mode === "live" && <p className="text-xs text-secondary" style={{ marginTop: 6 }}>Live mode places real post-only orders on {symbol}. Counter orders fire from user-stream fills while this tab is open; the grid is saved locally and reconciled against open orders after a reload.</p>}
           </>
