@@ -66,7 +66,7 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
     const r = v.rulesFor(symbol);
     const lev = 3, lv = 4, active = lv - 1;
     const marginNeeded = Math.ceil((r.minNotional * 1.4 * active) / lev);
-    setAnchor(mark); setLowerPct(1); setUpperPct(1); setLevels(lv); setMargin(Math.max(10, marginNeeded)); setLeverage(lev); setMode("ARITHMETIC");
+    setAnchor(mark); setLowerPct(0.4); setUpperPct(0.4); setLevels(lv); setMargin(Math.max(10, marginNeeded)); setLeverage(lev); setMode("ARITHMETIC");
     setFundingSkew(false); setStopLossPct(0);
   };
   const belowMin = !!plan && plan.warnings.some((w) => /below min/i.test(w));
@@ -131,8 +131,8 @@ export function GridStudio({ v, accountId }: { v: Vektor; accountId?: string | n
         {!g && (
           <>
             <div className="form-row">
-              <Field label={`Lower −${lowerPct}%`}><input type="range" min={1} max={25} step={0.5} value={lowerPct} onChange={(e) => setLowerPct(+e.target.value)} /></Field>
-              <Field label={`Upper +${upperPct}%`}><input type="range" min={1} max={25} step={0.5} value={upperPct} onChange={(e) => setUpperPct(+e.target.value)} /></Field>
+              <Field label={`Lower −${lowerPct}%`}><input type="range" min={0.2} max={25} step={0.1} value={lowerPct} onChange={(e) => setLowerPct(+e.target.value)} /></Field>
+              <Field label={`Upper +${upperPct}%`}><input type="range" min={0.2} max={25} step={0.1} value={upperPct} onChange={(e) => setUpperPct(+e.target.value)} /></Field>
             </div>
             <div className="form-row">
               <Field label="Levels"><input type="number" min={4} max={60} value={levels} onChange={(e) => setLevels(+e.target.value)} /></Field>
