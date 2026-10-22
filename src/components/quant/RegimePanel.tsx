@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Regime } from "../../hooks/useRegime";
 
 interface Props {
@@ -15,6 +16,7 @@ export function RegimePanel({ regime, symbol, enabled, setEnabled }: Props) {
   const fg = regime.fearGreed;
   const color = a ? LEVEL_COLOR[a.level] : "#888";
   const rec = a?.recommendation;
+  const [more, setMore] = useState(false);
 
   return (
     <div className="panel" style={{ borderColor: a && a.level !== "CALM" ? color : undefined }}>
@@ -58,8 +60,12 @@ export function RegimePanel({ regime, symbol, enabled, setEnabled }: Props) {
         <label htmlFor="regime-guard"><b>Regime guard</b> - {enabled ? "on" : "off"}</label>
       </div>
       <p className="text-xs text-secondary" style={{ margin: "2px 0 8px", lineHeight: 1.45 }}>
-        When on, it reacts to the market for you: <b>ELEVATED</b> widens any new grid's range (×{rec?.widenFactor ?? "1.25-1.75"}) so rungs sit further from a volatile price; <b>EXTREME</b> blocks new deploys and holds the grid's counter orders until conditions calm.
-        {" "}Turn it off when you want exactly the range you set - a deliberate tight test grid, a small amount you're happy to risk, or when you are watching the position yourself. It never cancels or closes anything.
+        When on, it reacts to the market for you: <b>ELEVATED</b> widens any new grid's range (×{rec?.widenFactor ?? "1.25-1.75"}) so rungs sit further from a volatile price;
+        {more ? (
+          <> <b>EXTREME</b> blocks new deploys and holds the grid's counter orders until conditions calm. Turn it off when you want exactly the range you set - a deliberate tight test grid, a small amount you're happy to risk, or when you are watching the position yourself. It never cancels or closes anything. <button className="link-btn" onClick={() => setMore(false)}>Read less</button></>
+        ) : (
+          <>… <button className="link-btn" onClick={() => setMore(true)}>Read more</button></>
+        )}
       </p>
       {enabled && rec?.action === "PAUSE" && <p className="error" style={{ marginBottom: 8 }}>Deploy is blocked right now ({a?.level}). Untick the guard above to override and deploy anyway.</p>}
       {enabled && rec?.action === "WIDEN" && <p className="text-xs" style={{ color: "var(--amber)", marginBottom: 8 }}>New grids will be widened ×{rec.widenFactor}. Untick to deploy the exact range you set.</p>}
