@@ -41,6 +41,11 @@ async function waitForReceipt(api: any, hash: string): Promise<void> {
 }
 
 // Mainnet token contracts we can read a balance for (ERC-20 balanceOf via eth_call).
+// Solana SPL mints we can read (getTokenAccountsByOwner).
+const SPL: Record<string, { address: string; decimals: number }> = {
+  USDC: { address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6 },
+  USDT: { address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", decimals: 6 },
+};
 const ERC20: Record<string, { address: string; decimals: number }> = {
   USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
 };
@@ -88,6 +93,15 @@ async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promis
       const data = "0x70a08231" + addr.replace(/^0x/, "").toLowerCase().padStart(64, "0");
       const hex = await call("eth_call", [{ to: t.address, data }, "latest"]);
       return { qty: Number(BigInt(hex)) / 10 ** t.decimals, gas, note };
+    }
+    if (wallet.chain === "solana") {
+      const sol = await getSpotBalance(wallet); // native SOL (also the fee balance)
+      if (asset === "SOL") return { qty: sol.qty, gas: sol.qty };
+      const mint = SPL[asset]; if (!mint) return { qty: NaN, gas: sol.qty };
+      const r = await fetch("https://api.mainnet-beta.solana.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner", params: [wallet.address, { mint: mint.address }, { encoding: "jsonParsed" }] }) });
+      const j = await r.json();
+      const qty = (j.result?.value ?? []).reduce((a: number, acc: any) => a + (acc.account?.data?.parsed?.info?.tokenAmount?.uiAmount ?? 0), 0);
+      return { qty, gas: sol.qty, note: sol.qty < 0.002 ? "almost no SOL for the network fee" : "" };
     }
     const b = await getSpotBalance(wallet);
     return b.asset === asset ? { qty: b.qty } : { qty: NaN };
@@ -257,14 +271,14 @@ export function DepositPanel({ wallet }: Props) {
               <span>Amount in {asset}</span>
               <span className={overBalance ? "text-red" : ""} title={bal && "error" in bal ? bal.error : undefined}>
                 wallet: {bal === undefined ? "reading…" : "error" in bal ? `unavailable (${bal.error})` : Number.isFinite(bal.qty) ? `${bal.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${asset}` : "n/a for this asset"}
-                {balOk && balOk.gas !== undefined ? ` · ${balOk.gas.toFixed(4)} ETH gas` : ""}
+                {balOk && balOk.gas !== undefined ? ` · ${balOk.gas.toFixed(4)} ${wallet.chain === "solana" ? "SOL" : "ETH"} for fees` : ""}
               </span>
             </label>
             <input
               inputMode="decimal"
               value={human}
               onChange={(e) => { const h = e.target.value; setHuman(h); const n = parseFloat(h); setAmount(Number.isFinite(n) && n > 0 ? toRawUnits(n, DECIMALS[asset] ?? 6) : ""); }}
-              placeholder="16"
+              placeholder="0.00"
             />
             <span className="text-xs text-secondary" style={{ display: "block", marginTop: 4 }}>
               Sent to Strike as <code>{amount || "…"}</code> ({DECIMALS[asset] ?? 6} decimals - {asset === "USDC" || asset === "USDT" ? "6 zeros per dollar" : "smallest on-chain unit"}). Minimum deposit is set by Strike per asset.
@@ -272,7 +286,7 @@ export function DepositPanel({ wallet }: Props) {
           </div>
           {balOk?.note && <p className="error">{balOk.note}</p>}
           {overBalance && <p className="error">That's more {asset} than this wallet holds ({balOk!.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })}).</p>}
-          {noGas && !overBalance && <p className="error">This wallet has almost no ETH for gas - the deposit transaction will fail.</p>}
+          {noGas && !overBalance && wallet.chain === "ethereum" && <p className="error">This wallet has almost no ETH for gas - the deposit transaction will fail.</p>}
           {balOk && Number.isFinite(balOk.qty) && !overBalance && balOk.qty > 0 && (
             <button className="btn btn-secondary" style={{ marginBottom: 8 }} onClick={() => { const q = Math.floor(balOk.qty * 1e6) / 1e6; setHuman(String(q)); setAmount(toRawUnits(q, DECIMALS[asset] ?? 6)); }}>Use max ({balOk.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {asset})</button>
           )}
