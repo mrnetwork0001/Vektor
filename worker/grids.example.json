@@ -1,0 +1,6 @@
+{
+  "grids": [
+    { "symbol": "ADA-USD", "lowerPrice": 0.21, "upperPrice": 0.235, "levels": 12, "marginUsd": 200, "leverage": 5, "mode": "GEOMETRIC" }
+  ],
+  "shield": { "enabled": true, "warnPct": 8, "criticalPct": 5, "trimFraction": 0.25, "cooldownMs": 15000, "ruleA": true, "ruleB": true }
+}

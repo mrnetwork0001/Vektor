@@ -1,0 +1,17 @@
+# docker compose up -d worker     (reads STRIKE_API_* and BUILDER_FEE_BPS from .env)
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    env_file: .env
+    environment:
+      VEKTOR_STATE: /data/state.json
+    volumes:
+      - ./worker/grids.json:/app/worker/grids.json:ro
+      - vektor_data:/data
+    ports:
+      - "8787:8787"
+    restart: unless-stopped
+volumes:
+  vektor_data:

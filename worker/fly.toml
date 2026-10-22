@@ -1,0 +1,29 @@
+# fly launch --no-deploy --config worker/fly.toml --dockerfile worker/Dockerfile
+# fly secrets set STRIKE_API_PUBLIC_KEY=... STRIKE_API_PRIVATE_KEY=... BUILDER_FEE_BPS=10
+# fly volumes create vektor_data --size 1
+# fly deploy --config worker/fly.toml --dockerfile worker/Dockerfile
+app = "vektor-worker"
+primary_region = "ams"
+
+[build]
+  dockerfile = "worker/Dockerfile"
+
+[env]
+  STRIKE_API_URL = "https://api.strikefinance.org"
+  VEKTOR_PORT = "8787"
+  VEKTOR_STATE = "/data/state.json"
+
+[mounts]
+  source = "vektor_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = false   # it must stay up — that's the point
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
