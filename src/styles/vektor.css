@@ -188,3 +188,19 @@ table.mini.wide tr.selected { background: rgba(37,250,176,0.08); }
   .equity { height: 56px; }
   .heatmap-wrap canvas { height: 200px; }
 }
+
+/* ── Overflow guards: grid children must be allowed to shrink below content width ── */
+.quant-grid > *, .panel, .main-content, .sidebar { min-width: 0; max-width: 100%; }
+.panel { overflow: hidden; }
+.panel .log, .panel .table-container, table.mini.wide { max-width: 100%; }
+@media (max-width: 900px) {
+  .connected-row { flex-wrap: wrap; gap: 2px 8px; }
+  .connected-row .text-sm { text-align: right; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+  .kv { min-width: 0; }
+  table.mini.wide { display: block; width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.mini.wide thead, table.mini.wide tbody { display: table; width: max-content; min-width: 100%; }
+  .form-group, .form-group input, .form-group select { max-width: 100%; }
+  .checkbox-row label { overflow-wrap: anywhere; }
+  .error, .text-xs { overflow-wrap: anywhere; }
+  .vk-telemetry { flex-wrap: wrap; }
+}
