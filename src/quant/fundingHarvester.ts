@@ -10,7 +10,7 @@ import type { Market } from "../types/market";
 import type { CreateOrderRequest } from "../types/order";
 import { getMMR, getMaintenanceAmount } from "../math/marginTiers";
 import { calculateIsolatedLiquidationPrice } from "../math/positionCalculations";
-import { fix, snapDown, type MarketRules } from "./types";
+import { fix, snapDown, snapUp, type MarketRules } from "./types";
 
 export const HOURS_PER_YEAR = 24 * 365;
 
@@ -120,7 +120,9 @@ export function buildHedgeSliceOrder(plan: HedgePlan, sliceIndex: number, markPr
   const remaining = fix(plan.totalSize - plan.sliceSize * sliceIndex, rules.basePrec);
   const size = sliceIndex === plan.slices - 1 ? remaining : plan.sliceSize;
   const isSell = plan.side === "SHORT";
-  const limit = markPrice * (isSell ? 1 - slippageBps / 10000 : 1 + slippageBps / 10000);
+  // Cross the spread by `slippageBps`, then snap to the market tick (sell down, buy up) - the engine rejects off-tick prices.
+  const raw = markPrice * (isSell ? 1 - slippageBps / 10000 : 1 + slippageBps / 10000);
+  const limit = isSell ? snapDown(raw, rules.tick) : snapUp(raw, rules.tick);
   return {
     client_order_id: `vektor-hedge-${plan.symbol}-${sliceIndex}-${Date.now() % 100000}`,
     symbol: plan.symbol,

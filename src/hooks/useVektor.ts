@@ -21,7 +21,7 @@ import { updateLeverage } from "../api/orders";
 import { getFillHistory, getFundingHistory, getOrderStatus } from "../api/history";
 import { backfillGrid, fundingCollected, telemetryFromFills } from "../quant/backfill";
 import { notify } from "../lib/notify";
-import type { ExecutionAdapter, FeeContext, FillEvent, MarketRules } from "../quant/types";
+import { fix, type ExecutionAdapter, type FeeContext, type FillEvent, type MarketRules } from "../quant/types";
 import { adoptGridsFromOpenOrders, applyGridFill, buildDeployStrategies, dropResting, initGridState, parseRungClientId, planGrid, reconcileGrid, restingBuyIds, restingIds, type GridConfig, type GridPlan, type GridState } from "../quant/gridEngine";
 import { buildFlattenOrders, DEFAULT_SHIELD_RULES, evaluateShield, initShieldState, resolveTrim, type PositionHealth, type ShieldRules, type ShieldState } from "../quant/liquidationShield";
 import { buildHedgeSliceOrder, fundingFlipped, rankFundingOpportunities, type FundingSnapshot, type HedgePlan } from "../quant/fundingHarvester";
@@ -46,7 +46,7 @@ export interface LiveInputs {
   regime?: Record<string, RegimeAssessment>; // regime guard assessments per symbol ({} = guard off)
 }
 
-export interface HedgeRun { plan: HedgePlan; placed: number; status: "RUNNING" | "DONE" | "UNWINDING" | "UNWOUND"; fundingHistory: number[]; collectedUsd: number; payments: number; launchedAt: number; source: "simulated" | "history" }
+export interface HedgeRun { plan: HedgePlan; placed: number; filled: number; status: "RUNNING" | "DONE" | "UNWINDING" | "UNWOUND" | "FAILED"; error?: string; fundingHistory: number[]; collectedUsd: number; payments: number; launchedAt: number; source: "simulated" | "history" }
 export interface Telemetry { volumeUsd: number; builderFeesUsd: number; commissionUsd: number; fills: number; ordersPlaced: number }
 export interface DepthFrame { t: number; mark: number; bids: [number, number][]; asks: [number, number][] }
 
@@ -177,6 +177,12 @@ export function useVektor(live: LiveInputs) {
           } else void place(r.orders);
         }
         for (const s of r.strategies) void adapter.placeStrategy?.(s).catch((e: any) => { setError(e.message); gridLog(sym, "ERROR", `bracket re-arm failed: ${e.message}`); });
+      }
+      const h = hedgeRef.current;
+      if (h && f.clientOrderId.startsWith(`vektor-hedge-${h.plan.symbol}`)) {
+        if (f.fillQty > 0) h.filled = fix(h.filled + f.fillQty, 8);
+        if (f.status === "REJECTED" || f.status === "EXPIRED" || f.closeReason === "silently_dropped") { h.status = "FAILED"; h.error = f.closeReason || f.status; notify("Hedge failed", `${h.plan.symbol}: ${h.error}`, "crit"); }
+        else if (f.status === "FILLED" && h.filled >= h.plan.totalSize - 1e-9 && h.status === "RUNNING") h.status = "DONE";
       }
       if (f.clientOrderId.startsWith("vektor-shield-trim") && (f.status === "FILLED" || f.status === "CANCELED" || f.status === "REJECTED" || f.status === "EXPIRED")) {
         shieldRef.current = resolveTrim(shieldRef.current, f.clientOrderId, f.status);
@@ -491,7 +497,7 @@ export function useVektor(live: LiveInputs) {
   const setAutoShift = useCallback((sym: string, on: boolean) => { autoShiftRef.current[sym] = on; edgeStreakRef.current[sym] = 0; bump(); }, []);
 
   const launchHedge = useCallback(async (plan: HedgePlan) => {
-    hedgeRef.current = { plan, placed: 0, status: "RUNNING", fundingHistory: [], collectedUsd: 0, payments: 0, launchedAt: Date.now(), source: mode === "sim" ? "simulated" : "history" };
+    hedgeRef.current = { plan, placed: 0, filled: 0, status: "RUNNING", fundingHistory: [], collectedUsd: 0, payments: 0, launchedAt: Date.now(), source: mode === "sim" ? "simulated" : "history" };
     if (mode === "sim") sim.ex.setLeverage(Math.round(plan.notionalUsd / Math.max(plan.marginUsd, 1e-9)));
     if (mode === "live") {
       for (let i = 0; i < plan.slices; i++) {
@@ -501,7 +507,8 @@ export function useVektor(live: LiveInputs) {
         bump();
         if (i < plan.slices - 1) await new Promise((r) => setTimeout(r, 2000));
       }
-      hedgeRef.current.status = "DONE";
+      // Live: DONE is set by the fill handler once the full size is filled; leave RUNNING otherwise (IOC remainder = partial).
+      if (hedgeRef.current.status === "RUNNING" && hedgeRef.current.filled >= plan.totalSize - 1e-9) hedgeRef.current.status = "DONE";
     }
     bump();
   }, [live.prices, mode, place, rulesFor, sim]);

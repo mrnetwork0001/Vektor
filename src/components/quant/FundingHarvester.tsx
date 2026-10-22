@@ -18,7 +18,7 @@ export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWa
   };
   const [leverage, setLeverage] = useState(2);
   const [slices, setSlices] = useState(4);
-  const symbol = sel ?? v.fundingRanked[0]?.symbol ?? v.symbol;
+  const symbol = sel ?? v.symbol; // default to the market selected in the header, not the top-APR row
   const opp = v.fundingRanked.find((o) => o.symbol === symbol);
   const snap = v.fundingSnapshots.find((s) => s.symbol === symbol);
 
@@ -83,8 +83,9 @@ export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWa
             {plan.warnings.map((w, i) => <div key={i} className="error">{w}</div>)}
           </div>
         )}
-        <button className="btn btn-primary btn-submit" disabled={!plan || plan.totalSize <= 0 || (h?.status === "RUNNING")} onClick={() => plan && void v.launchHedge(plan)}>
-          {h?.status === "RUNNING" ? `Placing slice ${h.placed}/${h.plan.slices}…` : "Launch delta-neutral hedge"}
+        {plan && plan.marginUsd > v.wallet && <div className="error">Needs {formatCurrency(plan.marginUsd)} margin but the account has {formatCurrency(v.wallet)} - reduce the spot quantity or raise leverage.</div>}
+        <button className="btn btn-primary btn-submit" disabled={!plan || plan.totalSize <= 0 || (h?.status === "RUNNING") || plan.marginUsd > v.wallet} onClick={() => plan && void v.launchHedge(plan)}>
+          {h?.status === "RUNNING" ? `Placing slice ${h.placed}/${h.plan.slices}…` : plan && plan.marginUsd > v.wallet ? "Insufficient balance for this hedge" : "Launch delta-neutral hedge"}
         </button>
       </div>
 
@@ -92,7 +93,8 @@ export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWa
         <h3>Harvest tracker</h3>
         {!h ? <p className="text-secondary">No hedge running</p> : (
           <div className="kv">
-            <Row k="Status" val={h.status} cls={h.status === "DONE" ? "text-green" : ""} />
+            <Row k="Status" val={h.status === "FAILED" ? `FAILED - ${h.error}` : h.status} cls={h.status === "DONE" ? "text-green" : h.status === "FAILED" ? "text-red" : ""} />
+            <Row k="Filled" val={`${h.filled} / ${h.plan.totalSize}`} />
             <Row k="Perp" val={`${h.plan.side} ${h.plan.totalSize} ${h.plan.symbol}`} />
             <Row k="Open position" val={hedgePos ? `${hedgePos.positionSide} ${hedgePos.size} @ ${formatPrice(hedgePos.entryPrice)}` : "-"} />
             <Row k="Perp uPnL" val={hedgePos?.uPnL != null ? formatCurrency(hedgePos.uPnL) : "-"} cls={(hedgePos?.uPnL ?? 0) >= 0 ? "text-green" : "text-red"} />

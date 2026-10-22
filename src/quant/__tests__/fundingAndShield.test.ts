@@ -46,6 +46,14 @@ describe("funding harvester", () => {
     const first = buildHedgeSliceOrder(plan, 0, 0.42, rules);
     expect(first).toMatchObject({ side: "sell", time_in_force: "IOC", size: "2500" });
     expect(parseFloat(first.price!)).toBeLessThan(0.42);
+    // price is on the tick grid (0.0001) even though quotePrec is 8 on mainnet
+    const coarse = { ...rules, tick: 0.001, quotePrec: 8 };
+    const p = parseFloat(buildHedgeSliceOrder(plan, 0, 5.8152, coarse).price!);
+    expect(Math.abs(p / 0.001 - Math.round(p / 0.001))).toBeLessThan(1e-6);
+    const buyPlan = buildHedgePlan({ symbol: "ADA-USD", spotQty: 100, markPrice: 5.8152, leverage: 2, slices: 1, market, rules: coarse, perpSide: "LONG", fundingRateHourly: -0.00003 });
+    const b = parseFloat(buildHedgeSliceOrder(buyPlan, 0, 5.8152, coarse).price!);
+    expect(b).toBeGreaterThan(5.8152);
+    expect(Math.abs(b / 0.001 - Math.round(b / 0.001))).toBeLessThan(1e-6);
     const last = buildHedgeSliceOrder(plan, 3, 0.42, rules);
     expect(last.size).toBe("2501");
   });
