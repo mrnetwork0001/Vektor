@@ -422,3 +422,56 @@ export function dropResting(state: GridState, ids: string[], now = Date.now()): 
   const entry: GridLogEntry = { t: now, kind: "CANCEL", msg: `Cancelled ${ids.length} resting order(s)` };
   return { ...state, rungs, log: [...state.log, entry].slice(-300) };
 }
+
+
+/**
+ * Rebuild grid state from Vektor-tagged open orders when local memory is empty
+ * (e.g. the page was reloaded before the grid was persisted). The plan is
+ * reconstructed from the resting prices: levels = highest rung index + 1, rung
+ * prices interpolated linearly between the known ones, margin ≈ Σ notional / leverage.
+ * Counter orders then work exactly as for a grid deployed in this session.
+ */
+export function adoptGridsFromOpenOrders(
+  orders: { ClientOrderId: string; Symbol: string; Side: string; Size: string; Price: string }[],
+  rulesFor: (symbol: string) => MarketRules,
+  fees: FeeContext,
+  leverage = 3,
+  now = Date.now()
+): Record<string, GridState> {
+  const byGrid = new Map<string, typeof orders>();
+  for (const o of orders) {
+    const p = parseRungClientId(o.ClientOrderId);
+    if (!p) continue;
+    const k = `${o.Symbol}|${p.gridId}`;
+    byGrid.set(k, [...(byGrid.get(k) ?? []), o]);
+  }
+  const out: Record<string, GridState> = {};
+  for (const [k, list] of byGrid) {
+    const [symbol, gridId] = k.split("|");
+    const rules = rulesFor(symbol);
+    const parsed = list.map((o) => ({ o, p: parseRungClientId(o.ClientOrderId)!, price: parseFloat(o.Price), size: parseFloat(o.Size) }));
+    const idxs = parsed.map((x) => x.p.index);
+    const minI = Math.min(...idxs), maxI = Math.max(...idxs);
+    const lo = parsed.find((x) => x.p.index === minI)!.price, hi = parsed.find((x) => x.p.index === maxI)!.price;
+    const spacing = maxI > minI ? (hi - lo) / (maxI - minI) : lo * 0.01;
+    const levels = Math.max(maxI + 2, 4); // leave room for one rung above the highest known
+    const lowerPrice = fix(lo - minI * spacing, rules.quotePrec), upperPrice = fix(lowerPrice + (levels - 1) * spacing, rules.quotePrec);
+    const markGuess = parsed.reduce((a, x) => a + x.price, 0) / parsed.length;
+    const notional = parsed.reduce((a, x) => a + x.price * x.size, 0);
+    const config: GridConfig = { symbol, lowerPrice: Math.max(rules.tick, lowerPrice), upperPrice, markPrice: markGuess, levels, marginUsd: fix(Math.max(1, (notional * levels) / Math.max(1, parsed.length) / leverage), 2), leverage, mode: "ARITHMETIC" };
+    let plan: GridPlan;
+    try { plan = planGrid(config, rules, fees); } catch { continue; }
+    plan = { ...plan, gridId };
+    const rungs = plan.rungs.map((r) => ({ ...r, resting: [] as RestingOrder[] }));
+    for (const x of parsed) {
+      const r = rungs[x.p.index]; if (!r) continue;
+      r.price = fix(x.price, rules.quotePrec);
+      r.resting.push({ clientOrderId: x.o.ClientOrderId, side: x.o.Side.toUpperCase() === "BUY" ? "BUY" : "SELL", role: x.p.role, size: x.size, acked: true });
+    }
+    out[symbol] = {
+      plan, rungs, inventory: 0, realizedUsd: 0, feesUsd: 0, builderFeesUsd: 0, volumeUsd: 0, fills: 0, cycles: 0, deployedAt: now,
+      log: [{ t: now, kind: "DEPLOY", msg: `Adopted ${parsed.length} resting rung(s) found on the book (grid ${gridId}); PnL counts from now` }],
+    };
+  }
+  return out;
+}

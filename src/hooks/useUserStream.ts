@@ -145,6 +145,7 @@ export function useUserStream(accountId: string | null) {
   const [account, setAccount] = useState<Account | null>(null);
   const [symbols, setSymbols] = useState<SymbolsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadedOnce, setLoadedOnce] = useState(false); // REST state fetched at least once since connect
   const isMountedRef = useRef(true);
   const positionSeqRef = useRef(new Map<string, number>());
   const lastWalletRef = useRef<number | null>(null);
@@ -184,6 +185,7 @@ export function useUserStream(accountId: string | null) {
     if (pos) setPositions(pos.map(normalizePositionFromApi));
     if (ords) setOrders(ords.map(normalizeOrderFromApi));
     setIsLoading(false);
+    if (ords) setLoadedOnce(true);
   }, []);
 
   /** Re-read effective symbol settings (e.g. after a leverage / margin mode change). */
@@ -235,6 +237,7 @@ export function useUserStream(accountId: string | null) {
   // ── WS: connect, then load REST after each subscribe ack ──
   useEffect(() => {
     if (!accountId) {
+      setLoadedOnce(false);
       setAccount(null);
       setSymbols(null);
       setPositions([]);
@@ -322,7 +325,7 @@ export function useUserStream(accountId: string | null) {
 
   const walletBalance = account ? parseFloat(account.wallet_balance || "0") : 0;
 
-  return { positions, orders, walletBalance, account, symbols, refreshSymbols, isLoading };
+  return { positions, orders, walletBalance, account, symbols, refreshSymbols, isLoading, loadedOnce };
 }
 
 // ═══════════════════════════════════════════════════════════════════

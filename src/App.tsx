@@ -53,7 +53,7 @@ export default function App() {
   const { markets } = useMarkets();
   const [liveSymbol, setLiveSymbol] = useState("ADA-USD");
   const { prices, depth } = usePriceStream(liveSymbol);
-  const { positions, orders, walletBalance, symbols: symbolSettings, isLoading: ordersLoading } = useUserStream(accountId);
+  const { positions, orders, walletBalance, symbols: symbolSettings, isLoading: ordersLoading, loadedOnce: ordersLoaded } = useUserStream(accountId);
 
   const [feeRates, setFeeRates] = useState<FeeRates>(DEFAULT_FEE_RATES);
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function App() {
   const balances = useMemo(() => calculateBalances(walletBalance, enrichedPositions, openOrderCosts), [walletBalance, enrichedPositions, openOrderCosts]);
 
   // ── Vektor engines (sim or live through the same code) ──
-  const v = useVektor({ accountId, markets, prices, depth, positions: enrichedPositions, openOrders: orders, ordersLoading, walletBalance, feeRates, builderFeeBps, vaultId, regime: guardOn ? regime.assessments : {} });
+  const v = useVektor({ accountId, markets, prices, depth, positions: enrichedPositions, openOrders: orders, ordersLoading, ordersLoaded, walletBalance, feeRates, builderFeeBps, vaultId, regime: guardOn ? regime.assessments : {} });
   useEffect(() => { setLiveSymbol(v.symbol); }, [v.symbol]);
   // Keyed so a new array/object identity per render cannot loop the regime inputs.
   const fundingKey = v.fundingSnapshots.map((s) => `${s.symbol}:${s.fundingRateHourly.toFixed(8)}`).join(",");

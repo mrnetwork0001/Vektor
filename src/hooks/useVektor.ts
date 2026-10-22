@@ -21,7 +21,7 @@ import { getFillHistory, getFundingHistory, getOrderStatus } from "../api/histor
 import { backfillGrid, fundingCollected, telemetryFromFills } from "../quant/backfill";
 import { notify } from "../lib/notify";
 import type { ExecutionAdapter, FeeContext, FillEvent, MarketRules } from "../quant/types";
-import { applyGridFill, buildDeployStrategies, dropResting, initGridState, parseRungClientId, planGrid, reconcileGrid, restingBuyIds, restingIds, type GridConfig, type GridPlan, type GridState } from "../quant/gridEngine";
+import { adoptGridsFromOpenOrders, applyGridFill, buildDeployStrategies, dropResting, initGridState, parseRungClientId, planGrid, reconcileGrid, restingBuyIds, restingIds, type GridConfig, type GridPlan, type GridState } from "../quant/gridEngine";
 import { buildFlattenOrders, DEFAULT_SHIELD_RULES, evaluateShield, initShieldState, resolveTrim, type PositionHealth, type ShieldRules, type ShieldState } from "../quant/liquidationShield";
 import { buildHedgeSliceOrder, fundingFlipped, rankFundingOpportunities, type FundingSnapshot, type HedgePlan } from "../quant/fundingHarvester";
 import { buildShiftedPlan, shouldShift } from "../quant/gridShift";
@@ -37,6 +37,7 @@ export interface LiveInputs {
   positions: Position[]; // enriched (liquidationPrice, markPrice, ...)
   openOrders: OrderRow[];
   ordersLoading: boolean;
+  ordersLoaded: boolean; // REST open orders fetched at least once this session
   walletBalance: number;
   feeRates: FeeRates;
   builderFeeBps: number;
@@ -285,7 +286,7 @@ export function useVektor(live: LiveInputs) {
   // ── Live: restore, backfill fills from history, reconcile against open orders ──
   const reconciledFor = useRef<string | null>(null);
   useEffect(() => {
-    if (mode !== "live" || !live.accountId || live.ordersLoading || reconciledFor.current === live.accountId) return;
+    if (mode !== "live" || !live.accountId || live.ordersLoading || !live.ordersLoaded || reconciledFor.current === live.accountId) return;
     reconciledFor.current = live.accountId;
     let saved: Record<string, GridState> = {};
     try { saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "{}"); } catch { saved = {}; }
@@ -308,12 +309,19 @@ export function useVektor(live: LiveInputs) {
           notify("Grid restored", `${sym}: ${b.replayed} fill(s) backfilled, ${r.kept} rungs resting, ${missing.length} counter(s) re-placed`);
         }
       }
+      // Orders on the book that no saved grid knows about (lost memory, other device): adopt them.
+      const known = new Set(Object.values(next).flatMap((g) => restingIds(g)));
+      const orphans = live.openOrders.filter((o) => parseRungClientId(o.ClientOrderId) && !known.has(o.ClientOrderId) && !next[o.Symbol]);
+      if (orphans.length) {
+        const adopted = adoptGridsFromOpenOrders(orphans, rulesFor, fees);
+        for (const [sym, g] of Object.entries(adopted)) { next[sym] = g; notify("Grid adopted", `${sym}: ${restingIds(g).length} resting rung(s) found on the book`); }
+      }
       gridsRef.current = next;
       if (toPlace.length) await place(toPlace);
       persist();
       bump();
     })();
-  }, [mode, live.accountId, live.ordersLoading, live.openOrders, live.builderFeeBps, persist, place, rulesFor]);
+  }, [mode, live.accountId, live.ordersLoading, live.ordersLoaded, live.openOrders, live.builderFeeBps, persist, place, rulesFor, fees]);
   useEffect(() => { if (!live.accountId) reconciledFor.current = null; }, [live.accountId]);
 
   // ── Live watchdog: 201 with no user-stream event → GET /v2/order; 404 = silently dropped ──
