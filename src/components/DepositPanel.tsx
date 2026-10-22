@@ -1,5 +1,5 @@
 import { connectWallet as _reconnectWallet } from "../api/wallets";
-import { getSpotBalance, SOLANA_RPC } from "../api/spotBalance";
+import { getSpotBalance, solanaRpc } from "../api/spotBalance";
 import { addWitnessSet } from "../lib/cardanoTx";
 import { VersionedTransaction, Transaction } from "@solana/web3.js";
 import { useEffect } from "react";
@@ -98,11 +98,8 @@ async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promis
       const sol = await getSpotBalance(wallet); // native SOL (also the fee balance)
       if (asset === "SOL") return { qty: sol.qty, gas: sol.qty };
       const mint = SPL[asset]; if (!mint) return { qty: NaN, gas: sol.qty };
-      const r = await fetch(SOLANA_RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner", params: [wallet.address, { mint: mint.address }, { encoding: "jsonParsed" }] }) });
-      if (!r.ok) throw new Error(`Solana RPC ${r.status}`);
-      const j = await r.json();
-      if (j.error) throw new Error(j.error.message);
-      const qty = (j.result?.value ?? []).reduce((a: number, acc: any) => a + (acc.account?.data?.parsed?.info?.tokenAmount?.uiAmount ?? 0), 0);
+      const r = await solanaRpc<{ value: any[] }>("getTokenAccountsByOwner", [wallet.address, { mint: mint.address }, { encoding: "jsonParsed" }]);
+      const qty = (r?.value ?? []).reduce((a: number, acc: any) => a + (acc.account?.data?.parsed?.info?.tokenAmount?.uiAmount ?? 0), 0);
       return { qty, gas: sol.qty, note: sol.qty < 0.002 ? "almost no SOL for the network fee" : "" };
     }
     const b = await getSpotBalance(wallet);

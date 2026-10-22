@@ -8,8 +8,24 @@
 
 import type { ConnectedWallet } from "./wallets";
 
-// Solana's official RPC returns 403 to browser origins; publicnode serves CORS.
-export const SOLANA_RPC = "https://solana-rpc.publicnode.com";
+// Solana's official RPC returns 403 to browser origins; try CORS-friendly public endpoints in order.
+export const SOLANA_RPCS = ["https://solana-rpc.publicnode.com", "https://solana.drpc.org", "https://rpc.ankr.com/solana_mainnet", "https://api.mainnet-beta.solana.com"];
+export const SOLANA_RPC = SOLANA_RPCS[0];
+
+/** JSON-RPC call with endpoint fallback; throws with every endpoint's failure if all fail. */
+export async function solanaRpc<T = any>(method: string, params: unknown[]): Promise<T> {
+  const errors: string[] = [];
+  for (const url of SOLANA_RPCS) {
+    try {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+      if (!res.ok) { errors.push(`${new URL(url).host} ${res.status}`); continue; }
+      const j = await res.json();
+      if (j.error) { errors.push(`${new URL(url).host} ${j.error.message}`); continue; }
+      return j.result as T;
+    } catch (e: any) { errors.push(`${new URL(url).host} ${e?.message ?? "network"}`); }
+  }
+  throw new Error(`Solana RPC unavailable (${errors.join("; ")})`);
+}
 
 export interface SpotBalance { asset: string; qty: number; source: string }
 
@@ -42,11 +58,8 @@ export async function getSpotBalance(w: ConnectedWallet): Promise<SpotBalance> {
       return { asset: "ETH", qty: Number(BigInt(hex)) / 1e18, source: `${w.walletId} eth_getBalance` };
     }
     case "solana": {
-      const res = await fetch(SOLANA_RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [w.address] }) });
-      if (!res.ok) throw new Error(`Solana RPC ${res.status}`);
-      const j = await res.json();
-      if (j.error) throw new Error(j.error.message);
-      return { asset: "SOL", qty: Number(j.result?.value ?? 0) / 1e9, source: "solana rpc getBalance" };
+      const r = await solanaRpc<{ value: number }>("getBalance", [w.address]);
+      return { asset: "SOL", qty: Number(r?.value ?? 0) / 1e9, source: "solana rpc getBalance" };
     }
     case "cardano": {
       const cbor: string = await w.api.getBalance();
