@@ -206,8 +206,19 @@ async function panic() {
 }
 
 // ── Status HTTP ──
+const HOST = env("VEKTOR_HOST", "127.0.0.1"); // localhost only; expose through a reverse proxy
+const TOKEN = process.env.VEKTOR_TOKEN ?? ""; // required for POST control endpoints
+const ALLOW = (process.env.VEKTOR_ALLOW_ORIGIN ?? "*").split(",").map((x) => x.trim());
+
 createServer(async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = String(req.headers.origin ?? "");
+  res.setHeader("Access-Control-Allow-Origin", ALLOW.includes("*") ? "*" : ALLOW.includes(origin) ? origin : ALLOW[0]);
+  res.setHeader("Access-Control-Allow-Headers", "authorization, content-type");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  if (req.method === "OPTIONS") { res.statusCode = 204; res.end(); return; }
+  if (req.method === "POST" && (!TOKEN || req.headers.authorization !== `Bearer ${TOKEN}`)) {
+    res.statusCode = 401; res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify({ error: TOKEN ? "bad token" : "control disabled: set VEKTOR_TOKEN" })); return;
+  }
   res.setHeader("Content-Type", "application/json");
   if (req.method === "POST" && req.url === "/panic") { await panic(); res.end(JSON.stringify({ ok: true })); return; }
   if (req.method === "POST" && req.url?.startsWith("/stop/")) { const sym = decodeURIComponent(req.url.slice(6)); const g = grids[sym]; if (g) { for (const id of restingIds(g)) await cancel(sym, id); delete grids[sym]; persist(); } res.end(JSON.stringify({ ok: !!g })); return; }
@@ -216,7 +227,7 @@ createServer(async (req, res) => {
     grids: Object.fromEntries(Object.entries(grids).map(([s, g]) => [s, { gridId: g.plan.gridId, range: [g.plan.config.lowerPrice, g.plan.config.upperPrice], resting: restingIds(g).length, fills: g.fills, cycles: g.cycles, realizedUsd: g.realizedUsd, inventory: g.inventory, builderFeesUsd: g.builderFeesUsd, log: g.log.slice(-10) }])),
     positions: enriched(), healths, shield: { rules: shield.rules, log: shield.log.slice(-20) }, telemetry, pendingWatchdog: pending.size,
   }));
-}).listen(PORT, () => log(`status on http://localhost:${PORT}/  (POST /panic, POST /stop/<symbol>)`));
+}).listen(PORT, HOST, () => log(`status on http://${HOST}:${PORT}/  (POST /panic, POST /stop/<symbol> need Bearer VEKTOR_TOKEN)`));
 
 // ── Boot ──
 (async () => {
