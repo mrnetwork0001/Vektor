@@ -500,6 +500,8 @@ export function useVektor(live: LiveInputs) {
     hedgeRef.current = { plan, placed: 0, filled: 0, status: "RUNNING", fundingHistory: [], collectedUsd: 0, payments: 0, launchedAt: Date.now(), source: mode === "sim" ? "simulated" : "history" };
     if (mode === "sim") sim.ex.setLeverage(Math.round(plan.notionalUsd / Math.max(plan.marginUsd, 1e-9)));
     if (mode === "live") {
+      const lev = Math.max(1, Math.round(plan.notionalUsd / Math.max(plan.marginUsd, 1e-9)));
+      try { await updateLeverage(plan.symbol, lev); } catch (e: any) { notify("Leverage not updated", `${plan.symbol}: ${e.message}`, "warn"); }
       for (let i = 0; i < plan.slices; i++) {
         const m = parseFloat(live.prices[plan.symbol]?.p ?? "0") || plan.notionalUsd / plan.totalSize;
         await place([buildHedgeSliceOrder(plan, i, m, rulesFor(plan.symbol))]);
