@@ -126,7 +126,7 @@ export function VaultPanel({ accountId, vaultId, setVaultId }: Props) {
             <Field label="Min deposit (USD)"><input type="number" min={1} value={form.min_deposit} onChange={(e) => setForm({ ...form, min_deposit: e.target.value })} /></Field>
           </div>
           <button className="btn btn-primary btn-submit" disabled={busy || !!pendingCreate || !form.name.trim() || parseFloat(form.initial_deposit) < 100} onClick={onCreate}>
-            {busy ? "Submitting…" : `Create vault (moves ${formatCurrency(parseFloat(form.initial_deposit) || 0)} from withdrawable balance)`}
+            {busy ? "Submitting…" : `Create vault · ${formatCurrency(parseFloat(form.initial_deposit) || 0)} from balance`}
           </button>
           <p className="text-xs text-secondary" style={{ marginTop: 6 }}>You must keep ≥ 5% of the shares. Fee is charged only on depositors' profit at withdrawal and paid to you as new shares.</p>
         </>
