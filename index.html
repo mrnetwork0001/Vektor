@@ -640,6 +640,12 @@
   }
   window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
+  // FAQ accordion: opening one closes the others
+  var faqs = Array.prototype.slice.call(document.querySelectorAll('#faq details'));
+  faqs.forEach(function (d) {
+    d.addEventListener('toggle', function () { if (d.open) faqs.forEach(function (o) { if (o !== d && o.open) o.open = false; }); });
+  });
+
   document.querySelectorAll('.card').forEach(function (c) {
     c.addEventListener('mousemove', function (e) { var r = c.getBoundingClientRect(); c.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%'); });
   });
