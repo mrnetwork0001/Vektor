@@ -42,21 +42,37 @@ async function waitForReceipt(api: any, hash: string): Promise<void> {
 const ERC20: Record<string, { address: string; decimals: number }> = {
   USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
 };
-async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promise<{ qty: number; gas?: number } | null> {
+const PUBLIC_RPC = "https://ethereum-rpc.publicnode.com";
+async function rpc(method: string, params: unknown[]): Promise<string> {
+  const r = await fetch(PUBLIC_RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+  const j = await r.json(); if (j.error) throw new Error(j.error.message); return j.result;
+}
+type Bal = { qty: number; gas?: number; note?: string };
+async function readWalletBalance(wallet: ConnectedWallet, asset: string): Promise<Bal | { error: string }> {
   try {
     if (wallet.chain === "ethereum") {
-      if (!wallet.api) { const live = await _reconnectWallet(wallet.chain, wallet.walletId); wallet.api = live.api; wallet.address = live.address || wallet.address; }
-      const gasHex: string = await wallet.api.request({ method: "eth_getBalance", params: [wallet.address, "latest"] });
-      const gas = Number(BigInt(gasHex)) / 1e18;
-      if (asset === "ETH") return { qty: gas, gas };
-      const t = ERC20[asset]; if (!t) return { qty: NaN, gas };
-      const data = "0x70a08231" + wallet.address.replace(/^0x/, "").toLowerCase().padStart(64, "0");
-      const hex: string = await wallet.api.request({ method: "eth_call", params: [{ to: t.address, data }, "latest"] });
-      return { qty: Number(BigInt(hex)) / 10 ** t.decimals, gas };
+      const addr = wallet.address;
+      if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) return { error: "no EVM address on this session" };
+      let note = "";
+      // Prefer the extension (it is the signer), fall back to a public mainnet RPC if it refuses or is on another chain.
+      let call = async (method: string, params: unknown[]): Promise<string> => rpc(method, params);
+      if (wallet.api?.request) {
+        try {
+          const chainId: string = await wallet.api.request({ method: "eth_chainId" });
+          if (chainId === "0x1") call = (m, p) => wallet.api.request({ method: m, params: p });
+          else note = `wallet is on chain ${parseInt(chainId, 16)} - switch it to Ethereum mainnet before depositing`;
+        } catch { /* use public RPC */ }
+      }
+      const gas = Number(BigInt(await call("eth_getBalance", [addr, "latest"]))) / 1e18;
+      if (asset === "ETH") return { qty: gas, gas, note };
+      const t = ERC20[asset]; if (!t) return { qty: NaN, gas, note };
+      const data = "0x70a08231" + addr.replace(/^0x/, "").toLowerCase().padStart(64, "0");
+      const hex = await call("eth_call", [{ to: t.address, data }, "latest"]);
+      return { qty: Number(BigInt(hex)) / 10 ** t.decimals, gas, note };
     }
     const b = await getSpotBalance(wallet);
     return b.asset === asset ? { qty: b.qty } : { qty: NaN };
-  } catch { return null; }
+  } catch (e: any) { return { error: e?.message ?? String(e) }; }
 }
 
 export function DepositPanel({ wallet }: Props) {
@@ -65,7 +81,7 @@ export function DepositPanel({ wallet }: Props) {
   const [amount, setAmount] = useState("");
   const [human, setHuman] = useState("");
   const [asset, setAsset] = useState("USDC");
-  const [bal, setBal] = useState<{ qty: number; gas?: number } | null | undefined>(undefined);
+  const [bal, setBal] = useState<Bal | { error: string } | undefined>(undefined);
   useEffect(() => {
     let alive = true;
     setBal(undefined);
@@ -75,8 +91,9 @@ export function DepositPanel({ wallet }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallet.address, wallet.chain, asset]);
   const typed = parseFloat(human);
-  const overBalance = !!bal && Number.isFinite(bal.qty) && Number.isFinite(typed) && typed > bal.qty;
-  const noGas = !!bal && bal.gas !== undefined && bal.gas < 0.0005;
+  const balOk = bal && !("error" in bal) ? bal : null;
+  const overBalance = !!balOk && Number.isFinite(balOk.qty) && Number.isFinite(typed) && typed > balOk.qty;
+  const noGas = !!balOk && balOk.gas !== undefined && balOk.gas < 0.0005;
   const [requestId, setRequestId] = useState("");
   const [unsignedTx, setUnsignedTx] = useState("");
   const [approvalTx, setApprovalTx] = useState("");
@@ -181,9 +198,9 @@ export function DepositPanel({ wallet }: Props) {
           <div className="form-group">
             <label style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Amount in {asset}</span>
-              <span className={overBalance ? "text-red" : ""}>
-                wallet: {bal === undefined ? "reading…" : bal === null ? "unavailable" : Number.isFinite(bal.qty) ? `${bal.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${asset}` : "n/a for this asset"}
-                {bal && bal.gas !== undefined ? ` · ${bal.gas.toFixed(4)} ETH gas` : ""}
+              <span className={overBalance ? "text-red" : ""} title={bal && "error" in bal ? bal.error : undefined}>
+                wallet: {bal === undefined ? "reading…" : "error" in bal ? `unavailable (${bal.error})` : Number.isFinite(bal.qty) ? `${bal.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${asset}` : "n/a for this asset"}
+                {balOk && balOk.gas !== undefined ? ` · ${balOk.gas.toFixed(4)} ETH gas` : ""}
               </span>
             </label>
             <input
@@ -196,10 +213,11 @@ export function DepositPanel({ wallet }: Props) {
               Sent to Strike as <code>{amount || "…"}</code> ({DECIMALS[asset] ?? 6} decimals - {asset === "USDC" || asset === "USDT" ? "6 zeros per dollar" : "smallest on-chain unit"}). Minimum deposit is set by Strike per asset.
             </span>
           </div>
-          {overBalance && <p className="error">That's more {asset} than this wallet holds ({bal!.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })}).</p>}
+          {balOk?.note && <p className="error">{balOk.note}</p>}
+          {overBalance && <p className="error">That's more {asset} than this wallet holds ({balOk!.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })}).</p>}
           {noGas && !overBalance && <p className="error">This wallet has almost no ETH for gas - the deposit transaction will fail.</p>}
-          {bal && Number.isFinite(bal.qty) && !overBalance && (
-            <button className="btn btn-secondary" style={{ marginBottom: 8 }} onClick={() => { const q = Math.floor(bal.qty * 1e6) / 1e6; setHuman(String(q)); setAmount(toRawUnits(q, DECIMALS[asset] ?? 6)); }}>Use max ({bal.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {asset})</button>
+          {balOk && Number.isFinite(balOk.qty) && !overBalance && balOk.qty > 0 && (
+            <button className="btn btn-secondary" style={{ marginBottom: 8 }} onClick={() => { const q = Math.floor(balOk.qty * 1e6) / 1e6; setHuman(String(q)); setAmount(toRawUnits(q, DECIMALS[asset] ?? 6)); }}>Use max ({balOk.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {asset})</button>
           )}
           <button onClick={handleGetQuote} disabled={!amount || loading || overBalance} className="btn btn-primary">
             {loading ? "Getting quote..." : "Get Quote"}
