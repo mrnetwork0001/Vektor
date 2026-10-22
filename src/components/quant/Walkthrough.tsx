@@ -35,7 +35,7 @@ const PAD = 8;
 export function Walkthrough({ open, onClose, setTab }: Props) {
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
-  const [tipBelow, setTipBelow] = useState(true);
+  const [place, setPlace] = useState<"below" | "above" | "pinned">("below");
   const tipRef = useRef<HTMLDivElement>(null);
 
   const step = STEPS[i];
@@ -46,7 +46,10 @@ export function Walkthrough({ open, onClose, setTab }: Props) {
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) { setRect(null); return false; }
     setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 });
-    setTipBelow(r.bottom + 180 < window.innerHeight || r.top < 220);
+    const tipH = (tipRef.current?.offsetHeight ?? 220) + 24;
+    const below = window.innerHeight - (r.bottom + PAD);
+    const above = r.top - PAD;
+    setPlace(below >= tipH ? "below" : above >= tipH ? "above" : "pinned");
     return true;
   }, [step.target]);
 
@@ -93,11 +96,12 @@ export function Walkthrough({ open, onClose, setTab }: Props) {
 
   if (!open) return null;
 
-  const tipStyle: React.CSSProperties = rect
-    ? tipBelow
-      ? { top: rect.top + rect.height + 12, left: Math.min(Math.max(12, rect.left), Math.max(12, window.innerWidth - 372)) }
-      : { bottom: window.innerHeight - rect.top + 12, left: Math.min(Math.max(12, rect.left), Math.max(12, window.innerWidth - 372)) }
-    : { top: "40%", left: "50%", transform: "translate(-50%, -50%)" };
+  const left = rect ? Math.min(Math.max(12, rect.left), Math.max(12, window.innerWidth - 372)) : 0;
+  const tipStyle: React.CSSProperties = !rect
+    ? { top: "40%", left: "50%", transform: "translate(-50%, -50%)" }
+    : place === "below" ? { top: rect.top + rect.height + 12, left }
+    : place === "above" ? { bottom: window.innerHeight - rect.top + 12, left }
+    : { bottom: 12, left, maxHeight: "60vh", overflowY: "auto" }; // target taller than the viewport: pin over it
 
   return (
     <div className="wt-root" role="dialog" aria-modal="true" aria-label="App walkthrough">
