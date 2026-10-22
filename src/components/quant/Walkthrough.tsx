@@ -58,7 +58,7 @@ export function Walkthrough({ open, onClose, setTab }: Props) {
     const t = setTimeout(() => {
       if (cancelled) return;
       const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
-      if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+      if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "center", behavior: "smooth" });
       setTimeout(() => {
         if (cancelled) return;
         if (!measure()) {
