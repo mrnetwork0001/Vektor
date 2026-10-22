@@ -199,6 +199,10 @@ Found and fixed during the run: mainnet ADA min notional is $10 (testnet $5) and
 
 Not exercised on mainnet (verified in the simulator and tests): Shield Rule B trim (needs a position within 5% of liquidation), auto-shift `/v2/orders/replace`, brackets `/v2/order/strategy`, vault execution.
 
+## 5c. Autopilot (keeps grids running after you close the tab)
+
+Tick **Keep running when I close this tab (Autopilot)** before Deploy. The app enrolls this session's trade-only Strike API key with the Autopilot server (signed, encrypted at rest), and the server runs the grid's counter orders, shield, reconcile and regime guard 24/7 for every enrolled user. The grid card then mirrors the server (badge "Autopilot · server-run"); Stop and PANIC go to the server; **Disable Autopilot** stops server grids and wipes the key. Details, endpoints and deployment: [server/README.md](server/README.md). Hidden unless `VITE_AUTOPILOT_URL` is set.
+
 ## 6. Running it
 
 **Terminal** - `npm run dev`, open `/app.html`. Demo mode needs nothing. Live mode: connect a wallet (Cardano / Solana / EVM), Builder Connect approves `vektor`, deposit USDC, deploy. "Prove-it preset" sets a tight micro-grid that fills within minutes on a liquid book; "Copy proof summary" copies a markdown block for submissions.
