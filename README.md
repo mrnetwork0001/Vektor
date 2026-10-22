@@ -193,7 +193,7 @@ Everything below ran against `api.strikefinance.org` with real funds during the 
 | Reconcile / adopt | After a reload the app rebuilt the running grid from `/v2/openOrders` by client-ID prefix ("Grid adopted · 3 resting rungs") | - |
 | Stop / flatten | Stop grid cancelled resting rungs; reduce-only market close ran on the owner account | `/v2/history/transaction?account_id=01a162e1…` |
 | Hedge launch → shield → unwind | Cardano account: IOC sell 50 ADA @ 0.21248 (filled 50/50, tick-snapped price, builder code attached); Shield read SAFE 184% to liquidation; Unwind bought 50 @ 0.21254 reduce-only, position closed | `/v2/history/fill?account_id=01a16503-d2a3-74ad-855e-2362748ad8bb` |
-| **Autopilot (server-run)** | Cardano account enrolled from the browser (signed enroll, key encrypted at rest on the VPS); server deployed 3 rungs on ADA-USD at 19:53Z, each stamped `Builder {vektor, 10}`; browser tab can close | `https://vektor.38-49-213-208.sslip.io/health` · `/v2/openOrders?account_id=01a16503-d2a3-74ad-855e-2362748ad8bb` |
+| **Autopilot (server-run)** | Cardano account enrolled from the browser (signed enroll, key encrypted at rest on the VPS); server deployed 3 rungs on ADA-USD at 19:53Z, each stamped `Builder {vektor, 10}`. At 19:59:56Z, with the browser closed, the server-run grid **bought 65 ADA @ 0.21247 (maker) and placed its exit sell 65 @ 0.21304 itself** | `https://vektor.38-49-213-208.sslip.io/health` · `/v2/openOrders?account_id=01a16503-d2a3-74ad-855e-2362748ad8bb` |
 | Withdraw | Owner account withdrew $21.06 through the Strike app (API wallets cannot withdraw by design) | same ledger, type `withdraw` |
 
 Found and fixed during the run: mainnet ADA min notional is $10 (testnet $5) and undersized batch items are silently dropped - Deploy now blocks below the minimum and the Prove-it preset sizes from the live rules; restore raced the open-orders fetch and could wipe the saved grid - now gated on first load, orphaned `vektor-grid-` orders are adopted; public Solana RPCs 403 browser origins - reads go through a same-origin relay; the sidebar clipped under the taller header; leverage was not being set on Strike.
@@ -221,7 +221,7 @@ Any user of the public app can hand their grid to the Autopilot server and close
 
 **Endpoints** - `GET /health` · `POST/DELETE /v1/enroll` · `GET /v1/status` · `POST /v1/grids` · `DELETE /v1/grids/:symbol` · `POST /v1/panic`. Run it with `npm run autopilot`; deployment notes (pm2, nginx, env) in [server/README.md](server/README.md). The app shows the toggle only when `VITE_AUTOPILOT_URL` is set.
 
-**Honest status** - enroll, server-side deploy and builder-stamped resting orders are verified on mainnet. A server-handled fill after the tab closed, server auto-shift and the regime-held queue are covered by tests with a fake Strike client, not yet observed live.
+**Honest status** - enroll, server-side deploy and builder-stamped resting orders are verified on mainnet. A server-handled fill with the tab closed is verified too (19:59:56Z, exit placed by the server). Server auto-shift and the regime-held queue are covered by tests with a fake Strike client, not yet observed live.
 
 ## 6. Running it
 
