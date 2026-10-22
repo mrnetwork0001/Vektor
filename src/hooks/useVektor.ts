@@ -17,6 +17,7 @@ import { createPriceSim, stepPrice, syntheticDepth, triggerScenario, type PriceS
 import { DEMO_MARKETS } from "../sim/demoMarkets";
 import { LiveAdapter } from "../api/liveAdapter";
 import { getPremiumIndexAll } from "../api/vektor";
+import { updateLeverage } from "../api/orders";
 import { getFillHistory, getFundingHistory, getOrderStatus } from "../api/history";
 import { backfillGrid, fundingCollected, telemetryFromFills } from "../quant/backfill";
 import { notify } from "../lib/notify";
@@ -461,6 +462,10 @@ export function useVektor(live: LiveInputs) {
     const plan = planGrid({ ...cfg, lowerPrice, upperPrice, vaultId, symbol, markPrice: mark }, rulesFor(symbol), fees);
     if (f !== 1) plan.warnings.push(`Range widened ×${f} by the regime guard`);
     if (mode === "sim") sim.ex.setLeverage(cfg.leverage);
+    if (mode === "live") {
+      // Make Strike's symbol leverage match the grid (sizing alone does not change the account setting).
+      try { await updateLeverage(symbol, cfg.leverage); } catch (e: any) { notify("Leverage not updated", `${symbol}: ${e.message} - orders use the account's current setting`, "warn"); }
+    }
     if (gridsRef.current[symbol]) await stopGrid(symbol);
     const rules = rulesFor(symbol);
     const state = initGridState(plan, Date.now(), rules);
