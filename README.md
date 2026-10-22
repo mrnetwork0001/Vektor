@@ -191,11 +191,12 @@ Everything below ran against `api.strikefinance.org` with real funds during the 
 | Leverage sync | Deploy sets symbol leverage via `POST /v2/leverage` - position opened at 3x as configured | `/v2/positions?account_id=01a164cf…` |
 | Reconcile / adopt | After a reload the app rebuilt the running grid from `/v2/openOrders` by client-ID prefix ("Grid adopted · 3 resting rungs") | - |
 | Stop / flatten | Stop grid cancelled resting rungs; reduce-only market close ran on the owner account | `/v2/history/transaction?account_id=01a162e1…` |
+| Hedge launch → shield → unwind | Cardano account: IOC sell 50 ADA @ 0.21248 (filled 50/50, tick-snapped price, builder code attached); Shield read SAFE 184% to liquidation; Unwind bought 50 @ 0.21254 reduce-only, position closed | `/v2/history/fill?account_id=01a16503-d2a3-74ad-855e-2362748ad8bb` |
 | Withdraw | Owner account withdrew $21.06 through the Strike app (API wallets cannot withdraw by design) | same ledger, type `withdraw` |
 
 Found and fixed during the run: mainnet ADA min notional is $10 (testnet $5) and undersized batch items are silently dropped - Deploy now blocks below the minimum and the Prove-it preset sizes from the live rules; restore raced the open-orders fetch and could wipe the saved grid - now gated on first load, orphaned `vektor-grid-` orders are adopted; public Solana RPCs 403 browser origins - reads go through a same-origin relay; the sidebar clipped under the taller header; leverage was not being set on Strike.
 
-Not exercised on mainnet (verified in the simulator and tests): Shield Rule B trim (needs a position within 5% of liquidation), the Harvester's hedge launch/unwind (same batch + reduce-only paths as the grid and PANIC, pending the next test), auto-shift `/v2/orders/replace`, brackets `/v2/order/strategy`, vault execution.
+Not exercised on mainnet (verified in the simulator and tests): Shield Rule B trim (needs a position within 5% of liquidation), auto-shift `/v2/orders/replace`, brackets `/v2/order/strategy`, vault execution.
 
 ## 6. Running it
 

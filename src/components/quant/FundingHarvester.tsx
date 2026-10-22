@@ -8,7 +8,7 @@ import { Field, Row } from "./GridStudio";
 
 export function FundingHarvester({ v, wallet }: { v: Vektor; wallet: ConnectedWallet | null }) {
   const [sel, setSel] = useState<string | null>(null);
-  const [spotQty, setSpotQty] = useState(10_000);
+  const [spotQty, setSpotQty] = useState(50);
   const [spot, setSpot] = useState<SpotBalance | null>(null);
   const [spotErr, setSpotErr] = useState<string | null>(null);
   const readWallet = async () => {
