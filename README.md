@@ -1,116 +1,200 @@
-# ⚡ Vektor - CLOB Grid Studio, Funding Harvester & Liquidation Shield for Strike Finance V2
+# Vektor - CLOB Grid Studio, Funding Harvester & Liquidation Shield for Strike Finance V2
 
-Built for the Strike Finance 48-hour hackathon. Three quant engines on top of Strike V2's CLOB, Ed25519 API wallets and Builder Codes, with a demo mode that runs the exact same engines against an in-browser matching engine so judges can watch it work in 30 seconds.
+Built for the Strike Finance 48-hour hackathon (Oct 21-23, 2026). Vektor is a quantitative execution terminal on Strike's central limit order book: a builder-fee grid studio with real-candle backtesting, a delta-neutral funding harvester, and a 24/7 liquidation shield - plus a headless worker, a CLI and AI-agent skill, and a public proof page so anyone can verify every fill against Strike's own API.
+
+- Landing page: `/` · Terminal: `/app.html` · Proof: `/proof.html?account=<id>`
+- Builder code: `vektor` (registered on mainnet, 10 bps)
+- Repo: https://github.com/mrnetwork0001/Vektor
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 - landing page; "Launch App" opens /app.html in DEMO mode, no wallet needed
-npm test           # 29 tests: engines, backtester, simulator, full app smoke test
-npm run build      # dist/index.html (landing) + dist/app.html (terminal) - deploy the dist/ folder as-is
+npm run dev          # http://localhost:5173 - landing; Launch App opens the terminal in Demo mode (no wallet needed)
+npm test             # 78 tests: engines, backtester, simulator, CLI, full app render
+npm run build        # dist/index.html + dist/app.html + dist/proof.html - deploy dist/ as static files
+npm run worker       # headless 24/7 engine (needs STRIKE_API_* keys in the environment)
+npm run cli -- plan ADA-USD --lower 0.21 --upper 0.235 --levels 12 --margin 200 --leverage 5
 ```
 
-Switch to **Live** in the sidebar to trade on Strike testnet (`api-v2-testnet.strikefinance.org`, the default in `src/api/config.ts`). Copy `.env.example` to `.env` to point at mainnet or set your builder code.
+Copy `.env.example` to `.env`. Defaults point at **mainnet** (`api.strikefinance.org`) because builder codes live there; testnet has no builder codes and mostly empty books.
 
-## The three modules
+---
 
-| Module | What it does | Strike surface |
+## Contents
+
+1. [What it does](#1-what-it-does)
+2. [How we built it](#2-how-we-built-it)
+3. [Architecture](#3-architecture)
+4. [Strike integration - every endpoint we use](#4-strike-integration)
+5. [Verification and proof](#5-verification-and-proof)
+6. [Running it: terminal, worker, CLI, agent skill](#6-running-it)
+7. [Testing](#7-testing)
+8. [Known limits](#8-known-limits)
+9. [Roadmap](#9-roadmap)
+10. [Judging criteria mapping](#10-judging-criteria)
+
+---
+
+## 1. What it does
+
+### Three engines
+
+| Engine | What it does | Strike surface |
 |---|---|---|
-| **Grid Studio** | Visual neutral grid (geometric or arithmetic, 4–60 levels). Buys rest below the mark, sells above, the level nearest the mark stays empty. Every rung is a post-only GTC limit placed in one `POST /v2/orders/batch`. When a rung fills, the counter take-profit is placed one rung away **for the filled quantity**; when the take-profit fills the entry is re-armed. Net profit per round trip is shown after maker fees *and* the builder fee. Whale-wall radar + VWAP slippage probe on the live top-20 book. | `/v2/orders/batch`, `/price/v2/depth` + `@depth` diffs, user stream `ORDER_TRADE_UPDATE` |
-| **Funding Harvester** | Ranks every market by annualised funding (`hourly rate × 24 × 365` - Strike funds **hourly**). Sizes a 1:1 perp hedge against spot held in the user's own wallet, estimates the hedge's liquidation price from the market's **margin tiers**, and enters in IOC limit slices that carry the builder fee (Strike's TWAP endpoint drops it). Rule C unwinds the hedge after 3 consecutive adverse funding hours. | `/price/v2/premiumIndex`, `!markPrice@arr`, `/v2/orders/batch` |
-| **Aegis Shield** | Computes distance-to-liquidation for every open position from the reference `src/math` formulas. Rule A (< 8%): cancel resting buy rungs to free margin. Rule B (< 5%): reduce-only market trim of 25%, with a per-symbol cooldown and a pending-trim flag so it never fires twice for one episode. Panic button cancels everything and flattens with `close_position` orders. | `/v2/order/cancel`, `/v2/order/cancel-all`, reduce-only `POST /v2/order` |
+| **CLOB Grid Studio** | Neutral grid (geometric or arithmetic, 4-60 levels): buys rest below the mark, sells above, the level nearest the mark stays empty so the sides never collide. Every rung is a post-only GTC limit placed in one `POST /v2/orders/batch` with `X-Builder-Fee-Bps`. A fill places its counter one rung away **for the filled quantity**; an exit fill books the round trip and re-arms the entry. Net per round trip is shown after maker fees *and* the builder fee. | `/v2/orders/batch`, `/price/v2/depth` + `@depth` diffs, user stream `ORDER_TRADE_UPDATE` |
+| **Funding Harvester** | Strike funds **hourly**. Ranks every market by `hourly rate × 24 × 365`, sizes a 1:1 perp hedge against spot the user holds (read from the wallet), estimates the hedge's liquidation from the market's real margin tiers, enters in sliced IOC limits that keep the builder fee (Strike's TWAP drops it). Rule C unwinds after 3 adverse funding hours; funding collected is read from `/v2/history/funding`. | `/price/v2/premiumIndex`, `!markPrice@arr`, `/v2/history/funding` |
+| **Aegis Liquidation Shield** | Distance-to-liquidation per position from the reference engine formulas. Rule A (< 8% buffer): cancel resting buy rungs. Rule B (< 5%): reduce-only market trim of 25%, with per-symbol cooldown and a pending-trim flag so it never double-fires. PANIC cancels everything and flattens with `close_position`. | `/v2/order/cancel[-all]`, reduce-only `POST /v2/order`, `ACCOUNT_UPDATE` |
 
-The header shows builder-code telemetry: volume routed, fills, and cumulative `X-Builder-Fee-Bps` revenue.
+### Around the engines
 
-## What makes it stand out
+- **Backtest before you deploy** - the exact range you drew, replayed over 24h / 7d / 30d of mainnet candles through the same matching engine and grid code as the live grid. Net after builder fee, annualised, max drawdown, time-in-range, equity curve.
+- **Smart range** - `last ± 3×ATR(14)`, level count sized to clear Strike's fee floor.
+- **Funding-aware skew** - rung sizes tilt toward the side that *receives* funding; total notional preserved. Spread capture and carry from one ladder.
+- **Per-rung brackets** - each entry can be a `POST /v2/order/strategy` with a stop leg; builder fee on both legs; a stop fill retires the rung.
+- **Auto-shift (trailing)** - breakout or edge-dwell re-centres the ladder in one `POST /v2/orders/replace`; inventory is carried as exit rungs, never orphaned.
+- **Head-to-head vs Strike's native grid bot** - same range, same candles: builder revenue $X vs **$0** (native grid orders carry no builder code). In Live mode, launch the real native bot beside yours.
+- **L3 spoof & iceberg radar** - order-level feed (`/ws/l3`, verified on ADA, BTC and SOL): large walls pulled before touch, levels that refill after fills, per-price wall reliability.
+- **Regime guard** - Fear & Greed, open-interest shock, 24h range and funding → RUN / WIDEN / PAUSE. Counters are held while paused and flushed on recovery.
+- **Liquidity heatmap** - time × price × resting notional from the top-20 book.
+- **Reconcile + backfill** - grids persist locally; on reconnect, fills from `/v2/history/fill` are replayed, resting rungs reconciled against `/v2/openOrders`, builder telemetry rebuilt from real history.
+- **Watchdog** - a `201` with no user-stream event within 8 s is checked with `GET /v2/order`; a 404 means Strike silently dropped it and the rung is freed.
+- **Run as vault** - `vault_id` threaded through every grid order; vault list/create/performance panel (prototype, see limits).
+- **Multi-symbol grids, browser alerts, 45-second Judge tour, themed confirm dialogs, mobile layout with a left drawer.**
 
-- **Backtest before you deploy** - the exact range you drew is replayed over 24h / 7d / 30d of *mainnet* candles through the same matching engine and grid code as the live grid. Net PnL after builder fee, annualised return, max drawdown, time-in-range, equity curve.
-- **Smart range** - ATR(14)-based range and a level count that clears Strike's fee floor (`spacing > mid × (maker + taker)`), one click to apply.
-- **Reconcile after reload** - live grids persist locally (no secrets) and are rebuilt from `GET /v2/openOrders` by client-ID prefix on reconnect; rungs that filled or were cancelled while away are dropped.
-- **Head-to-head vs Strike's native grid bot** - same range, same candles: Vektor (geometric, builder fee) vs `/v2/grid/bot` (arithmetic, no builder code). In live mode you can launch the native bot with the same parameters and watch both.
-- **Liquidity heatmap** - Bookmap-style time × price × resting notional from the top-20 book, with the mark overlaid.
-- **Browser alerts** - shield warnings/trims and grid round trips notify even when the tab is in the background.
-- **Multi-symbol grids** - one grid per market, all shielded, listed in the sidebar with per-grid PnL and builder fees.
+---
 
-## Why not just use Strike's native grid bot?
+## 2. How we built it
 
-`POST /v2/grid/bot` exists and is used for comparison, but it **ignores `X-Builder-Fee-Bps`** (grid orders carry no builder code), is arithmetic-only, and can't be shielded from the client. Vektor's grid runs through the batch endpoint so every fill is attributed and paid to the builder - that's the business model.
+Timeline (all within the 48-hour window):
 
-## Architecture
+1. **Read the real API first.** Cloned `strike-builder-reference` and `strike-finance-skills` into `vendor/` and corrected the original brief against them: funding is hourly (not 8h), symbols are `BTC-USD`, enums are lowercase, `/v2/orders/batch` honours the builder fee while TWAP, the native grid bot and `/v2/order/replace` do not. Those facts shaped every design decision.
+2. **Engines as pure modules.** `src/quant/*` has no React and no network; each function takes market rules + fees and returns orders. 22 unit tests before any UI existed.
+3. **One adapter seam, two backends.** `ExecutionAdapter` (`placeBatch`, `cancel`, `cancelAll`, `onFill`, optional `placeStrategy`, `replaceAll`) is implemented by `SimExchange` (in-memory matching: post-only rejects, reduce-only clamps, brackets, isolated liquidations) and `LiveAdapter` (Strike REST + user stream). Demo mode is the real engines, not a mock UI.
+4. **Terminal UI** on top of the reference app's auth, wallets, deposit/withdraw and math, with a central `useVektor` hook owning grids per symbol, shield, hedge, auto-shift, regime, watchdog and persistence.
+5. **Headless worker, CLI and agent skill** reusing the same engines (no browser globals), so "24/7" and "agent-native" are literal.
+6. **Second wave with seven parallel agents** - proof page, CLI/skill, skew + brackets, L3 radar, auto-shift, regime guard, vaults - each on disjoint files with an integration note, then wired into the shared hook/App by hand.
+7. **Live verification on mainnet** - every read endpoint, all three WebSockets, Builder Connect with `vektor`, CLI, worker boot, proof selectors. Landing page, mobile layout and theme passes last.
+
+Decisions worth knowing:
+- **10 bps default builder fee**, not 50: at 50 bps a round trip pays 1% in builder fees alone, which eats most grid spreads. The design card shows net-per-cycle after fees so the break-even is visible.
+- **Order roles live in the client ID** (`vektor-grid-<id>-<rung>-<e|x|s>-<seq>`) so fills route correctly after reconnects and reloads, and the proof page can attribute them without any server of ours.
+- **Copy-trading was evaluated and deliberately not built**: followers mirror fills as taker IOC with no builder code; a grid leader's followers would chase every rung at taker fees.
+
+---
+
+## 3. Architecture
 
 ```
 src/
-  quant/                  pure engines, no React, fully unit-tested
-    gridEngine.ts         planGrid · applyGridFill · restingBuyIds (roles encoded in client_order_id: vektor-grid-<id>-<rung>-<e|x>-<seq>)
-    fundingHarvester.ts   rankFundingOpportunities · buildHedgePlan (tier-based liq) · buildHedgeSliceOrder · fundingFlipped
+  quant/                  pure engines (no React, no network) - all unit-tested
+    gridEngine.ts         planGrid · applyGridFill · reconcileGrid · skew · brackets
+    gridShift.ts          shouldShift · buildShiftedPlan (auto-shift via /v2/orders/replace)
+    fundingHarvester.ts   rankFundingOpportunities · buildHedgePlan · buildHedgeSliceOrder · fundingFlipped
     liquidationShield.ts  assessPosition · evaluateShield (Rules A/B, cooldown) · buildFlattenOrders
     whaleRadar.ts         analyzeDepth · slippageForSize
+    l3Radar.ts            spoof / iceberg detection, wall reliability
+    regime.ts             assessRegime (F&G, OI shock, 24h range, funding)
     backtest.ts           runGridBacktest (candles → SimExchange + gridEngine) · parseKlines
     rangeSuggest.ts       atr · suggestRange
+    backfill.ts           backfillGrid · telemetryFromFills · fundingCollected
+    fillEvent.ts          ORDER_TRADE_UPDATE → FillEvent (shared with the worker)
     types.ts              ExecutionAdapter - the seam between engines and the exchange
-  sim/                    demo mode
-    simExchange.ts        in-memory matching engine implementing ExecutionAdapter (post-only rejects, reduce-only clamps, fees, isolated liquidations)
-    priceSim.ts           deterministic price process + scenarios (flash crash, squeeze, trends) + synthetic book with whale walls
-  api/
-    liveAdapter.ts        ExecutionAdapter over /v2/orders/batch + user-stream fills
-    vektor.ts             batch orders, premiumIndex, native grid bot
-    auth.ts …             from strike-builder-reference (Ed25519 signing, connect, deposit, withdraw)
-  hooks/useVektor.ts      owns adapter + engine state; runs the demo tick loop or wires the live streams
-  components/quant/       GridStudio · GridLadder (SVG) · DepthHeatmap (canvas) · BacktestCard · HeadToHead · ActiveGrids · FundingHarvester · ShieldPanel · VektorHeader · SimControls
-  lib/notify.ts           toasts + Notification API
-vendor/                   upstream strike-builder-reference and strike-finance-skills, for reference
+  sim/                    demo mode: simExchange · priceSim (scenarios) · demoMarkets
+  api/                    auth (Ed25519) · builderConnect · wallets · orders · account · deposit · withdraw (reference)
+                          vektor (batch, replace-all, premium index, native bot) · liveAdapter · history · vaults
+                          regime · publicHistory (proof page) · spotBalance
+  ws/                     priceStream · userStream · l3Stream
+  hooks/                  useVektor (the engine hook) · useRegime · useL3 · reference hooks
+  components/quant/       GridStudio · GridLadder · DepthHeatmap · BacktestCard · HeadToHead · L3Radar
+                          FundingHarvester · ShieldPanel · RegimePanel · VaultPanel · ActiveGrids
+                          VektorHeader · SimControls · JudgeTour · ConfirmDialog
+  proof/                  public proof page (own Vite entry)
+  styles/                 index.css (reference) · vektor.css (layout, mobile) · theme.css (visual system)
+worker/                   headless engine: strikeClient (Node signing/WS) · index.ts · Dockerfile · fly.toml
+cli/                      vektor CLI · lib (pure parsing/formatting)
+skills/vektor-grid/       SKILL.md for Claude Code / Cursor / Codex agents
+docs/VAULTS.md            vault & copy-trading research with verified endpoint shapes
+vendor/                   upstream strike-builder-reference and strike-finance-skills (reference only)
 ```
 
-## Facts verified against the Strike docs (`vendor/strike-finance-skills`)
+Data flow in Live mode: `priceStream` (marks, depth) and `userStream` (fills, positions) feed `useVektor`; engines produce orders; `LiveAdapter` signs and sends them; fills come back on the user stream and are routed by client ID. The worker runs the same loop in Node with `worker/strikeClient.ts`.
 
-- Symbols are `BTC-USD` style; REST enums are lowercase (`buy`, `limit`); sizes are `size`, decimals are strings.
-- Funding is **hourly** at HH:00 UTC; `r` on `markPriceUpdate` is the hourly rate. Positive = longs pay shorts.
-- Signature message `{METHOD}:{PATH}:{TIMESTAMP}:{NONCE}:{BODY_HASH}`; an empty body still hashes (`e3b0c4…`).
-- `/v2/orders/batch`, `/v2/order/strategy`, `/v2/orders/replace` honour `X-Builder-Fee-Bps`; `/v2/order/replace`, TWAP, grid bot and copy-trading do not.
-- Writes are async: `201 pending` means sequenced, not filled. Rejections (e.g. `order_would_match_immediately`) arrive on the user stream - the grid engine handles `CANCELED`/`REJECTED`/`EXPIRED` by freeing the rung.
-- Testnet tier-0 fees: maker 0, taker 0.05%.
+---
 
-## Verify it yourself
+## 4. Strike integration
 
-`/proof.html?account=<strike account_id>&bps=10` re-reads the account's fills, funding and positions from Strike's **public** history selectors (`account_id` / `blockchain_address`, no auth) in the viewer's browser, attributes them by Vektor's client-ID prefixes, reconstructs builder revenue, and prints the exact curl commands used. The header's **Proof ↗** button opens it for the connected account.
+Everything below is exercised by the app; the read endpoints and WebSockets were verified live on mainnet on 2026-10-22.
 
-## Second wave (built by parallel agents, all tested)
+**Trading (API wallet auth, builder fee honoured):** `POST /v2/orders/batch` · `POST /v2/order/strategy` · `POST /v2/orders/replace` · `POST /v2/order` (reduce-only trims, flatten) · `DELETE /v2/order/cancel` · `DELETE /v2/order/cancel-all`
+**Account & history:** `/v2/account` · `/v2/positions` · `/v2/openOrders` · `/v2/symbols` · `/v2/portfolio` · `/v2/history/fill` · `/v2/history/funding` · `/v2/order` (watchdog)
+**Markets & public data:** `/v2/markets` (margin tiers, tick/step/min notional) · `/v2/fee-tiers` · `/v2/grid/bot` (head-to-head) · `/v2/vaults`, `/v2/vault/:id/*` · `/price/v2/depth` · `markPrice` · `premiumIndex` · `klines` · `fearGreed` · `openInterest` · `ticker/24hr` · `/v2/l3/snapshot`
+**WebSockets:** `/ws/price` (`!markPrice@arr`, `@depth`) · `/ws/user-api` (`session.logon`, `ORDER_TRADE_UPDATE`, `ACCOUNT_UPDATE`) · `/ws/l3`
+**Auth:** Ed25519 API wallets (`{METHOD}:{PATH}:{TIMESTAMP}:{NONCE}:{BODY_HASH}`), Builder Connect, `X-Builder-Fee-Bps` on every attributed order.
 
-| Feature | Where | Status |
+Facts the build depends on (all from the official skills): funding is hourly at HH:00 UTC; writes are async (`201 pending` = sequenced, not filled); engine rejections arrive on the user stream; the native grid bot, TWAP and `/v2/order/replace` carry no builder code; empty history lists are `null`.
+
+---
+
+## 5. Verification and proof
+
+- **Proof page** `/proof.html?account=<strike account_id>&bps=10` re-reads the account's fills, funding and positions from Strike's **public** history selectors in the viewer's browser, attributes them by Vektor's client-ID prefixes, reconstructs builder revenue with Strike's own formula (`floor(notional × bps / 10000, 2)`), and prints every curl it ran. The header's **Proof ↗** button opens it for the connected account.
+- **Judge tour** (header button): a 45-second captioned auto-demo - deploy, fills, flash crash, shield cancel + trim, harvester, telemetry.
+- **Audit script** (`scratchpad`, reproducible with the commands in SUBMISSION.md): 14 REST endpoints and 3 WebSockets checked live; CLI `plan`/`backtest`/`smart-range` run against mainnet.
+
+---
+
+## 6. Running it
+
+**Terminal** - `npm run dev`, open `/app.html`. Demo mode needs nothing. Live mode: connect a wallet (Cardano / Solana / EVM), Builder Connect approves `vektor`, deposit USDC, deploy. "Prove-it preset" sets a tight micro-grid that fills within minutes on a liquid book; "Copy proof summary" copies a markdown block for submissions.
+
+**Worker** - `npm run worker` with `STRIKE_API_PUBLIC_KEY` / `STRIKE_API_PRIVATE_KEY` from https://app.strikefinance.org/api-keys. State in `worker/state.json`, grids in `worker/grids.json`, status at `GET :8787/`, `POST /stop/<symbol>`, `POST /panic`. Deploy with `docker compose up -d worker` or `worker/fly.toml`. See [worker/README.md](worker/README.md).
+
+**CLI** - `npm run cli -- <plan|backtest|smart-range|deploy|fills|status|stop|panic> [--json]`. Public commands need no keys.
+
+**Agent skill** - [skills/vektor-grid/SKILL.md](skills/vektor-grid/SKILL.md): install into `.claude/skills/` (or Cursor/Codex equivalents) and an agent can plan, backtest and deploy grids and read the shield through the CLI and worker.
+
+---
+
+## 7. Testing
+
+`npm test` - 78 tests across 15 files: grid lifecycle (fills, partials, cancels, reconcile), skew and brackets, auto-shift (hysteresis, carry-forward, end-to-end sim), funding maths, shield cooldown/pending-trim, whale radar, L3 heuristics, regime scoring, backtester and range suggestion, backfill/telemetry, simulator (post-only rejects, reduce-only clamps, bracket legs), spot-balance CBOR, vault helpers, CLI parsing, and a full jsdom render of the app that deploys, crashes the market, checks the shield log, runs the tour and panics.
+
+`npx tsc --noEmit` is clean; `npm run build` emits all three pages.
+
+---
+
+## 8. Known limits
+
+- **First live order**: every read path, auth and the CLI are verified on mainnet; the first real `/v2/orders/batch` placement is pending account funding at the time of writing.
+- **Vault execution** is a prototype: `vault_id` is on every order and reads are verified, but fills for a vault arrive on the vault's own user-stream socket, which is not subscribed yet. Do not route real money through a vault until that lands.
+- **Worker parity**: the worker runs plain grids + shield; brackets, auto-shift and the regime guard live in the browser hook today.
+- Backtests use mainnet "last" candles and fill every rung a wick touched - optimistic on thin books, and the UI says so. L3 spoof thresholds are hand-tuned.
+- Builder fees are not itemised on fill-history rows; backfilled builder revenue is reconstructed with Strike's formula.
+
+---
+
+## 9. Roadmap
+
+Vektor's revenue is the builder fee on every fill; each milestone multiplies attributed fills on Strike's book.
+
+| When | What | Why it matters |
 |---|---|---|
-| **Funding-aware skew** - rung sizes tilt so accumulated inventory sits on the side that *receives* hourly funding; Σ notional preserved | Grid card toggle · `gridEngine.ts` | engine + sim + live |
-| **Per-rung brackets** - each entry is a `POST /v2/order/strategy` with a stop leg; builder fee on both legs; stop fill retires the rung | Grid card slider | engine + sim + live |
-| **Auto-shift (trailing)** - breakout or edge-dwell → re-centre in one `POST /v2/orders/replace`; inventory carried as exit rungs | "Running grid" toggle | engine + sim + live |
-| **L3 spoof & iceberg radar** - order-level feed (`/ws/l3`, verified ADA + BTC on mainnet), spoof/iceberg signals, wall reliability | Grid tab (Live) | live only |
-| **Regime guard** - Fear & Greed + OI shock + 24h range + funding → RUN / WIDEN / PAUSE; counters held while PAUSE | Sidebar panel | both modes |
-| **Run as vault** - `vault_id` on every grid order; vault list/create/perf panel; builder fee is checked on the leader | Live sidebar · `docs/VAULTS.md` | prototype: deploy path wired, vault user-stream fills **not** yet (see INTEGRATION-vault.md) |
-| **Agent skill + CLI** - `skills/vektor-grid/SKILL.md`, `npm run cli -- plan|backtest|smart-range|deploy|status|stop|panic|fills` | `cli/` | verified vs mainnet |
-| **Public proof page** | `/proof.html` | verified vs mainnet |
+| Weeks 1-2 | **Vektor Grid Vault** - subscribe the vault user stream, handle `vault_withdrawal` closes, open a depositor product running skewed, shielded grids | TVL; every vault fill still pays the builder code (approval is checked on the leader) |
+| Weeks 2-4 | **Worker parity + hosting** - brackets, auto-shift, regime guard headless; sub-account per strategy; Strike DMA endpoint for the hot path | Unattended operation that matches the terminal |
+| Month 2 | **STRIKE flywheel** - route a share of builder revenue into STRIKE staking; staking lowers users' fee tier (`staking_fee_discount_rate`) → wider net-per-cycle → more volume; revenue share for stakers | Aligns Vektor, users and the token |
+| Month 2 | **Social layer** - public strategy pages (the proof page is the seed), one-click clone into a sub-account, leaderboard and referral codes on Builder Connect | Distribution without a sales team |
+| Month 3 | **Multi-venue funding carry** - compare Strike's hourly funding to other venues per asset, route the perp leg to the best rate, spot stays in the wallet | Strike's hourly cadence is a structural edge |
+| Ongoing | **Agent-native** - MCP server over the CLI so any agent operates a scoped Vektor account | Strike is already courting agent traders with `strike-finance-skills` |
 
-Not yet in the headless worker: brackets (`placeStrategy`), auto-shift, regime guard - the hook has them, the worker runs plain grids + shield.
+---
 
-## Roadmap
+## 10. Judging criteria
 
-1. **Vektor Grid Vault** (weeks 1–2): `vault_id` already on every order; add the vault user-stream + withdrawal handling → a depositor product where every fill still pays the builder code.
-2. **Worker parity + hosting** (weeks 2–4): brackets, auto-shift, regime guard headless; sub-account per strategy; DMA hot path.
-3. **STRIKE flywheel** (month 2): builder revenue → STRIKE staking → lower fee tier → wider net-per-cycle → more attributed volume; revenue-share for stakers.
-4. **Social layer** (month 2): public strategy pages (the proof page is the seed), one-click clone, leaderboard + referral codes.
-5. **Multi-venue funding carry** (month 3): route the perp leg to the best hourly rate, spot stays in the wallet.
-6. **Agent-native**: MCP server over the CLI so any agent operates a scoped Vektor account.
+| Criterion | Where Vektor answers it |
+|---|---|
+| Innovation | Funding-aware skew, L3 spoof/iceberg radar, backtest-before-deploy on the real engine, verifiable proof page |
+| Integration with Strike | 20+ endpoints, 3 WebSockets, builder-fee mapping of every order path, engine-spec formulas, vaults and L3 |
+| Utility & impact | Ranging markets become yield, high funding becomes carry, the shield trims before the engine liquidates; continuous attributed maker flow for Strike |
+| Technical execution | Pure engines, one adapter seam, 78 tests, reconcile/backfill/watchdog built for an async engine, headless worker |
+| Future potential | Roadmap above; `vault_id` already threaded; CLI + agent skill shipped |
 
-Full version with the honest prototype list: [SUBMISSION.md](SUBMISSION.md).
-
-## For judges: the 45-second tour
-
-Click **▶ Judge tour** in the header. It switches to Demo, deploys a 12-level grid, lets it fill, triggers a −12% flash crash, shows Aegis cancel the buys and trim the long, tours the Funding Harvester, and ends on the builder-fee telemetry - with captions. Then switch to **Live**, connect a wallet, and the same engines run on Strike mainnet with builder code `vektor`.
-
-## Headless 24/7: the worker
-
-`npm run worker` runs the same grid + shield engines in Node with the API wallet key in the environment, state in a JSON file, fill backfill from `/v2/history/fill` on start, a watchdog for silently-dropped orders, and a status endpoint (`GET :8787/`, `POST /panic`, `POST /stop/<symbol>`). Deploy with `docker compose up -d worker` or the included [worker/fly.toml](worker/fly.toml). See [worker/README.md](worker/README.md). Builder codes and API wallets are self-service at `app.strikefinance.org/builder-codes` and `/api-keys`.
-
-## Known limits (honest list for judges)
-
-- The browser terminal runs its loops while the tab is open; use the worker for 24/7. Both persist grids and reconcile + backfill after a restart.
-- Live order placement with a real API wallet has not yet been exercised end-to-end (needs a registered builder code and testnet margin); every other live read is real.
-- Builder fees are not itemised on `/v2/history/fill` rows, so backfilled builder revenue is reconstructed with Strike's own formula `floor(notional × bps / 10000, 2)`.
-- Backtests use mainnet "last" candles (testnet has no trades); wicks fill every rung they touch, which is optimistic for thin books.
-- Funding "collected" in the demo accrues at ~1 minute per tick so the tracker visibly moves.
+See [SUBMISSION.md](SUBMISSION.md) for the submission text and [DEMO-SCRIPT.md](DEMO-SCRIPT.md) for the video shot list.
