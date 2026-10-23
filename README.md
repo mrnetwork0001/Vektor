@@ -85,6 +85,159 @@ Decisions worth knowing:
 
 ## 3. Architecture
 
+Vektor is built around one idea: **the trading engines are pure functions, and everything else is an adapter.** The same grid, harvester and shield code runs in four places: the browser in Demo mode, the browser in Live mode, the Autopilot server and the headless worker. Only the adapter underneath changes.
+
+### 3.1 System overview
+
+```mermaid
+flowchart LR
+  subgraph Users["Users"]
+    W["Wallets<br/>MetaMask · Phantom · Lace"]
+    AG["AI agents<br/>skills/vektor-grid"]
+  end
+
+  subgraph Vercel["Vercel (tryvektor.vercel.app)"]
+    LP["Landing · Docs<br/>index.html · docs.html"]
+    APP["Terminal<br/>app.html (React)"]
+    PRF["Proof page<br/>proof.html"]
+    RPC["api/rpc.ts<br/>Solana RPC relay"]
+    STS["api/stats.js<br/>live hero stats (1 h cache)"]
+  end
+
+  subgraph VPS["VPS (nginx → pm2)"]
+    AP["Autopilot server<br/>server/ · 127.0.0.1:8920"]
+    KS[("Encrypted key store<br/>AES-256-GCM")]
+  end
+
+  subgraph Strike["Strike Finance V2 (mainnet)"]
+    REST["REST /v2/*<br/>orders · history · positions · markets"]
+    WS["WebSockets<br/>/ws/price · /ws/user-api · /ws/l3"]
+    BC["Builder code<br/>vektor · 10 bps"]
+  end
+
+  CH["Chains<br/>Ethereum · Solana · Cardano"]
+  CLI["CLI + headless worker<br/>cli/ · worker/"]
+
+  W --> APP
+  APP -- "signed orders<br/>X-Builder-Fee-Bps" --> REST
+  WS -- "marks · depth · fills · L3" --> APP
+  APP -- "deposits" --> CH
+  APP -- "Solana reads" --> RPC --> CH
+  APP -- "enroll + signed calls" --> AP
+  AP --> KS
+  AP <--> REST
+  WS --> AP
+  PRF -- "public selectors" --> REST
+  STS --> REST
+  LP --> STS
+  AG --> CLI <--> REST
+  REST --- BC
+```
+
+### 3.2 The engine seam
+
+Every engine in `src/quant/` takes state plus an event and returns new state plus the orders to send. None of them touch the network. They talk to an exchange only through the `ExecutionAdapter` interface in `src/quant/types.ts`.
+
+```mermaid
+flowchart TB
+  subgraph Pure["src/quant · pure, unit-tested (89 tests)"]
+    GE["gridEngine<br/>plan · fill · reconcile · skew · brackets"]
+    GS["gridShift<br/>auto-shift"]
+    FH["fundingHarvester<br/>rank · hedge plan · flip detect"]
+    LS["liquidationShield<br/>Rule A cancel · Rule B trim · cooldown"]
+    RG["regime · l3Radar · whaleRadar"]
+    BT["backtest · rangeSuggest · backfill"]
+  end
+
+  EA{{"ExecutionAdapter"}}
+
+  GE & GS & FH & LS & RG --> EA
+  BT -. "replays candles through" .-> SIM
+
+  EA --> SIM["SimExchange<br/>Demo mode · in-memory matching<br/>post-only rejects · liquidations"]
+  EA --> LIVE["LiveAdapter<br/>browser · Ed25519 signing"]
+  EA --> SRV["AccountEngine<br/>Autopilot server · per tenant"]
+  EA --> WRK["strikeClient<br/>Node worker"]
+
+  LIVE & SRV & WRK --> STRIKE[("Strike V2")]
+```
+
+The backtest therefore runs the exact code that later trades live. Demo mode isn't a mock UI either: it's the real engines on a simulated matching engine.
+
+### 3.3 Life of a grid order (Live mode)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant GS as GridStudio
+  participant H as useVektor
+  participant E as gridEngine
+  participant A as LiveAdapter
+  participant S as Strike V2
+
+  U->>GS: draw range, backtest, deploy
+  GS->>H: GridConfig
+  H->>E: planGrid(config, rules, fees)
+  E-->>H: rungs + post-only orders (client IDs encode grid/rung/role)
+  H->>A: placeBatch(orders)
+  A->>S: POST /v2/orders/batch (Ed25519, X-Builder-Fee-Bps: 10)
+  S-->>A: 201 accepted (async engine)
+  Note over H,S: watchdog re-checks /v2/openOrders for silently dropped orders
+  S--)H: /ws/user-api ORDER_TRADE_UPDATE (fill)
+  H->>E: applyGridFill(state, fill), deduped by trade_id
+  E-->>H: counter order on the opposite side
+  H->>A: placeBatch([counter])
+  A->>S: POST /v2/orders/batch
+  Note over S: builder fee credited to vektor on every fill
+```
+
+After a reload, `useVektor` waits for open orders, then reconciles them against the saved state with `/v2/openOrders` and replays missed fills from `/v2/history/fill`, moving a trade-ID cursor forward as it goes. Every 2 s, `liquidationShield` checks each position's distance to liquidation and cancels buy orders or trims the position before Strike would liquidate it.
+
+### 3.4 Autopilot: grids that run after the tab closes
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser (Live)
+  participant N as nginx (HTTPS)
+  participant AP as Autopilot server
+  participant K as Key store
+  participant S as Strike V2
+
+  B->>N: POST /v1/enroll {apiKeyPair, sig over "vektor-autopilot:enroll:ts:pubkey"}
+  N->>AP: proxy to 127.0.0.1:8920
+  AP->>AP: verify Ed25519 signature
+  AP->>S: GET /v2/account (key really belongs to an account)
+  AP->>K: store private key, AES-256-GCM under VEKTOR_MASTER_KEY
+  B->>AP: POST /v1/grids (signed, ≤120 s old, single use)
+  AP->>S: reconcile · backfill · adopt resting orders
+  loop per tenant
+    S--)AP: user stream fills
+    AP->>S: counter orders (trade-id dedupe)
+    AP->>AP: shield 2 s · watchdog 4 s · auto-shift 3 s · regime 5 s
+  end
+  Note over B,AP: tab closed, grid keeps trading
+  B->>AP: DELETE /v1/enroll stops grids and wipes the key
+```
+
+The stored keys are Strike API wallets, so they can place and cancel orders but can never withdraw. One shared mark-price stream and one regime poller serve all tenants.
+
+### 3.5 Deposits
+
+```mermaid
+flowchart LR
+  APP["Terminal"] --> D{"Wallet chain"}
+  D -- "Ethereum" --> E1["USDC transfer<br/>MetaMask"]
+  D -- "Solana" --> S1["USDC transfer<br/>Phantom · reads via /rpc/solana relay"]
+  D -- "Cardano" --> C1["ADA tx<br/>Lace CIP-30"]
+  E1 & S1 & C1 --> ST["Strike deposit address"] --> AC["Strike account credited<br/>auto-registered"]
+```
+
+All three paths were verified on mainnet (see [§5b](#5b-mainnet-verification-log-2026-10-22)). The Solana relay exists because public Solana RPCs answer browser requests carrying an `Origin` header with 403. `api/rpc.ts` strips that header.
+
+### 3.6 Code map
+
 ```
 src/
   quant/                  pure engines (no React, no network) - all unit-tested
@@ -117,6 +270,8 @@ skills/vektor-grid/       SKILL.md for Claude Code / Cursor / Codex agents
 docs/VAULTS.md            vault & copy-trading research with verified endpoint shapes
 vendor/                   upstream strike-builder-reference and strike-finance-skills (reference only)
 ```
+
+### 3.7 Data flow
 
 Data flow in Live mode: `priceStream` (marks, depth) and `userStream` (fills, positions) feed `useVektor`; engines produce orders; `LiveAdapter` signs and sends them; fills come back on the user stream and are routed by client ID. The worker runs the same loop in Node with `worker/strikeClient.ts`.
 
