@@ -5,7 +5,7 @@
 - Live app: https://tryvektor.vercel.app/app.html (opens in Demo mode; **▶ Judge tour** in the header runs a 45-second guided demo) · landing https://tryvektor.vercel.app · docs https://tryvektor.vercel.app/docs
 - Proof page: https://tryvektor.vercel.app/proof.html?account=01a164cf-36b1-7387-aa2f-199cc57f8c3f&bps=10
 - Repo: https://github.com/mrnetwork0001/Vektor
-- Demo video: `<VIDEO URL>`
+- Demo video: https://youtu.be/B4qtJmidNpc
 - Builder code: `vektor` (registered on mainnet, 10 bps)
 
 ## How it maps to the five criteria
@@ -27,7 +27,7 @@ Every order the grid places carries `X-Builder-Fee-Bps`. We mapped which Strike 
 - For builders: the same engines run headless (`npm run worker`), from a CLI, and from an AI agent via `skills/vektor-grid`.
 
 ### 4. Technical execution
-- Pure, unit-tested engines (78 tests: grid lifecycle, skew, brackets, auto-shift, backtest, shield cooldowns, L3 heuristics, regime scoring, reconcile/backfill, CLI, full app render).
+- Pure, unit-tested engines (89 tests: grid lifecycle, skew, brackets, auto-shift, backtest, shield cooldowns, L3 heuristics, regime scoring, reconcile/backfill, CLI, full app render).
 - One `ExecutionAdapter` seam: Demo mode is the real engines on an in-memory matching engine with post-only rejects, reduce-only clamps and isolated liquidations - not a mock UI.
 - Built for Strike's async engine: client-ID-encoded order roles, watchdog for silently-dropped `201`s, reconcile against `/v2/openOrders` + backfill from `/v2/history/fill` after a reload, per-symbol shield cooldown and pending-trim flag.
 - Headless worker with Dockerfile / fly.toml, state persistence, status + panic endpoints.

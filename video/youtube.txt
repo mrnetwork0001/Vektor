@@ -16,16 +16,17 @@ Cardano, 95 ADA: https://cardanoscan.io/transaction/aaf4deb1f8d0df3b329b1b428624
 Feature clips are recorded in the app's Demo mode (simulated book) and tagged on screen. The Autopilot clip and every figure quoted come from the live mainnet account.
 
 CHAPTERS
-0:00 The problem
-0:15 Why Strike
-0:31 The gap
-0:39 Meet Vektor
-0:48 Grid Studio
-1:02 Backtest & head-to-head
-1:14 Funding Harvester
-1:26 Aegis Shield
-1:37 Autopilot (live mainnet fill)
-1:55 Mainnet proof
-2:11 Under the hood
-2:22 Next: Grid Vault
-2:30 Try it
+0:00 Intro
+0:02 The problem
+0:17 Why Strike
+0:33 The gap
+0:41 Meet Vektor
+0:50 Grid Studio
+1:04 Backtest & head-to-head
+1:16 Funding Harvester
+1:28 Aegis Shield
+1:39 Autopilot (live mainnet fill)
+1:57 Mainnet proof
+2:13 Under the hood
+2:24 Next: Grid Vault
+2:32 Try it

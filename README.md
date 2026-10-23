@@ -2,6 +2,7 @@
 
 Built for the Strike Finance 48-hour hackathon (Oct 21-23, 2026). Vektor is a quantitative execution terminal on Strike's central limit order book: a builder-fee grid studio with real-candle backtesting, a delta-neutral funding harvester, and a 24/7 liquidation shield - plus a headless worker, a CLI and AI-agent skill, and a public proof page so anyone can verify every fill against Strike's own API.
 
+- **Demo video:** https://youtu.be/B4qtJmidNpc
 - **Live:** https://tryvektor.vercel.app · terminal https://tryvektor.vercel.app/app.html · docs https://tryvektor.vercel.app/docs
 - Landing page: `/` · Terminal: `/app.html` · Proof: `/proof.html?account=<id>`
 - Builder code: `vektor` (registered on mainnet, 10 bps)
